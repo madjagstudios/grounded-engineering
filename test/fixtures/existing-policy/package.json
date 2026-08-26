@@ -1,0 +1,6 @@
+{
+  "name": "existing-policy-fixture",
+  "scripts": {
+    "test": "node --test"
+  }
+}

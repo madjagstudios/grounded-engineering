@@ -1,0 +1,1 @@
+# Clean repository fixture
