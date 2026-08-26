@@ -1,5 +1,7 @@
 # Codex Adapter Implementation Plan
 
+Status: shipped in `main` at merge commit `747c92c` via PR #4.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a `codex` output adapter to `grounded-engineering adopt` that emits `AGENTS.md`-shaped guidance, selected by a new `--adapter` flag, reusing the existing preview → create → apply → manifest machinery.

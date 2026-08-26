@@ -1,5 +1,7 @@
 # Codex Adapter Design (GE-9)
 
+Status: shipped in `main` at merge commit `747c92c` via PR #4.
+
 **Goal:** Let `grounded-engineering adopt` emit `AGENTS.md`-shaped output for OpenAI Codex, in addition to the existing provider-neutral Markdown, reusing the preview → create → apply → manifest flow. The external flow is preserved; the internal changes are: a `--adapter` axis with a small registry, two apply changes (a kind allowlist and adapter-driven new-file rendering), proposal-time conflict surfacing in `preview`/`create`, and a one-line manifest-schema widening of the `kind` field — all specified below.
 
 **Ticket:** [GE-9](https://madjagstudios.atlassian.net/browse/GE-9), under epic GE-1.
