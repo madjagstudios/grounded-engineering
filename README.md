@@ -17,7 +17,7 @@ The layers are intentionally separate. Research preserves provenance and decisio
 
 ## Current status
 
-`v0.1.0` is the first release. The first category is Context & Instructions, and the initial source families are OpenAI Codex and Anthropic Claude Code. The repository currently focuses on eight practices around repository context, code quality, testing, and verification.
+`v0.2.0` is the current release; `v0.1.0` established the initial foundation. The completed categories are Context & Instructions and Agent & Skill Design, with OpenAI Codex and Anthropic Claude Code as the initial source families. The repository currently focuses on thirteen practices around repository context, code quality, testing, verification, and agent capability design.
 
 The recommendations are point-in-time observations against pinned sources. Source changes do not silently rewrite cards; re-auditing is a deliberate maintenance step.
 

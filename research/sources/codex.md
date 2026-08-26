@@ -30,3 +30,30 @@ Retrieval date for the documentation pages: 2026-08-26. Repository observations 
 - License/use: repository Apache-2.0; `link-only` for this repository; no policy text copied
 - Observed implementation: the reviewer policy treats tool output and implementation content as evidence that must not silently expand authorization.
 - Generalizable principle: relevance, trust, and authorization are separate dimensions.
+
+## CODEX-SKILL-DESIGN
+
+- Source: `openai/codex`, [skill creator](https://github.com/openai/codex/blob/f5420174dafba153913a3e697f89002c338dfd7e/codex-rs/skills/src/assets/samples/skill-creator/SKILL.md)
+- Immutable reference: commit `f5420174dafba153913a3e697f89002c338dfd7e`
+- Locator: `SKILL.md:10-28` for non-obvious, scoped guidance and progressive disclosure; `:30-46` for the minimal skill anatomy
+- License/use: repository Apache-2.0; `link-only`; concepts are paraphrased
+- Observed implementation: the skill guidance keeps entrypoints focused, moves conditional detail into references, and avoids ancillary files without a concrete use.
+- Generalizable principle: reusable agent capabilities should expose only the context and structure needed for the current task.
+
+## CODEX-SKILL-DESCRIPTION
+
+- Source: `openai/codex`, [skill creator](https://github.com/openai/codex/blob/f5420174dafba153913a3e697f89002c338dfd7e/codex-rs/skills/src/assets/samples/skill-creator/SKILL.md)
+- Immutable reference: commit `f5420174dafba153913a3e697f89002c338dfd7e`
+- Locator: `SKILL.md:48-60` for frontmatter, loading stages, and entrypoint scope; `:189-201` for descriptions and instruction boundaries
+- License/use: repository Apache-2.0; `link-only`; concepts are paraphrased
+- Observed implementation: skill names and descriptions are treated as the pre-load discovery surface, while detailed procedures remain in the body or references.
+- Generalizable principle: activation metadata is an interface and should be concise, discriminating, and honest about when a capability applies.
+
+## CODEX-SKILL-VALIDATION
+
+- Source: `openai/codex`, [skill creator](https://github.com/openai/codex/blob/f5420174dafba153913a3e697f89002c338dfd7e/codex-rs/skills/src/assets/samples/skill-creator/SKILL.md)
+- Immutable reference: commit `f5420174dafba153913a3e697f89002c338dfd7e`
+- Locator: `SKILL.md:203-219` for structural validation, realistic use, and iterative improvement
+- License/use: repository Apache-2.0; `link-only`; concepts are paraphrased
+- Observed implementation: the guidance distinguishes frontmatter validation from proving that a skill makes good decisions, then recommends real usage and targeted iteration when complexity warrants it.
+- Generalizable principle: a valid skill package is not necessarily a useful skill; behavioral validation should match risk and complexity.

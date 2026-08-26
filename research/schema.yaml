@@ -62,7 +62,7 @@ $defs:
         minLength: 8
       category:
         type: string
-        enum: [Code Quality, Testing, Repository Context, Verification]
+        enum: [Code Quality, Testing, Repository Context, Verification, Agent & Skill Design]
       subcategory:
         type: string
         minLength: 3

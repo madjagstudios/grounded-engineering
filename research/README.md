@@ -12,3 +12,8 @@ The core decision path is observed implementation → generalized principle → 
 `ADOPT`, `ADAPT`, `REJECT`, and `DEFER` belong to the evaluated principle in its category. They are not blanket ratings of the source repository or vendor. A `DEFER` decision must include a revisit trigger. A card with `validation.status: not_validated` has not been exercised in a consuming repository; its optional note is reserved for card-specific context.
 
 Research records use link-first evidence. Do not copy large third-party instruction files or documentation prose. Keep source history and detailed locators here so the practice cards can remain concise.
+
+The completed categories are [Context & Instructions](audits/context-and-instructions.md)
+and [Agent & Skill Design](audits/agent-and-skill-design.md). The next category
+will be selected after the current source and release pipeline has been
+reviewed in use.
