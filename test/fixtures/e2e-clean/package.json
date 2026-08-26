@@ -1,0 +1,7 @@
+{
+  "name": "grounded-engineering-e2e-clean",
+  "private": true,
+  "scripts": {
+    "test": "node --version"
+  }
+}

@@ -127,6 +127,18 @@ try {
   errors.push(`packs/manifest-schema.yaml: invalid JSON Schema: ${error.message}`);
 }
 
+try {
+  const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+  if (packageJson.bin?.['grounded-engineering'] !== './bin/grounded-engineering.mjs') {
+    errors.push('package.json: grounded-engineering bin entry is missing or incorrect');
+  }
+  if (!statExists(join(root, 'bin', 'grounded-engineering.mjs'))) {
+    errors.push('bin/grounded-engineering.mjs: configured CLI entrypoint does not exist');
+  }
+} catch (error) {
+  errors.push(`package.json: unable to validate CLI entrypoint: ${error.message}`);
+}
+
 const sourceTexts = walkRepository(join(root, 'research', 'sources'))
   .filter((path) => path.endsWith('.md'))
   .map((path) => read(path))

@@ -11,3 +11,5 @@ Practice cards are the concise consumption surface. They intentionally omit rese
 | Agent & skill design | [Keep skill entrypoints lean](agent-design/lean-skill-entrypoints.md), [Write discriminating triggers](agent-design/discriminating-triggers.md), [Choose the control surface](agent-design/control-surface.md), [Bound delegated work](agent-design/bounded-delegation.md), [Validate real usage](agent-design/real-usage-validation.md) |
 
 Cards are not universal law. Check applicability, boundaries, evidence level, and local policy before translating one into an agent instruction or deterministic control.
+
+The first adoption pack, `baseline`, selects the eight Context & Instructions cards covering repository context, code quality, testing, and verification. The pack preserves each card's canonical ID and public disposition while leaving local applicability and acceptance to the consuming repository's review.

@@ -36,6 +36,21 @@ npm test
 
 The validator is local and deterministic. It does not fetch sources or make repository changes.
 
+## Adopt the baseline
+
+The baseline pack provides a reviewable, provider-neutral starting point for a consuming repository. Preview and create are read-only with respect to canonical policy; create stores a proposal under `.grounded-engineering/proposals/<proposal-id>/`.
+
+```bash
+node bin/grounded-engineering.mjs adopt preview --profile baseline
+node bin/grounded-engineering.mjs adopt create --profile baseline
+# Review proposal.yaml, plan.md, and diff.patch; complete local_decisions.
+node bin/grounded-engineering.mjs adopt apply <proposal-id> --confirm
+```
+
+Apply writes the selected provider-neutral target and `.grounded-engineering/manifest.yaml` only after checking the saved preconditions and explicit local decisions. Existing policy and instruction files are not silently overwritten; managed updates are bounded by card-keyed markers. The first release supports the `baseline` profile and provider-neutral Markdown. `check`, `update propose`, custom selection, and provider-specific adapters are reserved for later releases.
+
+The design and compatibility contract are recorded in [`docs/superpowers/specs/2026-08-26-adoption-packs-design.md`](docs/superpowers/specs/2026-08-26-adoption-packs-design.md), with the implementation plan in [`docs/superpowers/plans/2026-08-26-adoption-packs-implementation.md`](docs/superpowers/plans/2026-08-26-adoption-packs-implementation.md).
+
 ## Evidence posture
 
 The default public evidence form is a paraphrase with an immutable source link and a locator such as a section heading, file path, or pinned commit. Verbatim excerpts are exceptional and require an explicit redistribution decision. Large vendor prompt files and instruction documents are not copied into this repository.
