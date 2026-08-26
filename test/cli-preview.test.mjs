@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
-const root = new URL('../', import.meta.url).pathname;
+const root = fileURLToPath(new URL('../', import.meta.url));
 const bin = join(root, 'bin', 'grounded-engineering.mjs');
 
 test('preview is read-only and reports the baseline plan', () => {
@@ -21,6 +22,30 @@ test('preview is read-only and reports the baseline plan', () => {
   assert.match(result.stdout, /No repository files were changed/);
   assert.equal(existsSync(join(targetRoot, '.grounded-engineering')), false);
   assert.equal(existsSync(join(targetRoot, 'GROUNDED_ENGINEERING.md')), false);
+});
+
+test('resolves its own payload when installed under a path containing spaces', () => {
+  // Regression: the package root was derived via URL.pathname, which leaves
+  // "%20" encoded, so loading packs/ and practices/ failed with ENOENT under
+  // a path with spaces (and on Windows). Run the CLI from such a copy.
+  const base = mkdtempSync(join(tmpdir(), 'grounded-engineering-space-'));
+  const installDir = join(base, 'project with spaces');
+  mkdirSync(installDir);
+  // Copy the runtime payload and its dependencies so the spaced install is
+  // self-contained (bare imports like 'yaml' resolve from node_modules here).
+  for (const dir of ['bin', 'src', 'packs', 'practices', 'node_modules']) {
+    cpSync(join(root, dir), join(installDir, dir), { recursive: true });
+  }
+  const spacedBin = join(installDir, 'bin', 'grounded-engineering.mjs');
+  const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
+
+  const result = spawnSync(process.execPath, [spacedBin, 'adopt', 'preview', '--profile', 'baseline'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /GE-RC-001/);
 });
 
 test('create saves a proposal but does not write the canonical target', () => {

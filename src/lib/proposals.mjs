@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync, unlinkSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { dirname, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { stringify, parse } from 'yaml';
 import { loadPack } from './packs.mjs';
 import { loadPracticeCards, resolveCardReference } from './cards.mjs';
@@ -93,7 +94,7 @@ export function collectLocalDecisions(cards, input) {
 }
 
 export function buildProposal(targetRoot, options = {}) {
-  const sourceRoot = options.sourceRoot ?? resolve(new URL('../../', import.meta.url).pathname);
+  const sourceRoot = options.sourceRoot ?? resolve(fileURLToPath(new URL('../../', import.meta.url)));
   const packId = options.packId ?? 'baseline';
   const { pack, cards } = proposalCards(sourceRoot, packId, options.cardReferences);
   const preflight = inspectRepository(targetRoot);
@@ -345,7 +346,7 @@ export function writeApplyTransaction(root, changes) {
 export function applyProposal(root, proposalId, options = {}) {
   if (!options.confirm) throw new Error('Apply requires explicit confirmation with --confirm');
   const proposal = loadProposal(root, proposalId);
-  const sourceRoot = options.sourceRoot ?? resolve(new URL('../../', import.meta.url).pathname);
+  const sourceRoot = options.sourceRoot ?? resolve(fileURLToPath(new URL('../../', import.meta.url)));
   const pack = loadPack(sourceRoot, proposal.pack_id);
   const cards = validateProposalAgainstPack(proposal, pack);
   const decisions = collectLocalDecisions(cards, options.decisions ?? proposal.local_decisions);

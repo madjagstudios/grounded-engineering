@@ -1,9 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { parse } from 'yaml';
 
-const repositoryRoot = resolve(new URL('../../', import.meta.url).pathname);
+const repositoryRoot = resolve(fileURLToPath(new URL('../../', import.meta.url)));
 
 export function getManifestValidator(root = repositoryRoot) {
   const schema = parse(readFileSync(`${root}/packs/manifest-schema.yaml`, 'utf8'));

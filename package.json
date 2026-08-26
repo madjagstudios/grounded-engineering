@@ -4,7 +4,7 @@
   "description": "Source-backed engineering practices for professional software development and AI-assisted work.",
   "type": "module",
   "bin": {
-    "grounded-engineering": "./bin/grounded-engineering.mjs"
+    "grounded-engineering": "bin/grounded-engineering.mjs"
   },
   "files": [
     "bin",
