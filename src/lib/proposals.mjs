@@ -74,6 +74,9 @@ export function collectLocalDecisions(cards, input) {
     if (record.local_applicability === 'NEEDS_REVIEW' && record.local_decision) {
       throw new Error(`${card.id} cannot have local_decision while it needs review`);
     }
+    if (record.local_applicability === 'NEEDS_REVIEW') {
+      throw new Error(`${card.id} remains NEEDS_REVIEW; complete the local review before apply`);
+    }
     if (record.local_decision && !decisionValues.has(record.local_decision)) {
       throw new Error(`Invalid local_decision for ${card.id}`);
     }
@@ -132,6 +135,7 @@ export function buildProposal(targetRoot, options = {}) {
       kind: 'provider-neutral-markdown',
       precondition_sha256: fingerprint.precondition_sha256,
       managed_block_sha256: fingerprint.managed_block_sha256,
+      before_content: existingText,
       content: proposedContent,
       blocks,
     }],
@@ -141,9 +145,37 @@ export function buildProposal(targetRoot, options = {}) {
 
 export function renderProposalDiff(targets) {
   return targets.map((target) => {
-    const lines = target.content.replace(/\r\n/g, '\n').split('\n');
-    const body = lines.map((line) => `+${line}`).join('\n');
-    return [`--- a/${target.path}`, `+++ b/${target.path}`, `@@ -0,0 +${lines.length} @@`, body].join('\n');
+    const before = target.before_content === null || target.before_content === undefined
+      ? null
+      : target.before_content.replace(/\r\n/g, '\n').split('\n');
+    const after = target.content.replace(/\r\n/g, '\n').split('\n');
+    if (before?.at(-1) === '') before.pop();
+    if (after.at(-1) === '') after.pop();
+    if (before === null) {
+      return [`--- /dev/null`, `+++ b/${target.path}`, `@@ -0,0 +1,${after.length} @@`, ...after.map((line) => `+${line}`)].join('\n');
+    }
+
+    if (before.length === after.length && before.every((line, index) => line === after[index])) {
+      return [`--- a/${target.path}`, `+++ b/${target.path}`].join('\n');
+    }
+
+    let prefix = 0;
+    while (prefix < before.length && prefix < after.length && before[prefix] === after[prefix]) prefix += 1;
+    let suffix = 0;
+    while (suffix < before.length - prefix && suffix < after.length - prefix && before[before.length - 1 - suffix] === after[after.length - 1 - suffix]) suffix += 1;
+    const context = 3;
+    const oldStart = Math.max(0, prefix - context);
+    const newStart = Math.max(0, prefix - context);
+    const oldEnd = Math.min(before.length, before.length - suffix + context);
+    const lines = [];
+    for (let index = oldStart; index < prefix && index < oldEnd; index += 1) lines.push(` ${before[index]}`);
+    for (let index = prefix; index < before.length - suffix; index += 1) lines.push(`-${before[index]}`);
+    for (let index = prefix; index < after.length - suffix; index += 1) lines.push(`+${after[index]}`);
+    for (let index = Math.max(prefix, before.length - suffix); index < oldEnd; index += 1) lines.push(` ${before[index]}`);
+    const oldCount = oldEnd - oldStart;
+    const trailingContext = oldEnd - Math.max(prefix, before.length - suffix);
+    const newCount = (prefix - oldStart) + (after.length - prefix - suffix) + trailingContext;
+    return [`--- a/${target.path}`, `+++ b/${target.path}`, `@@ -${oldStart + 1},${oldCount} +${newStart + 1},${newCount} @@`, ...lines].join('\n');
   }).join('\n');
 }
 
@@ -212,7 +244,7 @@ function validateProposalAgainstPack(proposal, pack) {
   return expectedCards;
 }
 
-function buildApplyChanges(root, proposal, cards, decisions) {
+function buildApplyChanges(root, proposal, pack, cards, decisions) {
   const manifestPath = '.grounded-engineering/manifest.yaml';
   if (existsSync(safeRepositoryPath(root, manifestPath))) {
     throw new Error('A Grounded Engineering manifest already exists; update is reserved for a later release');
@@ -231,7 +263,7 @@ function buildApplyChanges(root, proposal, cards, decisions) {
     const blocks = cards.map((card) => ({ cardId: card.id, content: renderCardContent(card) }));
     let proposedContent;
     if (currentText === null) {
-      proposedContent = renderBaselineDocument(proposal, cards);
+      proposedContent = renderBaselineDocument(pack, cards);
     } else {
       const merged = mergeManagedBlocks(currentText, blocks, {
         expectedPreconditionSha256: target.precondition_sha256,
@@ -317,7 +349,7 @@ export function applyProposal(root, proposalId, options = {}) {
   const pack = loadPack(sourceRoot, proposal.pack_id);
   const cards = validateProposalAgainstPack(proposal, pack);
   const decisions = collectLocalDecisions(cards, options.decisions ?? proposal.local_decisions);
-  const { changes, manifest } = buildApplyChanges(root, proposal, cards, decisions);
+  const { changes, manifest } = buildApplyChanges(root, proposal, pack, cards, decisions);
   const transaction = writeApplyTransaction(root, changes);
   return { ...transaction, manifest };
 }

@@ -6,6 +6,7 @@ export function sha256Text(text) {
 }
 
 export function fingerprintTarget(path, text, proposedBlocks) {
+  // Drift checks must use this helper so marker-inclusive hashing stays consistent.
   const renderedBlocks = proposedBlocks
     .map(({ cardId, content }) => normalizeManagedContent(renderManagedBlock(cardId, content)))
     .join('\n\n');

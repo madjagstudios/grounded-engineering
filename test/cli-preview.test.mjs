@@ -69,3 +69,15 @@ test('non-interactive apply requires explicit confirmation', () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, /--confirm/);
 });
+
+test('custom card selection remains preview-only in this release', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'create', '--cards', 'GE-RC-001'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /preview only/);
+  assert.equal(existsSync(join(targetRoot, '.grounded-engineering')), false);
+});

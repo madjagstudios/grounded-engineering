@@ -43,8 +43,22 @@ test('renders a stable file-by-file proposal diff without timestamps', () => {
     { path: 'docs/grounded-engineering.md', content: 'Generated guidance.\n' }
   ]);
 
-  assert.match(diff, /^--- a\/docs\/grounded-engineering\.md/m);
+  assert.match(diff, /^--- \/dev\/null$/m);
   assert.match(diff, /^\+\+\+ b\/docs\/grounded-engineering\.md/m);
   assert.match(diff, /^\+Generated guidance\.$/m);
   assert.doesNotMatch(diff, /2026-08-26/);
+});
+
+test('renders an existing-file merge as a true patch', () => {
+  const diff = renderProposalDiff([{
+    path: 'docs/grounded-engineering.md',
+    before_content: '# Existing policy\n\nKeep this paragraph.\n',
+    content: '# Existing policy\n\nKeep this paragraph.\n\nGenerated guidance.\n'
+  }]);
+
+  assert.match(diff, /^--- a\/docs\/grounded-engineering\.md$/m);
+  assert.match(diff, /^ # Existing policy$/m);
+  assert.match(diff, /^\+Generated guidance\.$/m);
+  assert.doesNotMatch(diff, /^\+# Existing policy$/m);
+  assert.doesNotMatch(diff, /@@ -0,0/);
 });

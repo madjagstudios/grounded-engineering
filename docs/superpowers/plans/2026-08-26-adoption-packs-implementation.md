@@ -316,6 +316,8 @@ The first release should not add provider-specific integration files, a hosted s
   - `grounded-engineering adopt apply 20260826-143000-a1b2c3d4 --confirm` — apply one saved proposal;
   - `grounded-engineering check` and `grounded-engineering update propose` are reserved fast-follow commands and return a documented not-supported exit code in this release.
 
+  `--cards` is intentionally preview-only in this release. Create and apply accept the versioned `baseline` pack until custom pack proposal and apply semantics are implemented.
+
 - [ ] **Step 1: Write proposal and CLI contract tests.**
 
   Assert that proposal IDs match the exact UTC format, proposal paths cannot escape `.grounded-engineering/proposals`, preview leaves the fixture tree unchanged, `create` writes only proposal artifacts, unknown options fail with usage text, and `apply` without `--confirm` is rejected in non-interactive mode.
@@ -386,7 +388,7 @@ The first release should not add provider-specific integration files, a hosted s
 
 **Interfaces:**
 - `applyProposal(root, proposalId, options) -> ApplyResult` rechecks all preconditions, validates the pack/schema/proposal, obtains explicit local decisions, merges only managed blocks, writes approved targets and the manifest, and returns changed paths plus fingerprints.
-- `collectLocalDecisions(cards, input) -> LocalDecisionRecord[]` requires `local_applicability`; requires `local_decision` when applicability is `APPLICABLE`; requires `revisit_trigger` when local decision is `DEFER`.
+- `collectLocalDecisions(cards, input) -> LocalDecisionRecord[]` requires `local_applicability`; requires a local decision when applicability is `APPLICABLE`; rejects `NEEDS_REVIEW` at apply time; requires `revisit_trigger` when local decision is `DEFER`.
 - `writeApplyTransaction(root, changes) -> { committedPaths }` verifies every change in memory before writing, writes through temporary files, and restores the original target set if a write/rename fails.
 
 - [ ] **Step 1: Write apply and manifest tests.**

@@ -73,6 +73,7 @@ properties:
             not:
               required: [local_decision]
         - if:
+            required: [local_decision]
             properties:
               local_decision:
                 const: DEFER

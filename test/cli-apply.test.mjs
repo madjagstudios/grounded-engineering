@@ -85,6 +85,31 @@ test('applies a reviewed proposal to a new target and writes a valid manifest', 
   assert.match(manifest.targets[0].managed_block_sha256, /^[0-9a-f]{64}$/);
 });
 
+test('requires reviewed local decisions before apply', () => {
+  const targetRoot = copyFixture('apply-clean');
+  const { proposal } = createReviewedProposal(targetRoot);
+  assert.throws(
+    () => applyProposal(targetRoot, proposal.proposal_id, { sourceRoot: root, confirm: true }),
+    /remains NEEDS_REVIEW/
+  );
+  assert.equal(existsSync(join(targetRoot, 'GROUNDED_ENGINEERING.md')), false);
+  assert.equal(existsSync(join(targetRoot, '.grounded-engineering', 'manifest.yaml')), false);
+});
+
+test('applies a not-applicable card through the manifest path', () => {
+  const targetRoot = copyFixture('apply-clean');
+  const { proposal } = createReviewedProposal(targetRoot);
+  const decisions = proposal.cards.map((card) => card.id === 'GE-RC-001'
+    ? { id: card.id, local_applicability: 'NOT_APPLICABLE' }
+    : { id: card.id, local_applicability: 'APPLICABLE', local_decision: 'ACCEPT' });
+  applyProposal(targetRoot, proposal.proposal_id, { sourceRoot: root, confirm: true, decisions });
+  const manifest = parse(readFileSync(join(targetRoot, '.grounded-engineering', 'manifest.yaml'), 'utf8'));
+  const notApplicable = manifest.cards.find((card) => card.id === 'GE-RC-001');
+  assert.equal(notApplicable.local_applicability, 'NOT_APPLICABLE');
+  assert.equal(Object.hasOwn(notApplicable, 'local_decision'), false);
+  assert.equal(validateManifest(manifest, root).valid, true);
+});
+
 test('preserves bytes outside managed blocks in an existing target', () => {
   const targetRoot = copyFixture('apply-existing');
   const targetPath = join(targetRoot, 'docs', 'grounded-engineering.md');

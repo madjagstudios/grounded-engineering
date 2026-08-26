@@ -9,6 +9,8 @@ export function walkRepository(directory) {
 
   const files = [];
   for (const entry of entries) {
+    // Symlinked directories are intentionally not traversed, preventing cycles and escaping the repository root.
+    if (entry.isSymbolicLink()) continue;
     if (entry.isDirectory() && ignoredDirectories.has(entry.name)) continue;
 
     const path = join(directory, entry.name);

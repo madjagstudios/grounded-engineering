@@ -99,6 +99,8 @@ grounded-engineering adopt preview --profile baseline
 grounded-engineering adopt preview --cards inspect-repository-first,claims-match-evidence
 ```
 
+In the first release, arbitrary `--cards` selection is preview-only. `create` and `apply` support the versioned `baseline` pack; custom selections become applicable once custom packs have a complete proposal and apply contract.
+
 ### 3. Integration plan
 
 Before producing files, the tool explains where each selected practice would go:
@@ -173,6 +175,8 @@ After application, the repository receives a small `.grounded-engineering/manife
 The durable manifest intentionally excludes generation and application timestamps so repeated generation from the same inputs does not create meaningless diff churn. Timestamps belong in the non-durable proposal metadata. The manifest is for humans and tooling, not routine agent context. It lets the user explain what was accepted and lets later checks identify drift without rereading every card manually.
 
 If `local_decision` is `DEFER`, `revisit_trigger` is required, matching the public research rule. If `local_applicability` is `NOT_APPLICABLE`, the applicability status explains why and the card is not treated as rejected.
+
+Application refuses any card that remains `NEEDS_REVIEW`; every selected card must be explicitly marked `APPLICABLE` with a local decision or `NOT_APPLICABLE` without one before confirmation can write files.
 
 For each target, the manifest records both the full-file precondition fingerprint captured at proposal generation and the normalized managed-block fingerprint expected after application. This allows application to refuse stale targets and allows `check` to detect edits inside managed blocks without pretending it can judge arbitrary policy prose semantically.
 

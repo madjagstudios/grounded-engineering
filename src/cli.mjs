@@ -161,6 +161,8 @@ export async function runCli(argv, context = {}) {
     }
     validateSelection(options);
     if (action !== 'apply' && options.confirm) throw new Error('--confirm is only valid for adopt apply');
+    if (action === 'create' && options.cards) throw new Error('--cards is supported for preview only until custom packs are released');
+    if (action === 'apply' && options.cards) throw new Error('--cards is not valid for adopt apply');
     if (action === 'apply') {
       const proposalId = argv[2];
       const result = applyProposal(root, proposalId, { sourceRoot, confirm: options.confirm });
