@@ -19,10 +19,10 @@ evidence_level: recommended
 source_ids: [CODEX-AGENTS-GUIDE, CLAUDE-ENFORCEMENT-BOUNDARY]
 evidence_refs:
   - source_id: CODEX-AGENTS-GUIDE
-    locator: repository instruction guide sections on guidance and verification
+    locator: official guide section `How Codex discovers guidance`
     relationship: generalized_principle
   - source_id: CLAUDE-ENFORCEMENT-BOUNDARY
-    locator: memory documentation sections distinguishing guidance from enforcement
+    locator: official memory documentation sections distinguishing context from enforcement; retrieved 2026-08-26
     relationship: generalized_principle
 validation:
   status: not_validated

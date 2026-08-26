@@ -19,13 +19,13 @@ evidence_level: observed
 source_ids: [CODEX-AGENTS-GUIDE, CLAUDE-MEMORY-HIERARCHY, CLAUDE-ENFORCEMENT-BOUNDARY]
 evidence_refs:
   - source_id: CODEX-AGENTS-GUIDE
-    locator: repository instruction guide sections on repository and nested guidance
+    locator: official guide section `How Codex discovers guidance`
     relationship: generalized_principle
   - source_id: CLAUDE-MEMORY-HIERARCHY
-    locator: memory documentation sections on imports and scoped instructions
+    locator: official memory documentation sections on imports and scoped instructions; retrieved 2026-08-26
     relationship: observed_implementation
   - source_id: CLAUDE-ENFORCEMENT-BOUNDARY
-    locator: memory documentation sections distinguishing instructions from controls
+    locator: official memory documentation sections distinguishing guidance from controls; retrieved 2026-08-26
     relationship: generalized_principle
 validation:
   status: not_validated

@@ -19,10 +19,10 @@ evidence_level: recommended
 source_ids: [CODEX-TRUST-BOUNDARY, CLAUDE-ENFORCEMENT-BOUNDARY]
 evidence_refs:
   - source_id: CODEX-TRUST-BOUNDARY
-    locator: Guardian policy sections separating authorization evidence from implementation evidence
+    locator: policy_template.md:5-13, :15-26, and :64-76 for evidence handling, authorization, and outcome policy
     relationship: generalized_principle
   - source_id: CLAUDE-ENFORCEMENT-BOUNDARY
-    locator: memory documentation sections distinguishing guidance from enforcement
+    locator: official memory documentation sections distinguishing guidance from enforcement; retrieved 2026-08-26
     relationship: generalized_principle
 validation:
   status: not_validated

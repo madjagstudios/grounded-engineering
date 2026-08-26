@@ -19,10 +19,10 @@ evidence_level: recommended
 source_ids: [CLAUDE-LOCAL-CONTEXT, CODEX-AGENTS-IMPLEMENTATION]
 evidence_refs:
   - source_id: CLAUDE-LOCAL-CONTEXT
-    locator: memory documentation sections on local context and scoped instructions
+    locator: official memory documentation sections on local context and scoped instructions; retrieved 2026-08-26
     relationship: generalized_principle
   - source_id: CODEX-AGENTS-IMPLEMENTATION
-    locator: agents_md.rs sections on root, path, and context boundaries
+    locator: agents_md.rs:1-16 and :185-187 for root and path boundaries
     relationship: generalized_principle
 validation:
   status: not_validated

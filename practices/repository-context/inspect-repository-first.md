@@ -19,13 +19,13 @@ evidence_level: observed
 source_ids: [CODEX-AGENTS-GUIDE, CODEX-AGENTS-IMPLEMENTATION, CLAUDE-MEMORY-HIERARCHY]
 evidence_refs:
   - source_id: CODEX-AGENTS-GUIDE
-    locator: repository instruction guide sections on discovery order and nested instructions
+    locator: official guide section `How Codex discovers guidance`
     relationship: observed_implementation
   - source_id: CODEX-AGENTS-IMPLEMENTATION
-    locator: agents_md.rs root detection and candidate ordering
+    locator: agents_md.rs:1-16 and :185-187 for root detection and candidate ordering
     relationship: observed_implementation
   - source_id: CLAUDE-MEMORY-HIERARCHY
-    locator: memory documentation sections on hierarchy and path rules
+    locator: official memory documentation sections on hierarchy and path rules; retrieved 2026-08-26
     relationship: observed_implementation
 validation:
   status: not_validated

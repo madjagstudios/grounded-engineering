@@ -19,10 +19,10 @@ evidence_level: recommended
 source_ids: [CODEX-AGENTS-IMPLEMENTATION, CLAUDE-LOCAL-CONTEXT]
 evidence_refs:
   - source_id: CODEX-AGENTS-IMPLEMENTATION
-    locator: agents_md.rs sections on multiple roots, candidate order, and loaded-source provenance
+    locator: agents_md.rs:1-16, :115-183, and :185-187 for roots, ordering, bounded reads, and provenance
     relationship: generalized_principle
   - source_id: CLAUDE-LOCAL-CONTEXT
-    locator: memory documentation sections on nested and imported context
+    locator: official memory documentation sections on nested, imported, and path-scoped context; retrieved 2026-08-26
     relationship: generalized_principle
 validation:
   status: not_validated
