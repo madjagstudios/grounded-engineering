@@ -4,7 +4,9 @@ import process from 'node:process';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { parse } from 'yaml';
 import { parsePracticeFrontmatter } from '../src/lib/frontmatter.mjs';
+import { loadPack } from '../src/lib/packs.mjs';
 import { walkRepository } from '../src/lib/repository-walk.mjs';
+import { getManifestValidator } from '../src/lib/manifest.mjs';
 
 const root = resolve(new URL('..', import.meta.url).pathname);
 const errors = [];
@@ -111,6 +113,18 @@ if (validateRecord) {
       errors.push(`${displayPath(path)}: REJECT requires a substantive rationale`);
     }
   }
+}
+
+try {
+  loadPack(root, 'baseline');
+} catch (error) {
+  errors.push(`packs/baseline.yaml: ${error.message}`);
+}
+
+try {
+  getManifestValidator(root);
+} catch (error) {
+  errors.push(`packs/manifest-schema.yaml: invalid JSON Schema: ${error.message}`);
 }
 
 const sourceTexts = walkRepository(join(root, 'research', 'sources'))

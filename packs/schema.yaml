@@ -1,0 +1,56 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://grounded.engineering/packs/schema/1.0.0
+title: Grounded Engineering adoption pack
+type: object
+additionalProperties: false
+required:
+  - record_type
+  - pack_id
+  - pack_version
+  - schema_version
+  - grounded_engineering_release
+  - min_cli_version
+  - title
+  - description
+  - target
+  - card_ids
+properties:
+  record_type:
+    const: adoption_pack
+  pack_id:
+    type: string
+    pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+  pack_version:
+    type: string
+    pattern: '^(?:0|[1-9][0-9]*)\.[0-9]+\.[0-9]+$'
+  schema_version:
+    type: string
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+  grounded_engineering_release:
+    type: string
+    pattern: '^v[0-9]+\.[0-9]+\.[0-9]+$'
+  min_cli_version:
+    type: string
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+  title:
+    type: string
+    minLength: 8
+  description:
+    type: string
+    minLength: 20
+  target:
+    type: object
+    additionalProperties: false
+    required: [kind, path_strategy]
+    properties:
+      kind:
+        const: provider-neutral-markdown
+      path_strategy:
+        const: docs-or-root-grounded-engineering
+  card_ids:
+    type: array
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: string
+      pattern: '^GE-[A-Z]+-[0-9]{3}$'

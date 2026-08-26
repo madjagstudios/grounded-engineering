@@ -1,0 +1,113 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://grounded.engineering/packs/manifest-schema/1.0.0
+title: Grounded Engineering local adoption manifest
+type: object
+additionalProperties: false
+required:
+  - record_type
+  - manifest_version
+  - schema_version
+  - grounded_engineering_release
+  - pack_id
+  - pack_version
+  - cards
+  - targets
+  - validation
+properties:
+  record_type:
+    const: adoption_manifest
+  manifest_version:
+    const: 1.0.0
+  schema_version:
+    const: 1.0.0
+  grounded_engineering_release:
+    type: string
+    pattern: '^v[0-9]+\.[0-9]+\.[0-9]+$'
+  pack_id:
+    type: string
+    pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+  pack_version:
+    type: string
+    pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+  cards:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      additionalProperties: false
+      required: [id, public_disposition, local_applicability, source_refs]
+      properties:
+        id:
+          type: string
+          pattern: '^GE-[A-Z]+-[0-9]{3}$'
+        public_disposition:
+          type: string
+          enum: [ADOPT, ADAPT, REJECT, DEFER]
+        local_applicability:
+          type: string
+          enum: [APPLICABLE, NOT_APPLICABLE, NEEDS_REVIEW]
+        local_decision:
+          type: string
+          enum: [ACCEPT, ADAPT, DECLINE, DEFER]
+        revisit_trigger:
+          type: string
+          minLength: 4
+        source_refs:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            minLength: 3
+      allOf:
+        - if:
+            properties:
+              local_applicability:
+                const: APPLICABLE
+          then:
+            required: [local_decision]
+        - if:
+            properties:
+              local_applicability:
+                const: NOT_APPLICABLE
+          then:
+            not:
+              required: [local_decision]
+        - if:
+            properties:
+              local_decision:
+                const: DEFER
+          then:
+            required: [revisit_trigger]
+  targets:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      additionalProperties: false
+      required: [path, kind, precondition_sha256, managed_block_sha256]
+      properties:
+        path:
+          type: string
+          pattern: '^(?!/)(?!.*(?:^|/)\.\.(?:/|$)).+\.md$'
+        kind:
+          const: provider-neutral-markdown
+        precondition_sha256:
+          oneOf:
+            - const: absent
+            - type: string
+              pattern: '^[0-9a-f]{64}$'
+        managed_block_sha256:
+          type: string
+          pattern: '^[0-9a-f]{64}$'
+  validation:
+    type: object
+    additionalProperties: false
+    required: [status]
+    properties:
+      status:
+        type: string
+        enum: [validated, not_validated]
+      errors:
+        type: array
+        items:
+          type: string
