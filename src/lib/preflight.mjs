@@ -4,6 +4,7 @@ import { walkRepository } from './repository-walk.mjs';
 
 const instructionNames = new Set(['AGENTS.md', 'CLAUDE.md', 'copilot-instructions.md']);
 const packageFiles = new Set(['package.json', 'pyproject.toml', 'Cargo.toml', 'go.mod', 'pom.xml', 'Gemfile']);
+const codexOverrideNames = ['AGENTS.override.md'];
 
 function relativePath(root, path) {
   return relative(root, path).split('/').join('/');
@@ -48,4 +49,14 @@ export function chooseProviderNeutralTarget(report) {
     reason: report.hasDocsDirectory ? 'docs directory exists' : 'docs directory is absent',
     existing: existsSync(join(report.root, path)),
   };
+}
+
+export function chooseCodexTarget(report) {
+  const override = codexOverrideNames.find((name) => existsSync(join(report.root, name)));
+  if (override) {
+    throw new Error(`Codex reads ${override} when present, so it supersedes AGENTS.md and no Codex file was generated. Remove or consolidate ${override}, or target it manually.`);
+  }
+
+  const path = 'AGENTS.md';
+  return { path, existing: existsSync(join(report.root, path)) };
 }

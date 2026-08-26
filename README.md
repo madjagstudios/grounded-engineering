@@ -60,7 +60,21 @@ grounded-engineering adopt create --profile baseline
 grounded-engineering adopt apply <proposal-id> --confirm
 ```
 
-Apply writes the selected provider-neutral target and `.grounded-engineering/manifest.yaml` only after checking the saved preconditions and explicit local decisions. Existing policy and instruction files are not silently overwritten; managed updates are bounded by card-keyed markers. The first release supports the `baseline` profile and provider-neutral Markdown. `check`, `update propose`, custom selection, and provider-specific adapters are reserved for later releases.
+### Provider adapters
+
+By default `adopt` emits provider-neutral Markdown. Pass `--adapter codex` to
+target an `AGENTS.md` for OpenAI Codex instead:
+
+```bash
+grounded-engineering adopt preview --profile baseline --adapter codex
+```
+
+The Codex adapter writes into a card-keyed managed block in `AGENTS.md`
+(creating the file if absent), preserving any content you already have. If a
+Codex override file governs instruction resolution, the tool reports it and
+generates nothing rather than writing to a file Codex will not read.
+
+Apply writes the selected target and `.grounded-engineering/manifest.yaml` only after checking the saved preconditions and explicit local decisions. Existing policy and instruction files are not silently overwritten; managed updates are bounded by card-keyed markers. The first release supports the `baseline` profile, provider-neutral Markdown, and the Codex adapter. `check`, `update propose`, custom selection, and additional provider-specific adapters are reserved for later releases.
 
 The design and compatibility contract are recorded in [`docs/superpowers/specs/2026-08-26-adoption-packs-design.md`](docs/superpowers/specs/2026-08-26-adoption-packs-design.md), with the implementation plan in [`docs/superpowers/plans/2026-08-26-adoption-packs-implementation.md`](docs/superpowers/plans/2026-08-26-adoption-packs-implementation.md).
 

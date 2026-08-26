@@ -3,10 +3,11 @@ import { randomBytes } from 'node:crypto';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stringify, parse } from 'yaml';
+import { resolveAdapter, resolveAdapterByKind } from './adapters.mjs';
 import { loadPack } from './packs.mjs';
 import { loadPracticeCards, resolveCardReference } from './cards.mjs';
-import { inspectRepository, chooseProviderNeutralTarget } from './preflight.mjs';
-import { renderBaselineDocument, renderCardContent, renderReviewMetadata } from './rendering.mjs';
+import { inspectRepository } from './preflight.mjs';
+import { renderCardContent, renderReviewMetadata } from './rendering.mjs';
 import { mergeManagedBlocks } from './managed-blocks.mjs';
 import { fingerprintTarget, sha256Text } from './fingerprints.mjs';
 import { buildManifest, validateManifest } from './manifest.mjs';
@@ -98,13 +99,14 @@ export function buildProposal(targetRoot, options = {}) {
   const packId = options.packId ?? 'baseline';
   const { pack, cards } = proposalCards(sourceRoot, packId, options.cardReferences);
   const preflight = inspectRepository(targetRoot);
-  const target = chooseProviderNeutralTarget(preflight);
+  const adapter = resolveAdapter(options.adapter ?? 'neutral');
+  const target = adapter.chooseTarget(preflight);
   const targetPath = join(targetRoot, target.path);
   const existingText = existsSync(targetPath) ? readFileSync(targetPath, 'utf8') : null;
   const blocks = targetBlocks(cards);
-  const proposedContent = existingText === null
-    ? renderBaselineDocument(pack, cards)
-    : mergeManagedBlocks(existingText, blocks).text;
+  const merged = existingText === null ? null : mergeManagedBlocks(existingText, blocks);
+  const proposedContent = existingText === null ? adapter.renderDocument(pack, cards) : merged.text;
+  const conflicts = merged?.conflicts ?? [];
   const fingerprint = fingerprintTarget(target.path, existingText, blocks);
   const now = options.now ?? new Date();
   const proposalId = options.proposalId ?? createProposalId(now, options.randomBytes ?? randomBytes(4));
@@ -117,6 +119,7 @@ export function buildProposal(targetRoot, options = {}) {
     schema_version: pack.schema_version,
     grounded_engineering_release: pack.grounded_engineering_release,
     profile: options.profile ?? pack.pack_id,
+    adapter: adapter.id,
     cards: cards.map((card) => ({
       id: card.id,
       slug: card.slug,
@@ -133,12 +136,13 @@ export function buildProposal(targetRoot, options = {}) {
     preflight: serializablePreflight(preflight),
     targets: [{
       path: target.path,
-      kind: 'provider-neutral-markdown',
+      kind: adapter.kind,
       precondition_sha256: fingerprint.precondition_sha256,
       managed_block_sha256: fingerprint.managed_block_sha256,
       before_content: existingText,
       content: proposedContent,
       blocks,
+      conflicts,
     }],
     review_metadata: renderReviewMetadata(pack, cards, preflight),
   };
@@ -199,7 +203,12 @@ export function saveProposal(root, proposal) {
 }
 
 export function createProposal(root, options = {}) {
-  return saveProposal(root, buildProposal(root, options));
+  const proposal = buildProposal(root, options);
+  const conflicts = proposalConflicts(proposal);
+  if (conflicts.length > 0) {
+    throw new Error(`Cannot create a proposal with unresolved conflicts: ${conflicts.map((conflict) => conflict.message).join('; ')}`);
+  }
+  return saveProposal(root, proposal);
 }
 
 export function loadProposal(root, proposalId) {
@@ -211,6 +220,10 @@ export function loadProposal(root, proposalId) {
 
 export function proposalPath(root, proposalId) {
   return proposalDirectory(root, proposalId);
+}
+
+export function proposalConflicts(proposal) {
+  return (proposal.targets ?? []).flatMap((target) => target.conflicts ?? []);
 }
 
 function safeRepositoryPath(root, path) {
@@ -253,7 +266,10 @@ function buildApplyChanges(root, proposal, pack, cards, decisions) {
 
   const changes = [];
   for (const target of proposal.targets) {
-    if (target.kind !== 'provider-neutral-markdown') throw new Error(`Unsupported target kind: ${target.kind}`);
+    const adapter = resolveAdapterByKind(target.kind);
+    if (proposal.adapter && proposal.adapter !== adapter.id) {
+      throw new Error(`Proposal adapter ${proposal.adapter} does not match target kind ${target.kind}`);
+    }
     const targetPath = safeRepositoryPath(root, target.path);
     const currentText = existsSync(targetPath) ? readFileSync(targetPath, 'utf8') : null;
     const currentFingerprint = currentText === null ? 'absent' : sha256Text(currentText);
@@ -264,7 +280,7 @@ function buildApplyChanges(root, proposal, pack, cards, decisions) {
     const blocks = cards.map((card) => ({ cardId: card.id, content: renderCardContent(card) }));
     let proposedContent;
     if (currentText === null) {
-      proposedContent = renderBaselineDocument(pack, cards);
+      proposedContent = adapter.renderDocument(pack, cards);
     } else {
       const merged = mergeManagedBlocks(currentText, blocks, {
         expectedPreconditionSha256: target.precondition_sha256,

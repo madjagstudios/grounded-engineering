@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { cpSync, existsSync, mkdirSync, mkdtempSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -105,4 +105,64 @@ test('custom card selection remains preview-only in this release', () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, /preview only/);
   assert.equal(existsSync(join(targetRoot, '.grounded-engineering')), false);
+});
+
+test('preview --adapter codex targets AGENTS.md and writes nothing', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-codex-cli-'));
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'baseline', '--adapter', 'codex'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Adapter: codex/);
+  assert.match(result.stdout, /Target: AGENTS\.md/);
+  assert.equal(existsSync(join(targetRoot, 'AGENTS.md')), false);
+});
+
+test('preview --adapter codex preserves an existing AGENTS.md and only plans a managed block', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-codex-existing-'));
+  writeFileSync(join(targetRoot, 'AGENTS.md'), '# My rules\n\nKeep it tidy.\n');
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'baseline', '--adapter', 'codex'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(join(targetRoot, 'AGENTS.md'), 'utf8'), '# My rules\n\nKeep it tidy.\n');
+});
+
+test('preview --adapter codex fails closed when an override file governs', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-codex-cli-override-'));
+  writeFileSync(join(targetRoot, 'AGENTS.override.md'), '# override\n');
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'baseline', '--adapter', 'codex'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /override/i);
+});
+
+test('preview fails closed on a malformed managed marker', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-codex-cli-conflict-'));
+  writeFileSync(join(targetRoot, 'AGENTS.md'), '<!-- grounded-engineering:begin card=GE-RC-001 -->\nx\n<!-- grounded-engineering:begin card=GE-RC-001 -->\n');
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'baseline', '--adapter', 'codex'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.notEqual(result.status, 0);
+});
+
+test('an unknown --adapter fails closed and lists valid adapters', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-adapter-bogus-'));
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'baseline', '--adapter', 'bogus'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /Unknown adapter: bogus/);
+  assert.match(result.stderr, /neutral/);
 });

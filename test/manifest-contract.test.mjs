@@ -70,3 +70,31 @@ test('requires a revisit trigger for a local deferred decision', () => {
 
   assert.equal(validateManifest(validDeferred).valid, true);
 });
+
+test('manifest accepts the codex-agents-md target kind', () => {
+  const manifest = buildManifest({
+    ...baseInput,
+    grounded_engineering_release: 'v0.3.0',
+    targets: [{
+      ...baseInput.targets[0],
+      path: 'AGENTS.md',
+      kind: 'codex-agents-md'
+    }]
+  });
+
+  const result = validateManifest(manifest);
+  assert.equal(result.valid, true, JSON.stringify(result.errors));
+});
+
+test('manifest rejects an unknown target kind', () => {
+  const manifest = buildManifest({
+    ...baseInput,
+    targets: [{
+      ...baseInput.targets[0],
+      path: 'AGENTS.md',
+      kind: 'something-else'
+    }]
+  });
+
+  assert.equal(validateManifest(manifest).valid, false);
+});

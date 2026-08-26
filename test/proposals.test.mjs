@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { createProposal, createProposalId, loadProposal, renderProposalDiff } from '../src/lib/proposals.mjs';
+import { buildProposal, createProposal, createProposalId, loadProposal, proposalConflicts, renderProposalDiff } from '../src/lib/proposals.mjs';
 
 const sourceRoot = new URL('../', import.meta.url).pathname;
+const REPO_ROOT = sourceRoot;
 
 test('creates deterministic proposal IDs from UTC time and random bytes', () => {
   const id = createProposalId(new Date('2026-08-26T14:30:00.000Z'), Buffer.from([0xa1, 0xb2, 0xc3, 0xd4]));
@@ -61,4 +62,42 @@ test('renders an existing-file merge as a true patch', () => {
   assert.match(diff, /^\+Generated guidance\.$/m);
   assert.doesNotMatch(diff, /^\+# Existing policy$/m);
   assert.doesNotMatch(diff, /@@ -0,0/);
+});
+
+test('buildProposal with the codex adapter targets AGENTS.md and records the adapter', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ge-codex-build-'));
+  const proposal = buildProposal(root, { sourceRoot: REPO_ROOT, profile: 'baseline', packId: 'baseline', adapter: 'codex' });
+
+  assert.equal(proposal.adapter, 'codex');
+  assert.equal(proposal.targets[0].path, 'AGENTS.md');
+  assert.equal(proposal.targets[0].kind, 'codex-agents-md');
+  assert.deepEqual(proposal.targets[0].conflicts, []);
+});
+
+test('buildProposal reports a structural conflict when the target has a malformed marker', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ge-conflict-'));
+  writeFileSync(join(root, 'AGENTS.md'), '<!-- grounded-engineering:begin card=GE-RC-001 -->\nx\n<!-- grounded-engineering:begin card=GE-RC-001 -->\n');
+
+  const proposal = buildProposal(root, { sourceRoot: REPO_ROOT, profile: 'baseline', packId: 'baseline', adapter: 'codex' });
+  assert.ok(proposalConflicts(proposal).length > 0);
+});
+
+test('createProposal refuses to save a conflicted proposal', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ge-conflict-create-'));
+  writeFileSync(join(root, 'AGENTS.md'), '<!-- grounded-engineering:begin card=GE-RC-001 -->\nx\n<!-- grounded-engineering:begin card=GE-RC-001 -->\n');
+
+  assert.throws(
+    () => createProposal(root, { sourceRoot: REPO_ROOT, profile: 'baseline', packId: 'baseline', adapter: 'codex' }),
+    /conflict/i,
+  );
+  assert.equal(existsSync(join(root, '.grounded-engineering', 'proposals')), false);
+});
+
+test('buildProposal surfaces conflicts for the neutral adapter too', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ge-conflict-neutral-'));
+  mkdirSync(join(root, 'docs'), { recursive: true });
+  writeFileSync(join(root, 'docs', 'grounded-engineering.md'), '<!-- grounded-engineering:begin card=GE-RC-001 -->\nx\n<!-- grounded-engineering:begin card=GE-RC-001 -->\n');
+
+  const proposal = buildProposal(root, { sourceRoot: REPO_ROOT, profile: 'baseline', packId: 'baseline', adapter: 'neutral' });
+  assert.ok(proposalConflicts(proposal).length > 0);
 });

@@ -92,7 +92,7 @@ properties:
           type: string
           pattern: '^(?!/)(?!.*(?:^|/)\.\.(?:/|$)).+\.md$'
         kind:
-          const: provider-neutral-markdown
+          enum: [provider-neutral-markdown, codex-agents-md]
         precondition_sha256:
           oneOf:
             - const: absent

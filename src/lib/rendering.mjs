@@ -23,6 +23,17 @@ export function renderBaselineDocument(pack, cards) {
   ].join('\n');
 }
 
+export function renderCodexDocument(pack, cards) {
+  return [
+    '# Agent guidance (Grounded Engineering)',
+    '',
+    'The following practices are managed by Grounded Engineering. Edit them with the `grounded-engineering` CLI, not by hand.',
+    '',
+    cards.map(renderCard).join('\n\n'),
+    '',
+  ].join('\n');
+}
+
 export function renderReviewMetadata(pack, cards, preflight) {
   const cardRows = cards.map((card) => `| ${card.id} | ${card.title} | ${card.disposition} | ${card.evidence_level} | ${card.applicability.join(', ')} | ${renderSourceRefs(card)} |`);
   return [
