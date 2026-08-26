@@ -1,8 +1,10 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import process from 'node:process';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { parse } from 'yaml';
+import { parsePracticeFrontmatter } from '../src/lib/frontmatter.mjs';
+import { walkRepository } from '../src/lib/repository-walk.mjs';
 
 const root = resolve(new URL('..', import.meta.url).pathname);
 const errors = [];
@@ -20,33 +22,11 @@ function read(path) {
   }
 }
 
-function walk(directory) {
-  const entries = readdirSync(directory, { withFileTypes: true });
-  return entries.flatMap((entry) => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      if (['.git', 'node_modules', 'coverage', 'dist'].includes(entry.name)) return [];
-      return walk(path);
-    }
-    return [path];
-  });
-}
-
 function parseFrontmatter(path, text) {
-  const lines = text.split(/\r?\n/);
-  if (lines[0] !== '---') {
-    errors.push(`${displayPath(path)}: practice card is missing YAML frontmatter`);
-    return null;
-  }
-  const end = lines.indexOf('---', 1);
-  if (end === -1) {
-    errors.push(`${displayPath(path)}: frontmatter is not closed`);
-    return null;
-  }
   try {
-    return parse(lines.slice(1, end).join('\n'));
+    return parsePracticeFrontmatter(path, text).record;
   } catch (error) {
-    errors.push(`${displayPath(path)}: invalid YAML frontmatter: ${error.message}`);
+    errors.push(`${displayPath(path)}: ${error.reason ?? error.message.replace(`${path}: `, '')}`);
     return null;
   }
 }
@@ -115,7 +95,7 @@ if (validateRecord) {
   addAjvErrors(examplePath, validExample, validateRecord);
 
   const practiceDirectory = join(root, 'practices');
-  for (const path of walk(practiceDirectory).filter((candidate) => candidate.endsWith('.md') && !candidate.endsWith('/README.md'))) {
+  for (const path of walkRepository(practiceDirectory).filter((candidate) => candidate.endsWith('.md') && !candidate.endsWith('/README.md'))) {
     const record = parseFrontmatter(path, read(path));
     if (!record) continue;
     const valid = validateRecord(record);
@@ -133,17 +113,17 @@ if (validateRecord) {
   }
 }
 
-const sourceTexts = walk(join(root, 'research', 'sources'))
+const sourceTexts = walkRepository(join(root, 'research', 'sources'))
   .filter((path) => path.endsWith('.md'))
   .map((path) => read(path))
   .join('\n');
 
-for (const path of walk(root)) {
+for (const path of walkRepository(root)) {
   if (path.endsWith('.md')) checkRelativeLinks(path, read(path));
   if (path !== join(root, 'scripts', 'validate.mjs')) checkPublicText(path, read(path));
 }
 
-for (const path of walk(join(root, 'practices')).filter((candidate) => candidate.endsWith('.md') && !candidate.endsWith('/README.md'))) {
+for (const path of walkRepository(join(root, 'practices')).filter((candidate) => candidate.endsWith('.md') && !candidate.endsWith('/README.md'))) {
   const record = parseFrontmatter(path, read(path));
   if (!record) continue;
   for (const sourceId of record.source_ids ?? []) {
