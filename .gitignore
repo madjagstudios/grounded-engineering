@@ -10,3 +10,4 @@ dist/
 # Local-only planning and validation output
 .private/
 reports/
+.grounded-engineering/

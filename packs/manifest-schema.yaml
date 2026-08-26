@@ -45,6 +45,7 @@ properties:
           enum: [ADOPT, ADAPT, REJECT, DEFER]
         local_applicability:
           type: string
+          # NEEDS_REVIEW is valid for representing an incomplete review; apply rejects it.
           enum: [APPLICABLE, NOT_APPLICABLE, NEEDS_REVIEW]
         local_decision:
           type: string
