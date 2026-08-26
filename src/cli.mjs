@@ -2,7 +2,8 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout as processStdout, stderr as processStderr } from 'node:process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { applyProposal, buildProposal, createProposal, loadProposal, saveProposal } from './lib/proposals.mjs';
+import { resolveAdapter } from './lib/adapters.mjs';
+import { applyProposal, buildProposal, createProposal, loadProposal, proposalConflicts, saveProposal } from './lib/proposals.mjs';
 
 const repositoryRoot = resolve(fileURLToPath(new URL('../', import.meta.url)));
 
@@ -10,6 +11,7 @@ function printHelp(write) {
   write(`Usage:
   grounded-engineering adopt
   grounded-engineering adopt preview --profile baseline
+  grounded-engineering adopt preview --profile baseline --adapter codex
   grounded-engineering adopt preview --cards GE-RC-001,inspect-repository-first
   grounded-engineering adopt create --profile baseline
   grounded-engineering adopt apply 20260826-143000-a1b2c3d4 --confirm
@@ -23,7 +25,7 @@ function parseOptions(args) {
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
     if (argument === '--help') return { help: true };
-    if (argument === '--profile' || argument === '--cards') {
+    if (argument === '--profile' || argument === '--cards' || argument === '--adapter') {
       const value = args[index + 1];
       if (!value || value.startsWith('--')) throw new Error(`Missing value for ${argument}`);
       if (options[argument.slice(2)]) throw new Error(`Duplicate ${argument} selector`);
@@ -45,10 +47,12 @@ function validateSelection(options) {
   if (options.help) return;
   if (options.profile && options.cards) throw new Error('Choose --profile or --cards, not both');
   if (options.profile && options.profile !== 'baseline') throw new Error(`Profile ${options.profile} is reserved for fast-follow work`);
+  if (options.adapter) resolveAdapter(options.adapter);
 }
 
 function reportProposal(proposal, write) {
   write(`Profile: ${proposal.profile}`);
+  write(`Adapter: ${proposal.adapter}`);
   write(`Cards: ${proposal.cards.map((card) => `${card.id} (${card.title})`).join(', ')}`);
   write(`Target: ${proposal.targets[0].path}`);
   write('No repository files were changed.');
@@ -56,9 +60,14 @@ function reportProposal(proposal, write) {
 
 async function runInteractiveAdopt(root, sourceRoot, write, read) {
   const profile = (await read('Choose profile [baseline]: ')).trim() || 'baseline';
-  const options = { sourceRoot, profile, packId: profile };
+  const options = { sourceRoot, profile, packId: profile, adapter: 'neutral' };
   validateSelection(options);
   const proposal = buildProposal(root, options);
+  const conflicts = proposalConflicts(proposal);
+  if (conflicts.length > 0) {
+    write(`Conflicts prevent a proposal: ${conflicts.map((conflict) => conflict.message).join('; ')}`);
+    return 2;
+  }
   reportProposal(proposal, write);
   const save = (await read('Save this proposal? [y/N]: ')).trim().toLowerCase();
   if (save === 'y' || save === 'yes') {
@@ -175,9 +184,13 @@ export async function runCli(argv, context = {}) {
       profile: options.profile ?? 'baseline',
       packId: options.profile ?? 'baseline',
       cardReferences: options.cards,
+      adapter: options.adapter ?? 'neutral',
     };
     if (action === 'preview') {
-      reportProposal(buildProposal(root, proposalOptions), write);
+      const proposal = buildProposal(root, proposalOptions);
+      const conflicts = proposalConflicts(proposal);
+      if (conflicts.length > 0) throw new Error(`Cannot generate a clean proposal: ${conflicts.map((conflict) => conflict.message).join('; ')}`);
+      reportProposal(proposal, write);
       return 0;
     }
     const proposal = createProposal(root, proposalOptions);
