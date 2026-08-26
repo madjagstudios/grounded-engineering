@@ -12,7 +12,6 @@ applicability: [AI_ASSISTED, TRADITIONAL, ONBOARDING, REPOSITORY_GOVERNANCE]
 control_types: [ADVISORY, HUMAN_REVIEW]
 disposition: ADOPT
 rationale: Orientation prevents agents and humans from inventing incompatible conventions or repeating work already represented in the repository.
-proposed_implementation: Read applicable instructions, inspect status and recent history, locate existing commands, and identify affected paths before editing.
 delivery_horizon: V1
 confidence: high
 evidence_level: observed
@@ -29,16 +28,14 @@ evidence_refs:
     relationship: observed_implementation
 validation:
   status: not_validated
-  note: Local validation has not yet been performed in a consuming repository.
 revisit:
   required: false
-  trigger: Revisit after source re-audit or local validation evidence.
 agent_snippet: Before editing, inspect applicable instructions, repository status, structure, declared commands, and affected paths.
 ---
 
 # Inspect the repository first
 
-Before acting, inspect the applicable instructions, repository status, structure, declared commands, recent changes, and affected paths. Record the boundaries that matter to the task before choosing an implementation.
+Use this as the first pass on an unfamiliar or changed repository. Learn its local contract—applicable instructions, status, structure, commands, recent changes, and affected paths—before choosing an implementation.
 
 ## Evidence trail
 

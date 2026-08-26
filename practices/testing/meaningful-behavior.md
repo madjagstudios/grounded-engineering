@@ -12,7 +12,6 @@ applicability: [AI_ASSISTED, TRADITIONAL, REPOSITORY_GOVERNANCE]
 control_types: [ADVISORY, DETERMINISTIC_CHECK, HUMAN_REVIEW]
 disposition: ADOPT
 rationale: Behavior-focused tests provide stronger evidence than coverage theater while preserving room for judgment on genuinely trivial changes.
-proposed_implementation: Identify changed behavior and plausible regressions, then add or update the smallest tests that exercise those risks.
 delivery_horizon: V1
 confidence: medium
 evidence_level: recommended
@@ -26,18 +25,14 @@ evidence_refs:
     relationship: generalized_principle
 validation:
   status: not_validated
-  note: Local validation has not yet been performed in a consuming repository.
 revisit:
   required: false
-  trigger: Revisit after source re-audit or local validation evidence.
 agent_snippet: Test the changed behavior and its plausible failure modes; do not add tests solely to satisfy an arbitrary size threshold.
 ---
 
 # Test meaningful behavior
 
-Start from the behavior changed and the failure modes that matter. Add tests that make those risks observable; do not create a test solely because a file is small or because a numeric threshold says one is expected.
-
-This card is a derived recommendation and does not claim that the cited vendor documents prescribe a universal test-count rule.
+Use this when deciding whether a small change needs a test. Cover the behavior and plausible failure modes; a file’s size or a numeric threshold is not itself a risk signal.
 
 ## Evidence trail
 

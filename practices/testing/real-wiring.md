@@ -12,7 +12,6 @@ applicability: [AI_ASSISTED, TRADITIONAL, ONBOARDING]
 control_types: [DETERMINISTIC_CHECK, CI, HUMAN_REVIEW]
 disposition: ADOPT
 rationale: End-to-end or integration-level evidence catches registration and composition failures that isolated tests cannot see.
-proposed_implementation: Add the narrowest real-path check that exercises the changed wiring, while retaining focused unit tests for local logic.
 delivery_horizon: V1
 confidence: medium
 evidence_level: recommended
@@ -26,16 +25,14 @@ evidence_refs:
     relationship: generalized_principle
 validation:
   status: not_validated
-  note: Local validation has not yet been performed in a consuming repository.
 revisit:
   required: false
-  trigger: Revisit after source re-audit or local validation evidence.
 agent_snippet: When wiring or registration changes, run the narrowest real-path check that exercises the composition boundary.
 ---
 
 # Test real wiring
 
-When a change affects registration, configuration, imports, routing, or composition, include a check that exercises the real path. Keep unit tests for local logic, but do not let isolated tests stand in for wiring evidence.
+Use this when a change affects registration, configuration, imports, routing, or composition. Keep unit tests for local logic, then add the narrowest real-path check that exercises the boundary.
 
 ## Evidence trail
 

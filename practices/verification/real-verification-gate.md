@@ -12,7 +12,6 @@ applicability: [AI_ASSISTED, TRADITIONAL, REPOSITORY_GOVERNANCE]
 control_types: [DETERMINISTIC_CHECK, HOOK, CI, APPROVAL]
 disposition: ADAPT
 rationale: A real gate makes evidence repeatable, but the consuming repository must define which checks and human acceptance conditions are authoritative.
-proposed_implementation: Discover the repository's declared checks, run the relevant gate, record the result, and identify any unrun acceptance lane explicitly.
 delivery_horizon: V1
 confidence: high
 evidence_level: recommended
@@ -26,16 +25,14 @@ evidence_refs:
     relationship: generalized_principle
 validation:
   status: not_validated
-  note: Local validation has not yet been performed in a consuming repository.
 revisit:
   required: false
-  trigger: Revisit after source re-audit or local validation evidence.
 agent_snippet: Run the repository's declared verification gate and report exactly what passed, what was skipped, and what remains unverified.
 ---
 
 # Use the real verification gate
 
-Find the repository's declared verification command or acceptance gate and run the checks relevant to the change. Report the exact result and any skipped lane; a nearby substitute check is not equivalent evidence.
+Use this when reporting completion. Find the repository’s declared gate, run the checks relevant to the change, and name any skipped lane; a convenient substitute is not equivalent evidence.
 
 ## Evidence trail
 

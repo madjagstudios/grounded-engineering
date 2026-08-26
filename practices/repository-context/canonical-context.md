@@ -12,7 +12,6 @@ applicability: [AI_ASSISTED, TRADITIONAL, ONBOARDING, REPOSITORY_GOVERNANCE]
 control_types: [ADVISORY, HUMAN_REVIEW, CI]
 disposition: ADOPT
 rationale: A discoverable canonical source reduces semantic drift while allowing each tool to receive the syntax and scope it can actually consume.
-proposed_implementation: Maintain durable policy once, link or generate thin adapters, and check adapter parity during review or CI.
 delivery_horizon: V1
 confidence: high
 evidence_level: observed
@@ -29,16 +28,14 @@ evidence_refs:
     relationship: generalized_principle
 validation:
   status: not_validated
-  note: Local validation has not yet been performed in a consuming repository.
 revisit:
   required: false
-  trigger: Revisit after source re-audit or local validation evidence.
 agent_snippet: Keep durable policy canonical and make agent-specific files thin, discoverable adapters rather than disconnected copies.
 ---
 
 # Keep canonical context discoverable
 
-Keep durable human-facing policy in one maintained source. Use tool-specific instruction files as thin adapters or views, and make their relationship to the canonical source reviewable.
+Use this when several tools need the same repository guidance. Keep durable policy in one maintained source; adapters may change syntax or scope, but their relationship to that source should stay reviewable.
 
 ## Evidence trail
 

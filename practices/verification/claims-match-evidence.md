@@ -12,7 +12,6 @@ applicability: [AI_ASSISTED, TRADITIONAL, ONBOARDING, REPOSITORY_GOVERNANCE]
 control_types: [ADVISORY, DETERMINISTIC_CHECK, HUMAN_REVIEW, APPROVAL]
 disposition: ADOPT
 rationale: Evidence-scoped reporting prevents false confidence and preserves the distinction between what was inspected, tested, deployed, and accepted.
-proposed_implementation: Label each completion claim with its evidence lane and state remaining uncertainty instead of converting a partial check into a full success claim.
 delivery_horizon: V1
 confidence: high
 evidence_level: recommended
@@ -26,16 +25,14 @@ evidence_refs:
     relationship: generalized_principle
 validation:
   status: not_validated
-  note: Local validation has not yet been performed in a consuming repository.
 revisit:
   required: false
-  trigger: Revisit after source re-audit or local validation evidence.
 agent_snippet: Make each completion claim match the evidence lane that actually passed, and name any unverified lane.
 ---
 
 # Match claims to evidence
 
-Separate repository inspection, automated checks, deployment evidence, and live acceptance. Report each one precisely, and name the remaining uncertainty rather than allowing a partial result to sound like a full completion claim.
+Use this when a result could be mistaken for a stronger result. Keep repository inspection, automated checks, deployment evidence, and live acceptance separate, and name the unverified lane.
 
 ## Evidence trail
 

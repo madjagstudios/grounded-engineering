@@ -12,7 +12,6 @@ applicability: [AI_ASSISTED, TRADITIONAL, ONBOARDING]
 control_types: [ADVISORY, HUMAN_REVIEW]
 disposition: ADAPT
 rationale: The search-first heuristic prevents duplicate abstractions, but it must allow a new helper when existing capabilities do not meet the requirement.
-proposed_implementation: Search symbols, scripts, tests, and nearby modules before adding a helper; record why an existing capability was insufficient.
 delivery_horizon: V1
 confidence: medium
 evidence_level: recommended
@@ -26,18 +25,14 @@ evidence_refs:
     relationship: generalized_principle
 validation:
   status: not_validated
-  note: Local validation has not yet been performed in a consuming repository.
 revisit:
   required: false
-  trigger: Revisit after source re-audit or local validation evidence.
 agent_snippet: Before adding a helper, search the repository for an existing capability and explain why it is insufficient if you add a new abstraction.
 ---
 
 # Search before adding helpers
 
-Before creating a helper, search the repository's existing symbols, scripts, tests, and nearby modules. Reuse the existing capability when it is suitable; add a new abstraction only when the search shows a real gap or a materially safer boundary.
-
-This is a derived recommendation. The cited sources establish the importance of repository-aware discovery and scoped context; they do not claim this exact sentence as vendor policy.
+Use this when a new helper might overlap existing code. Search symbols, scripts, tests, and nearby modules first; the boundary is crossed only when the search shows a real gap or a materially safer abstraction.
 
 ## Evidence trail
 

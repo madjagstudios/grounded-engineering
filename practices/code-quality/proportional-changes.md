@@ -12,7 +12,6 @@ applicability: [AI_ASSISTED, TRADITIONAL, REPOSITORY_GOVERNANCE]
 control_types: [ADVISORY, HUMAN_REVIEW]
 disposition: ADAPT
 rationale: Narrow scope reduces review and regression risk, but a necessary refactor is appropriate when the requested behavior cannot be correct without it.
-proposed_implementation: State the task boundary, separate required cleanup from optional cleanup, and defer unrelated improvements to a separate change.
 delivery_horizon: V1
 confidence: medium
 evidence_level: recommended
@@ -26,16 +25,14 @@ evidence_refs:
     relationship: generalized_principle
 validation:
   status: not_validated
-  note: Local validation has not yet been performed in a consuming repository.
 revisit:
   required: false
-  trigger: Revisit after source re-audit or local validation evidence.
 agent_snippet: Keep the change proportional to the requested behavior; separate required refactoring from unrelated cleanup.
 ---
 
 # Make proportional changes
 
-Define the change boundary before editing. Include the refactor required for correctness, but keep unrelated cleanup, speculative abstractions, and style migrations separate so the evidence remains reviewable.
+Use this when a task touches more than the requested behavior. Include refactoring required for correctness; defer optional cleanup, speculative abstractions, and style migrations so the change remains reviewable.
 
 ## Evidence trail
 
