@@ -1,0 +1,43 @@
+---
+record_type: practice
+schema_version: 1.0.0
+id: GE-TS-002
+title: Test real wiring
+category: Testing
+subcategory: Integration paths
+pattern: Exercise the real call path or integration boundary when wiring is part of the change.
+underlying_principle: Isolated unit evidence is insufficient when failure can occur in composition, configuration, or registration.
+observed_implementation: Codex and Claude Code model effective context as the result of multiple roots, scopes, paths, and sources rather than one isolated file.
+applicability: [AI_ASSISTED, TRADITIONAL, ONBOARDING]
+control_types: [DETERMINISTIC_CHECK, CI, HUMAN_REVIEW]
+disposition: ADOPT
+rationale: End-to-end or integration-level evidence catches registration and composition failures that isolated tests cannot see.
+proposed_implementation: Add the narrowest real-path check that exercises the changed wiring, while retaining focused unit tests for local logic.
+delivery_horizon: V1
+confidence: medium
+evidence_level: recommended
+source_ids: [CODEX-AGENTS-IMPLEMENTATION, CLAUDE-LOCAL-CONTEXT]
+evidence_refs:
+  - source_id: CODEX-AGENTS-IMPLEMENTATION
+    locator: agents_md.rs sections on multiple roots, candidate order, and loaded-source provenance
+    relationship: generalized_principle
+  - source_id: CLAUDE-LOCAL-CONTEXT
+    locator: memory documentation sections on nested and imported context
+    relationship: generalized_principle
+validation:
+  status: not_validated
+  note: Local validation has not yet been performed in a consuming repository.
+revisit:
+  required: false
+  trigger: Revisit after source re-audit or local validation evidence.
+agent_snippet: When wiring or registration changes, run the narrowest real-path check that exercises the composition boundary.
+---
+
+# Test real wiring
+
+When a change affects registration, configuration, imports, routing, or composition, include a check that exercises the real path. Keep unit tests for local logic, but do not let isolated tests stand in for wiring evidence.
+
+## Evidence trail
+
+- [CODEX-AGENTS-IMPLEMENTATION](../../research/sources/codex.md#codex-agents-implementation): multiple roots and loaded-source provenance.
+- [CLAUDE-LOCAL-CONTEXT](../../research/sources/claude-code.md#claude-local-context): nested and imported context.

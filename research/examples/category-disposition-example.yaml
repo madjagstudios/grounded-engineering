@@ -1,0 +1,16 @@
+record_type: disposition_example
+schema_version: 1.0.0
+underlying_principle: Scope repository guidance to the task and affected paths.
+evaluations:
+  - category: Context & Instructions
+    evaluated_subject: Underlying principle
+    disposition: ADOPT
+    rationale: Scoped guidance improves relevance without requiring a specific vendor file layout.
+    delivery_horizon: V1
+    confidence: high
+  - category: Security & Trust
+    evaluated_subject: Observed implementation
+    disposition: ADAPT
+    rationale: Relevance is useful, but discovery alone must not establish trust or authorization.
+    delivery_horizon: V1
+    confidence: medium

@@ -1,0 +1,205 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: https://grounded.engineering/schema/1.0.0
+title: Grounded Engineering record schema
+description: Schema for source-backed practice records and category-disposition examples.
+type: object
+oneOf:
+  - $ref: '#/$defs/practice'
+  - $ref: '#/$defs/dispositionExample'
+examples:
+  - record_type: disposition_example
+    schema_version: 1.0.0
+    underlying_principle: Scope repository guidance to the task and affected paths.
+    evaluations:
+      - category: Context & Instructions
+        evaluated_subject: Underlying principle
+        disposition: ADOPT
+        rationale: Scoped guidance improves relevance without requiring a specific vendor file layout.
+        delivery_horizon: V1
+        confidence: high
+      - category: Security & Trust
+        evaluated_subject: Observed implementation
+        disposition: ADAPT
+        rationale: Relevance is useful, but discovery alone must not establish trust or authorization.
+        delivery_horizon: V1
+        confidence: medium
+
+$defs:
+  practice:
+    type: object
+    additionalProperties: false
+    required:
+      - record_type
+      - schema_version
+      - id
+      - title
+      - category
+      - subcategory
+      - pattern
+      - underlying_principle
+      - observed_implementation
+      - applicability
+      - control_types
+      - disposition
+      - rationale
+      - proposed_implementation
+      - delivery_horizon
+      - confidence
+      - evidence_level
+      - source_ids
+      - evidence_refs
+      - validation
+      - revisit
+    properties:
+      record_type:
+        const: practice
+      schema_version:
+        const: 1.0.0
+      id:
+        type: string
+        pattern: '^GE-[A-Z]+-[0-9]{3}$'
+      title:
+        type: string
+        minLength: 8
+      category:
+        type: string
+        enum: [Code Quality, Testing, Repository Context, Verification]
+      subcategory:
+        type: string
+        minLength: 3
+      pattern:
+        type: string
+        minLength: 8
+      underlying_principle:
+        type: string
+        minLength: 12
+      observed_implementation:
+        type: string
+        minLength: 12
+      applicability:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          enum: [AI_ASSISTED, TRADITIONAL, ONBOARDING, REPOSITORY_GOVERNANCE, PUBLICATION]
+      control_types:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          enum: [ADVISORY, DETERMINISTIC_CHECK, HOOK, CI, PERMISSION, APPROVAL, HUMAN_REVIEW]
+      disposition:
+        type: string
+        enum: [ADOPT, ADAPT, REJECT, DEFER]
+      rationale:
+        type: string
+        minLength: 20
+      proposed_implementation:
+        type: string
+        minLength: 12
+      delivery_horizon:
+        type: string
+        enum: [V1, Later, Research]
+      confidence:
+        type: string
+        enum: [high, medium, low]
+      evidence_level:
+        type: string
+        enum: [observed, recommended, validated]
+      source_ids:
+        type: array
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          pattern: '^(CODEX|CLAUDE)-[A-Z0-9-]+$'
+      evidence_refs:
+        type: array
+        minItems: 1
+        items:
+          $ref: '#/$defs/evidenceRef'
+      validation:
+        $ref: '#/$defs/validation'
+      revisit:
+        $ref: '#/$defs/revisit'
+      agent_snippet:
+        type: string
+        minLength: 12
+  evidenceRef:
+    type: object
+    additionalProperties: false
+    required: [source_id, locator, relationship]
+    properties:
+      source_id:
+        type: string
+        pattern: '^(CODEX|CLAUDE)-[A-Z0-9-]+$'
+      locator:
+        type: string
+        minLength: 8
+      relationship:
+        type: string
+        enum: [observed_implementation, generalized_principle, recommendation]
+  validation:
+    type: object
+    additionalProperties: false
+    required: [status, note]
+    properties:
+      status:
+        type: string
+        enum: [not_validated, validated, needs_review]
+      note:
+        type: string
+        minLength: 10
+      validated_against:
+        type: string
+        minLength: 8
+  revisit:
+    type: object
+    additionalProperties: false
+    required: [required, trigger]
+    properties:
+      required:
+        type: boolean
+      trigger:
+        type: string
+        minLength: 4
+  dispositionExample:
+    type: object
+    additionalProperties: false
+    required: [record_type, schema_version, underlying_principle, evaluations]
+    properties:
+      record_type:
+        const: disposition_example
+      schema_version:
+        const: 1.0.0
+      underlying_principle:
+        type: string
+        minLength: 12
+      evaluations:
+        type: array
+        minItems: 2
+        items:
+          type: object
+          additionalProperties: false
+          required: [category, evaluated_subject, disposition, rationale, delivery_horizon, confidence]
+          properties:
+            category:
+              type: string
+              minLength: 3
+            evaluated_subject:
+              type: string
+              minLength: 3
+            disposition:
+              type: string
+              enum: [ADOPT, ADAPT, REJECT, DEFER]
+            rationale:
+              type: string
+              minLength: 20
+            delivery_horizon:
+              type: string
+              enum: [V1, Later, Research]
+            confidence:
+              type: string
+              enum: [high, medium, low]

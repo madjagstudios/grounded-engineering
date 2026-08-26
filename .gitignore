@@ -1,0 +1,12 @@
+node_modules/
+coverage/
+dist/
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.tmp
+
+# Local-only planning and validation output
+.private/
+reports/
