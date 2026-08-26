@@ -4,6 +4,9 @@
   "private": true,
   "description": "Source-backed engineering practices for professional software development and AI-assisted work.",
   "type": "module",
+  "bin": {
+    "grounded-engineering": "./bin/grounded-engineering.mjs"
+  },
   "scripts": {
     "validate": "node scripts/validate.mjs",
     "test": "npm run validate"

@@ -1,5 +1,11 @@
-function renderCard(card) {
+import { renderManagedBlock } from './managed-blocks.mjs';
+
+export function renderCardContent(card) {
   return `## ${card.title}\n\n${card.pattern}\n\n${card.agent_snippet}\n\nBoundary: ${card.rationale}`;
+}
+
+function renderCard(card) {
+  return renderManagedBlock(card.id, renderCardContent(card));
 }
 
 function renderSourceRefs(card) {
