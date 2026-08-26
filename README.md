@@ -40,11 +40,24 @@ The validator is local and deterministic. It does not fetch sources or make repo
 
 The baseline pack provides a reviewable, provider-neutral starting point for a consuming repository. Preview and create are read-only with respect to canonical policy; create stores a proposal under `.grounded-engineering/proposals/<proposal-id>/`.
 
+Run it straight from npm, no clone required:
+
 ```bash
-node bin/grounded-engineering.mjs adopt preview --profile baseline
-node bin/grounded-engineering.mjs adopt create --profile baseline
+# one-off, nothing installed
+npx grounded-engineering adopt preview --profile baseline
+
+# or install the command
+npm install -g grounded-engineering
+grounded-engineering adopt preview --profile baseline
+```
+
+The full preview → create → apply flow, using the installed command:
+
+```bash
+grounded-engineering adopt preview --profile baseline
+grounded-engineering adopt create --profile baseline
 # Review proposal.yaml, plan.md, and diff.patch; complete local_decisions.
-node bin/grounded-engineering.mjs adopt apply <proposal-id> --confirm
+grounded-engineering adopt apply <proposal-id> --confirm
 ```
 
 Apply writes the selected provider-neutral target and `.grounded-engineering/manifest.yaml` only after checking the saved preconditions and explicit local decisions. Existing policy and instruction files are not silently overwritten; managed updates are bounded by card-keyed markers. The first release supports the `baseline` profile and provider-neutral Markdown. `check`, `update propose`, custom selection, and provider-specific adapters are reserved for later releases.

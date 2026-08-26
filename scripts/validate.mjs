@@ -129,7 +129,7 @@ try {
 
 try {
   const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-  if (packageJson.bin?.['grounded-engineering'] !== './bin/grounded-engineering.mjs') {
+  if (packageJson.bin?.['grounded-engineering'] !== 'bin/grounded-engineering.mjs') {
     errors.push('package.json: grounded-engineering bin entry is missing or incorrect');
   }
   if (!statExists(join(root, 'bin', 'grounded-engineering.mjs'))) {

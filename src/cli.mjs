@@ -1,9 +1,10 @@
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout as processStdout, stderr as processStderr } from 'node:process';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { applyProposal, buildProposal, createProposal, loadProposal, saveProposal } from './lib/proposals.mjs';
 
-const repositoryRoot = resolve(new URL('../', import.meta.url).pathname);
+const repositoryRoot = resolve(fileURLToPath(new URL('../', import.meta.url)));
 
 function printHelp(write) {
   write(`Usage:
