@@ -1,12 +1,17 @@
 {
   "name": "grounded-engineering",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.2.0",
   "description": "Source-backed engineering practices for professional software development and AI-assisted work.",
   "type": "module",
   "bin": {
     "grounded-engineering": "./bin/grounded-engineering.mjs"
   },
+  "files": [
+    "bin",
+    "src",
+    "packs",
+    "practices"
+  ],
   "scripts": {
     "validate": "node scripts/validate.mjs",
     "test:unit": "node --test test/*.test.mjs",
@@ -15,7 +20,24 @@
   "engines": {
     "node": ">=20"
   },
-  "devDependencies": {
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/madjagstudios/grounded-engineering.git"
+  },
+  "homepage": "https://github.com/madjagstudios/grounded-engineering#readme",
+  "bugs": {
+    "url": "https://github.com/madjagstudios/grounded-engineering/issues"
+  },
+  "keywords": [
+    "engineering-practices",
+    "ai-assisted-development",
+    "coding-agents",
+    "code-review",
+    "coding-standards",
+    "cli"
+  ],
+  "dependencies": {
     "ajv": "8.20.0",
     "yaml": "2.8.3"
   }
