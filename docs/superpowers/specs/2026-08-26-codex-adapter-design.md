@@ -1,6 +1,6 @@
 # Codex Adapter Design (GE-9)
 
-**Goal:** Let `grounded-engineering adopt` emit `AGENTS.md`-shaped output for OpenAI Codex, in addition to the existing provider-neutral Markdown, reusing the preview → create → apply → manifest flow. The external flow and review artifacts are preserved; apply gains two narrow internal changes (a kind allowlist and adapter-driven new-file rendering) and the manifest schema widens its `kind` field, both specified below.
+**Goal:** Let `grounded-engineering adopt` emit `AGENTS.md`-shaped output for OpenAI Codex, in addition to the existing provider-neutral Markdown, reusing the preview → create → apply → manifest flow. The external flow is preserved; the internal changes are: a `--adapter` axis with a small registry, two apply changes (a kind allowlist and adapter-driven new-file rendering), proposal-time conflict surfacing in `preview`/`create`, and a one-line manifest-schema widening of the `kind` field — all specified below.
 
 **Ticket:** [GE-9](https://madjagstudios.atlassian.net/browse/GE-9), under epic GE-1.
 
@@ -36,7 +36,9 @@ Registered adapters:
 - `neutral` — the current behavior, refactored in place: `chooseTarget` wraps `chooseProviderNeutralTarget` (kind `provider-neutral-markdown`); `renderDocument` is `renderBaselineDocument`.
 - `codex` — new: `chooseTarget` returns root `AGENTS.md` (kind `codex-agents-md`); `renderDocument` renders the same card blocks under a Codex-appropriate preamble.
 
-`buildProposal(targetRoot, options)` gains `options.adapter` (default `neutral`). It resolves the adapter from the registry and calls the adapter's `chooseTarget`/`renderDocument` where it currently calls `chooseProviderNeutralTarget`/`renderBaselineDocument`. The `targets[].kind` is taken from `chooseTarget` rather than hardcoded. The proposal object also records the selected adapter id in a new `adapter` field, so apply can resolve the same adapter deterministically instead of inferring it. The existing/absent-file branch, `mergeManagedBlocks`, `fingerprintTarget`, `targets[]`, and `review_metadata` are otherwise unchanged.
+`buildProposal(targetRoot, options)` gains `options.adapter` (default `neutral`). It resolves the adapter from the registry and calls the adapter's `chooseTarget`/`renderDocument` where it currently calls `chooseProviderNeutralTarget`/`renderBaselineDocument`. The `targets[].kind` is taken from `chooseTarget` rather than hardcoded. The proposal object also records the selected adapter id in a new `adapter` field, so apply can resolve the same adapter deterministically instead of inferring it. `fingerprintTarget` and `review_metadata` are otherwise unchanged.
+
+The existing-file branch also stops discarding conflicts (see Conflict surfacing below): it captures `mergeManagedBlocks(...).conflicts` and threads them onto the target.
 
 ### Codex target selection
 
@@ -71,6 +73,18 @@ Behavior, via the existing merge machinery:
 
 Adapter resolution uses the proposal's persisted `adapter` id, cross-checked against `target.kind` (they must agree, or apply fails closed): this keeps apply from guessing and catches a proposal whose `adapter` and `kind` were tampered with. The precondition-fingerprint, managed-block-fingerprint, confirmation, and manifest-write steps are otherwise unchanged. This path is covered by a new end-to-end Codex apply test (see Testing).
 
+### Conflict surfacing (proposal time)
+
+Today `buildProposal` calls `mergeManagedBlocks(existingText, blocks).text` and discards `.conflicts` (`proposals.mjs:107`), so a structural marker conflict (duplicate/malformed GE marker, stale full-file precondition) is invisible until apply. GE-9 closes this so the conflict is reported when it is first knowable.
+
+- `buildProposal` captures `merged.conflicts` in the existing-file branch and attaches them to the target as `conflicts: [{ code, message }, ...]` (empty array when clean; absent/empty for the new-file branch, which cannot conflict).
+- A proposal is "conflicted" if any target has a non-empty `conflicts`.
+- `preview` prints the conflict codes/messages and returns a non-zero exit; it still performs no writes (read-only is preserved).
+- `create` refuses to save a conflicted proposal — it prints the conflicts and exits non-zero, writing nothing under `.grounded-engineering/proposals/`.
+- `apply` keeps its own conflict re-check (`proposals.mjs:272-273`) as defense in depth — proposal-time detection is the early signal, not a replacement for the apply-time gate.
+
+This is a shared improvement to `buildProposal`, so it applies to the neutral adapter as well as `codex`; existing clean-fixture tests are unaffected. It removes the "known limitation" that an earlier draft of this spec carried.
+
 ### Manifest
 
 The applied manifest records `target.path = AGENTS.md` and `target.kind = codex-agents-md`, in the same manifest shape as the neutral adapter.
@@ -97,7 +111,7 @@ grounded-engineering adopt apply <proposal-id> --confirm
 - Unknown `--adapter` value → fail closed, list valid ids, exit 2. No proposal created.
 - Codex override file present (`AGENTS.override.md`) → `chooseCodexTarget` fails closed; the CLI explains that an override governs Codex resolution and no provider-specific file was generated. No target, no write.
 - Existing `.grounded-engineering/manifest.yaml` at apply → the existing guard throws (`"update is reserved for a later release"`), unchanged. This is why only one adapter can be applied per repo in v1.
-- Existing `AGENTS.md` with a malformed/duplicate GE marker → detected at **apply** time, where `mergeManagedBlocks(...).conflicts` is inspected and a non-empty conflict list throws before any write (`proposals.mjs:272-273`). **Known v1 limitation:** `buildProposal` currently discards `mergeManagedBlocks(...).conflicts` (`proposals.mjs:107`), so `preview`/`create` render a plan without surfacing a structural marker conflict — the conflict is caught at apply, which still fails closed (no bad write), just with later feedback. This is pre-existing behavior shared with the neutral adapter; propagating conflict state into the proposal/preview is **out of scope for GE-9** and noted as a follow-up below. AGENTS.md being a user-owned file makes this more likely to occur here than with the tool-owned neutral doc, which is why it is called out.
+- Existing `AGENTS.md` with a malformed/duplicate GE marker → surfaced at **proposal** time (`preview`/`create` report it and exit non-zero, no write — see Conflict surfacing) and re-checked at **apply** as defense in depth (`proposals.mjs:272-273`). AGENTS.md being a user-owned file makes this more likely to occur here than with the tool-owned neutral doc, which is the motivation for closing the earlier gap.
 - Everything else (preflight, fingerprint precondition mismatch, apply confirmation) is unchanged from the baseline flow.
 
 ## Testing
@@ -114,17 +128,15 @@ Integration (spawn):
 - `adopt preview --adapter codex` on a repo **with** an existing `AGENTS.md` containing unrelated content → the diff inserts the managed block and preserves the existing bytes.
 - `adopt preview --adapter codex` on a repo **with** an override file (`AGENTS.override.md`) present → fails closed, explains the override governs, no target, no write.
 - `adopt create --adapter codex` then `adopt apply <id> --confirm` → writes `AGENTS.md` (with the Codex preamble) and `.grounded-engineering/manifest.yaml` with `kind: codex-agents-md`; content outside the managed block preserved. This exercises the apply kind-allowlist and adapter-`renderDocument` changes end to end.
+- `adopt preview --adapter codex` (and `create`) on a repo whose `AGENTS.md` has a **duplicate/malformed GE marker** → the conflict is reported and the command exits non-zero; `preview` writes nothing and `create` saves no proposal. (Proposal-time conflict surfacing; also add the neutral-adapter equivalent so the shared `buildProposal` change is covered.)
 - `adopt preview --adapter bogus` → exits 2, lists valid adapters, no proposal.
 
 ## Scope guard (YAGNI)
 
-In scope: the adapter registry seam, the `neutral` refactor-in-place, the `codex` adapter (including the override-file guard), the `--adapter` flag, the two apply changes (kind allowlist, adapter `renderDocument`), the `manifest-schema.yaml` `const → enum` edit, and the tests above.
+In scope: the adapter registry seam, the `neutral` refactor-in-place, the `codex` adapter (including the override-file guard), the `--adapter` flag, the two apply changes (kind allowlist, adapter `renderDocument`), **proposal-time conflict surfacing** (capture `mergeManagedBlocks` conflicts in `buildProposal`; `preview`/`create` report and fail closed), the `manifest-schema.yaml` `const → enum` edit, and the tests above.
 
 Out of scope (own tickets / follow-ups):
 - the `claude-code` adapter (GE-10 — one registry entry once this lands);
 - multi-adapter coexistence and independent update (blocked by the single-manifest guard; belongs with GE-11 `check` / GE-12 `update propose`);
-- surfacing `mergeManagedBlocks` conflicts at proposal time so `preview`/`create` report structural marker conflicts (a shared improvement to `buildProposal`, not adapter-specific — recommend a new ticket);
 - automatically targeting the Codex override file rather than failing closed;
 - the `ai-assisted`/`custom` profiles, an interactive adapter prompt, and any nested/scoped `AGENTS.md` handling beyond root.
-
-If the reviewer prefers, the proposal-time conflict propagation could be pulled into GE-9 instead of deferred — it is a modest change (capture `.conflicts` in `buildProposal`, thread into the proposal artifact and preview output) and AGENTS.md's user-owned nature is the strongest motivation for it. Flagged for a decision rather than silently deferred.
