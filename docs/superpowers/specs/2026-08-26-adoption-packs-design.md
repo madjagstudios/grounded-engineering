@@ -1,6 +1,6 @@
 # Reviewable Adoption Packs: UX and Product Design
 
-Status: proposed for review  
+Status: shipped in `main` at merge commit `ccac64e` via PR #1.
 Date: 2026-08-26  
 Related work: [GE-7](https://madjagstudios.atlassian.net/browse/GE-7)
 

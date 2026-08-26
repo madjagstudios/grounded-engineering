@@ -4,6 +4,8 @@
 
 **Goal:** Build a trustworthy first adoption-pack release that lets a user preview, save, review, and explicitly apply a provider-neutral baseline of Grounded Engineering practices without silently changing repository policy.
 
+**Status:** The baseline vertical slice shipped in `main` at merge commit `ccac64e` via PR #1. Remaining unchecked items are fast-follow work explicitly excluded from the first release.
+
 **Architecture:** Add a small Node.js ESM CLI around shared card, pack, repository-inspection, proposal, managed-block, fingerprint, and manifest modules. The first vertical slice consumes the existing eight Context & Instructions cards, generates a provider-neutral Markdown proposal, uses card-keyed managed regions for safe updates, and records the applied decision in a local manifest. Existing validator logic is extracted into shared modules instead of reimplemented.
 
 **Tech Stack:** Node.js `>=20`, ESM, existing `yaml` parser, existing AJV 2020 validator, Node built-ins (`node:fs`, `node:path`, `node:crypto`, `node:test`, `node:assert/strict`), Markdown, and YAML. Do not add a runtime dependency for argument parsing, hashing, prompting, or patch generation.
