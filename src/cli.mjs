@@ -1,7 +1,7 @@
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout as processStdout, stderr as processStderr } from 'node:process';
 import { resolve } from 'node:path';
-import { buildProposal, createProposal, saveProposal } from './lib/proposals.mjs';
+import { applyProposal, buildProposal, createProposal, loadProposal, saveProposal } from './lib/proposals.mjs';
 
 const repositoryRoot = resolve(new URL('../', import.meta.url).pathname);
 
@@ -28,6 +28,11 @@ function parseOptions(args) {
       if (options[argument.slice(2)]) throw new Error(`Duplicate ${argument} selector`);
       options[argument.slice(2)] = argument === '--cards' ? value.split(',').filter(Boolean) : value;
       index += 1;
+      continue;
+    }
+    if (argument === '--confirm') {
+      if (options.confirm) throw new Error('Duplicate --confirm flag');
+      options.confirm = true;
       continue;
     }
     throw new Error(`Unknown option: ${argument}`);
@@ -59,6 +64,24 @@ async function runInteractiveAdopt(root, sourceRoot, write, read) {
     saveProposal(root, proposal);
     write(`Proposal created: ${proposal.proposal_id}`);
   }
+  return 0;
+}
+
+async function runInteractiveApply(root, sourceRoot, proposalId, write, read) {
+  const proposal = loadProposal(root, proposalId);
+  write(`Proposal: ${proposal.proposal_id}`);
+  write(`Cards: ${proposal.cards.map((card, index) => {
+    const decision = proposal.local_decisions?.[index];
+    return `${card.id} (${card.title}) public=${card.public_disposition} local=${decision?.local_applicability ?? 'missing'}${decision?.local_decision ? `/${decision.local_decision}` : ''}`;
+  }).join(', ')}`);
+  write(`Files: ${proposal.targets.map((target) => target.path).join(', ')}, .grounded-engineering/manifest.yaml`);
+  const confirm = (await read('Apply this reviewed proposal? [y/N]: ')).trim().toLowerCase();
+  if (!['y', 'yes'].includes(confirm)) {
+    write('Apply cancelled.');
+    return 0;
+  }
+  const result = applyProposal(root, proposalId, { sourceRoot, confirm: true });
+  write(`Applied: ${result.committedPaths.join(', ')}`);
   return 0;
 }
 
@@ -102,22 +125,48 @@ export async function runCli(argv, context = {}) {
 
   const action = argv[1];
   if (action === 'apply') {
-    error('adopt apply requires --confirm in non-interactive mode; apply support is being completed in this release.');
-    return 2;
+    const proposalId = argv[2];
+    if (!proposalId) {
+      error('adopt apply requires a proposal ID.');
+      printHelp(error);
+      return 2;
+    }
+    if (context.interactive && argv.length === 3) {
+      try {
+        return await runInteractiveApply(root, sourceRoot, proposalId, write, (question) => {
+          const readline = createInterface({ input: stdin, output: processStdout });
+          return readline.question(question).finally(() => readline.close());
+        });
+      } catch (caught) {
+        error(caught.message);
+        return 2;
+      }
+    }
+    if (!argv.slice(3).includes('--confirm')) {
+      error('adopt apply requires --confirm in non-interactive mode.');
+      return 2;
+    }
   }
-  if (!['preview', 'create'].includes(action)) {
+  if (action !== 'apply' && !['preview', 'create'].includes(action)) {
     error(`Unknown adopt action: ${action}`);
     printHelp(error);
     return 2;
   }
 
   try {
-    const options = parseOptions(argv.slice(2));
+    const options = parseOptions(argv.slice(action === 'apply' ? 3 : 2));
     if (options.help) {
       printHelp(write);
       return 0;
     }
     validateSelection(options);
+    if (action !== 'apply' && options.confirm) throw new Error('--confirm is only valid for adopt apply');
+    if (action === 'apply') {
+      const proposalId = argv[2];
+      const result = applyProposal(root, proposalId, { sourceRoot, confirm: options.confirm });
+      write(`Applied: ${result.committedPaths.join(', ')}`);
+      return 0;
+    }
     const proposalOptions = {
       sourceRoot,
       profile: options.profile ?? 'baseline',
