@@ -178,3 +178,26 @@ test('builds a manifest with the required local outcome fields', () => {
   });
   assert.equal(validateManifest(manifest, root).valid, true);
 });
+
+test('applies a Codex proposal to AGENTS.md and records its target kind', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-codex-apply-'));
+  const proposal = createProposal(targetRoot, {
+    sourceRoot: root,
+    packId: 'baseline',
+    adapter: 'codex',
+    proposalId: '20260826-143000-a1b2c3d4',
+  });
+
+  applyProposal(targetRoot, proposal.proposal_id, {
+    sourceRoot: root,
+    confirm: true,
+    decisions: reviewedDecisions(proposal),
+  });
+
+  const agents = readFileSync(join(targetRoot, 'AGENTS.md'), 'utf8');
+  assert.match(agents, /managed by Grounded Engineering/i);
+  assert.match(agents, /grounded-engineering:begin card=GE-RC-001/);
+  const manifest = parse(readFileSync(join(targetRoot, '.grounded-engineering', 'manifest.yaml'), 'utf8'));
+  assert.equal(manifest.targets[0].kind, 'codex-agents-md');
+  assert.equal(validateManifest(manifest, root).valid, true);
+});

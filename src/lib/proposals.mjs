@@ -7,7 +7,7 @@ import { resolveAdapter, resolveAdapterByKind } from './adapters.mjs';
 import { loadPack } from './packs.mjs';
 import { loadPracticeCards, resolveCardReference } from './cards.mjs';
 import { inspectRepository } from './preflight.mjs';
-import { renderBaselineDocument, renderCardContent, renderReviewMetadata } from './rendering.mjs';
+import { renderCardContent, renderReviewMetadata } from './rendering.mjs';
 import { mergeManagedBlocks } from './managed-blocks.mjs';
 import { fingerprintTarget, sha256Text } from './fingerprints.mjs';
 import { buildManifest, validateManifest } from './manifest.mjs';
@@ -266,7 +266,10 @@ function buildApplyChanges(root, proposal, pack, cards, decisions) {
 
   const changes = [];
   for (const target of proposal.targets) {
-    if (target.kind !== 'provider-neutral-markdown') throw new Error(`Unsupported target kind: ${target.kind}`);
+    const adapter = resolveAdapterByKind(target.kind);
+    if (proposal.adapter && proposal.adapter !== adapter.id) {
+      throw new Error(`Proposal adapter ${proposal.adapter} does not match target kind ${target.kind}`);
+    }
     const targetPath = safeRepositoryPath(root, target.path);
     const currentText = existsSync(targetPath) ? readFileSync(targetPath, 'utf8') : null;
     const currentFingerprint = currentText === null ? 'absent' : sha256Text(currentText);
@@ -277,7 +280,7 @@ function buildApplyChanges(root, proposal, pack, cards, decisions) {
     const blocks = cards.map((card) => ({ cardId: card.id, content: renderCardContent(card) }));
     let proposedContent;
     if (currentText === null) {
-      proposedContent = renderBaselineDocument(pack, cards);
+      proposedContent = adapter.renderDocument(pack, cards);
     } else {
       const merged = mergeManagedBlocks(currentText, blocks, {
         expectedPreconditionSha256: target.precondition_sha256,
