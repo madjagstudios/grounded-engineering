@@ -27,7 +27,7 @@ deferred until `update propose` exists.
 ## Adoption example
 
 ```bash
-grounded-engineering adopt preview --profile baseline --adapter codex
+grounded-engineering adopt preview --profile ai-assisted --adapter codex
 grounded-engineering adopt create --profile ai-assisted --adapter codex
 grounded-engineering adopt apply <proposal-id> --confirm
 grounded-engineering check
