@@ -5,8 +5,9 @@ import { parse } from 'yaml';
 import { resolveAdapterByKind } from './adapters.mjs';
 import { fingerprintManagedBlocks } from './fingerprints.mjs';
 import { validateManifest } from './manifest.mjs';
-import { parseManagedBlocks } from './managed-blocks.mjs';
+import { normalizeManagedContent, parseManagedBlocks } from './managed-blocks.mjs';
 import { loadPack } from './packs.mjs';
+import { renderCardContent } from './rendering.mjs';
 
 const repositoryRoot = resolve(fileURLToPath(new URL('../../', import.meta.url)));
 
@@ -161,9 +162,13 @@ export function checkRepository(targetRoot, options = {}) {
     );
 
     if (fingerprint !== target.managed_block_sha256) {
+      const changedCardId = expectedCardIds.find((cardId) => {
+        const block = parsedBlocksById.get(cardId);
+        return block.normalizedContent !== normalizeManagedContent(renderCardContent(packCardsById.get(cardId)));
+      });
       diagnostics.push({
         code: 'MANAGED_BLOCK_CHANGED',
-        message: `Managed block content no longer matches the manifest for ${target.path}.`,
+        message: `Managed block content no longer matches the manifest for ${target.path} at card ${changedCardId ?? 'unknown'}.`,
       });
     }
   }

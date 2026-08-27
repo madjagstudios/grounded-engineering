@@ -237,7 +237,7 @@ test('reports a changed managed block', () => {
 
   assert.equal(result.ok, false);
   assert.deepEqual(result.diagnostics, [
-    { code: 'MANAGED_BLOCK_CHANGED', message: 'Managed block content no longer matches the manifest for GROUNDED_ENGINEERING.md.' },
+    { code: 'MANAGED_BLOCK_CHANGED', message: 'Managed block content no longer matches the manifest for GROUNDED_ENGINEERING.md at card GE-RC-001.' },
   ]);
 });
 

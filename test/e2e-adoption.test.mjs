@@ -167,6 +167,7 @@ test('reports a changed managed block as drift', () => {
   const check = run(targetRoot, 'check');
   assert.equal(check.status, 1);
   assert.match(check.stderr, /MANAGED_BLOCK_CHANGED/);
+  assert.match(check.stderr, /GE-RC-001/);
   assert.match(check.stderr, /GROUNDED_ENGINEERING\.md/);
 });
 
