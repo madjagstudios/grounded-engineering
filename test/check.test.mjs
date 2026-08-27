@@ -241,6 +241,30 @@ test('reports a changed managed block', () => {
   ]);
 });
 
+test('reports combined card metadata mismatch and managed-block drift without throwing', () => {
+  const { targetRoot, targetPath } = createAppliedRepository();
+  rewriteManifest(targetRoot, (manifest) => {
+    manifest.cards[0].id = 'GE-RC-999';
+  });
+
+  const text = readFileSync(targetPath, 'utf8');
+  const blocks = parseManagedBlocks(text);
+  const renamedFirstBlock = renderManagedBlock('GE-RC-999', blocks[0].normalizedContent);
+  const driftedSecondBlock = renderManagedBlock(blocks[1].cardId, 'Changed managed guidance for this combined-mismatch test.');
+  writeFileSync(
+    targetPath,
+    `${text.slice(0, blocks[0].start)}${renamedFirstBlock}${text.slice(blocks[0].end, blocks[1].start)}${driftedSecondBlock}${text.slice(blocks[1].end)}`
+  );
+
+  const result = assertReadOnly(targetRoot, () => checkRepository(targetRoot, { sourceRoot: root }));
+
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.diagnostics, [
+    { code: 'CARD_METADATA_MISMATCH', message: 'Manifest card metadata no longer matches the installed CLI bundle for GE-RC-999.' },
+    { code: 'MANAGED_BLOCK_CHANGED', message: 'Managed block content no longer matches the manifest for GROUNDED_ENGINEERING.md at card GE-RC-002.' },
+  ]);
+});
+
 test('allows unmanaged prose edits outside the managed blocks', () => {
   const { targetRoot, targetPath } = createAppliedRepository();
   const text = readFileSync(targetPath, 'utf8');

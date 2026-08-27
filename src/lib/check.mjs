@@ -164,7 +164,8 @@ export function checkRepository(targetRoot, options = {}) {
     if (fingerprint !== target.managed_block_sha256) {
       const changedCardId = expectedCardIds.find((cardId) => {
         const block = parsedBlocksById.get(cardId);
-        return block.normalizedContent !== normalizeManagedContent(renderCardContent(packCardsById.get(cardId)));
+        const packCard = packCardsById.get(cardId);
+        return packCard && block.normalizedContent !== normalizeManagedContent(renderCardContent(packCard));
       });
       diagnostics.push({
         code: 'MANAGED_BLOCK_CHANGED',
