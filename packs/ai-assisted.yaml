@@ -1,0 +1,25 @@
+record_type: adoption_pack
+pack_id: ai-assisted
+pack_version: 1.0.0
+schema_version: 1.0.0
+grounded_engineering_release: v0.4.0
+min_cli_version: 0.4.0
+title: AI-assisted engineering baseline
+description: Source-backed guidance for repositories that use coding agents and want explicit context, capability, testing, and verification practices.
+target:
+  kind: provider-neutral-markdown
+  path_strategy: docs-or-root-grounded-engineering
+card_ids:
+  - GE-RC-001
+  - GE-RC-002
+  - GE-CQ-001
+  - GE-CQ-002
+  - GE-TS-001
+  - GE-TS-002
+  - GE-VF-001
+  - GE-VF-002
+  - GE-AS-001
+  - GE-AS-002
+  - GE-AS-003
+  - GE-AS-004
+  - GE-AS-005

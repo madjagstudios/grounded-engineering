@@ -61,6 +61,32 @@ test('create saves a proposal but does not write the canonical target', () => {
   assert.equal(existsSync(join(targetRoot, '.grounded-engineering', 'proposals')), true);
 });
 
+test('preview accepts the ai-assisted profile', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'ai-assisted'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Profile: ai-assisted/);
+  assert.match(result.stdout, /GE-AS-001/);
+  assert.equal(existsSync(join(targetRoot, '.grounded-engineering')), false);
+});
+
+test('create accepts the ai-assisted profile and saves a proposal', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'create', '--profile', 'ai-assisted'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Proposal created: 20[0-9]{6}-[0-9]{6}-[0-9a-f]{8}/);
+  assert.equal(existsSync(join(targetRoot, 'GROUNDED_ENGINEERING.md')), false);
+  assert.equal(existsSync(join(targetRoot, '.grounded-engineering', 'proposals')), true);
+});
+
 test('unsupported fast-follow commands return a documented exit code', () => {
   const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
   const result = spawnSync(process.execPath, [bin, 'check'], {

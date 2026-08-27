@@ -122,6 +122,12 @@ try {
 }
 
 try {
+  loadPack(root, 'ai-assisted');
+} catch (error) {
+  errors.push(`packs/ai-assisted.yaml: ${error.message}`);
+}
+
+try {
   getManifestValidator(root);
 } catch (error) {
   errors.push(`packs/manifest-schema.yaml: invalid JSON Schema: ${error.message}`);
@@ -145,6 +151,7 @@ const sourceTexts = walkRepository(join(root, 'research', 'sources'))
   .join('\n');
 
 for (const path of walkRepository(root)) {
+  if (path === join(root, '.git')) continue;
   if (path.endsWith('.md')) checkRelativeLinks(path, read(path));
   if (path !== join(root, 'scripts', 'validate.mjs')) checkPublicText(path, read(path));
 }

@@ -46,7 +46,7 @@ function parseOptions(args) {
 function validateSelection(options) {
   if (options.help) return;
   if (options.profile && options.cards) throw new Error('Choose --profile or --cards, not both');
-  if (options.profile && options.profile !== 'baseline') throw new Error(`Profile ${options.profile} is reserved for fast-follow work`);
+  if (options.profile && !['baseline', 'ai-assisted'].includes(options.profile)) throw new Error(`Profile ${options.profile} is reserved for fast-follow work`);
   if (options.adapter) resolveAdapter(options.adapter);
 }
 

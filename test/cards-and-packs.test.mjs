@@ -41,3 +41,26 @@ test('loads the baseline pack with exactly the eight Context and Instructions ca
     'GE-VF-002'
   ]);
 });
+
+test('loads the ai-assisted pack with all thirteen canonical cards', () => {
+  const pack = loadPack(root, 'ai-assisted');
+
+  assert.equal(pack.pack_id, 'ai-assisted');
+  assert.equal(pack.pack_version, '1.0.0');
+  assert.equal(pack.grounded_engineering_release, 'v0.4.0');
+  assert.deepEqual(pack.cards.map((card) => card.id), [
+    'GE-RC-001',
+    'GE-RC-002',
+    'GE-CQ-001',
+    'GE-CQ-002',
+    'GE-TS-001',
+    'GE-TS-002',
+    'GE-VF-001',
+    'GE-VF-002',
+    'GE-AS-001',
+    'GE-AS-002',
+    'GE-AS-003',
+    'GE-AS-004',
+    'GE-AS-005'
+  ]);
+});
