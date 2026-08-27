@@ -7,6 +7,15 @@ project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 Practice cards are point-in-time observations against pinned sources; a release
 records the state of the catalog and tooling at that tag.
 
+## [Unreleased]
+
+### Changed
+- Provenance floor for validation: a practice card whose `validation.status`
+  is `validated` or `needs_review` must now record `validation.validated_against`:
+  the commit or tag it was checked against. The record schema enforces this, so
+  a card can no longer report a validation state without naming the revision
+  behind it. All existing cards are `not_validated`, so none needed changing.
+
 ## [0.4.0] - 2026-08-27
 
 ### Added

@@ -28,7 +28,7 @@ The historical baseline pack metadata remains at `v0.2.0` with
 thirteen-card set, but it does not rewrite existing policy; it creates a
 reviewable proposal that the consuming repository must explicitly accept.
 
-The recommendations are point-in-time observations against pinned sources. Source changes do not silently rewrite cards; re-auditing is a deliberate maintenance step.
+The recommendations are point-in-time observations against pinned sources. Source changes do not silently rewrite cards; re-auditing is a deliberate maintenance step. A card cannot report a validation state stronger than `not_validated` without recording the source revision it was checked against, so a validated card always points back to the commit or tag behind it.
 
 Grounded Engineering is built and maintained with AI agents in real engineering workflows.
 
