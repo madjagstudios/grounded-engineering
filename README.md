@@ -125,10 +125,8 @@ cards from the pack bundled with the installed CLI. Exit code `0` means clean,
 `update propose` is still reserved in v0.4.0, and custom `--cards` selection
 remains preview-only.
 
-The design and compatibility contract for the current release is recorded in
-[`docs/superpowers/specs/2026-08-26-multi-provider-adoption-v040-design.md`](docs/superpowers/specs/2026-08-26-multi-provider-adoption-v040-design.md),
-with the implementation plan in
-[`docs/superpowers/plans/2026-08-26-multi-provider-adoption-v040.md`](docs/superpowers/plans/2026-08-26-multi-provider-adoption-v040.md).
+The current release's compatibility contract is exercised by the repository's
+tests and validator and is summarized in the release notes.
 
 ## Evidence posture
 

@@ -68,7 +68,14 @@ function checkPublicText(path, text) {
     /\/home\//,
     /\bMJS-[0-9]+\b/,
     new RegExp('Mad' + 'JagStudios'),
-    new RegExp('studio' + '-ops'),
+    /studio-ops/i,
+    /MADJAG_STUDIO_OPS/i,
+    /PUBLIC_ALLOWLIST/i,
+    /private (?:studio operations|publication|scanner)/i,
+    /(?:\.git\/hooks\/commit-msg|\.githooks\/)/i,
+    /(?:docs\/)?superpowers\//i,
+    /superpowers:/i,
+    /REQUIRED SUB-SKILL/i,
   ];
   for (const pattern of forbidden) {
     if (pattern.test(text)) errors.push(`${displayPath(path)}: public-content check matched ${pattern}`);
