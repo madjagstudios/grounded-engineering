@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { cpSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { parse, stringify } from 'yaml';
 import test from 'node:test';
 import { applyProposal, collectLocalDecisions, createProposal, loadProposal } from '../src/lib/proposals.mjs';
@@ -9,6 +10,7 @@ import { buildManifest, validateManifest } from '../src/lib/manifest.mjs';
 import { sha256Text } from '../src/lib/fingerprints.mjs';
 
 const root = new URL('../', import.meta.url).pathname;
+const bin = join(root, 'bin', 'grounded-engineering.mjs');
 
 function copyFixture(name) {
   const source = join(root, 'test', 'fixtures', name);
@@ -228,4 +230,22 @@ test('applies a Claude proposal to CLAUDE.md, preserves unmanaged bytes, and rec
   const manifest = parse(readFileSync(join(targetRoot, '.grounded-engineering', 'manifest.yaml'), 'utf8'));
   assert.equal(manifest.targets[0].kind, 'claude-md');
   assert.equal(validateManifest(manifest, root).valid, true);
+});
+
+test('check rejects adopt-only flags', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-check-options-'));
+
+  for (const args of [
+    ['check', '--profile', 'baseline'],
+    ['check', '--adapter', 'claude'],
+    ['check', '--confirm'],
+  ]) {
+    const result = spawnSync(process.execPath, [bin, ...args], {
+      cwd: targetRoot,
+      encoding: 'utf8',
+    });
+
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /Usage:/);
+  }
 });

@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { cpSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { parse, stringify } from 'yaml';
 import { validateManifest } from '../src/lib/manifest.mjs';
+import { parseManagedBlocks, renderManagedBlock } from '../src/lib/managed-blocks.mjs';
 import { walkRepository } from '../src/lib/repository-walk.mjs';
 
 const root = new URL('../', import.meta.url).pathname;
@@ -40,6 +41,22 @@ function reviewProposal(targetRoot, id) {
     local_decision: 'ACCEPT',
   }));
   writeFileSync(path, stringify(proposal));
+}
+
+function createReviewedProposal(targetRoot, ...args) {
+  const create = run(targetRoot, 'adopt', 'create', ...args);
+  assert.equal(create.status, 0, create.stderr);
+  const id = proposalId(create.stdout);
+  assert.ok(id);
+  reviewProposal(targetRoot, id);
+  return id;
+}
+
+function replaceFirstManagedBlock(targetPath, replacementContent) {
+  const text = readFileSync(targetPath, 'utf8');
+  const [block] = parseManagedBlocks(text);
+  const replacement = renderManagedBlock(block.cardId, replacementContent);
+  writeFileSync(targetPath, `${text.slice(0, block.start)}${replacement}${text.slice(block.end)}`);
 }
 
 test('runs preview, create, review, apply, and stable regeneration on a clean fixture', () => {
@@ -99,4 +116,83 @@ test('refuses a stale target with no partial writes', () => {
   assert.match(apply.stderr, /precondition/);
   assert.equal(existsSync(originalManifest), false);
   assert.match(readFileSync(targetPath, 'utf8'), /Manual edit after review/);
+});
+
+test('reports a clean baseline repository after apply', () => {
+  const targetRoot = copyFixture('e2e-clean');
+  const id = createReviewedProposal(targetRoot, '--profile', 'baseline');
+  const apply = run(targetRoot, 'adopt', 'apply', id, '--confirm');
+  assert.equal(apply.status, 0, apply.stderr);
+
+  const check = run(targetRoot, 'check');
+  assert.equal(check.status, 0, check.stderr);
+  assert.match(check.stdout, /Status: clean/);
+});
+
+test('reports a clean ai-assisted Claude repository after apply', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-claude-e2e-'));
+  const id = createReviewedProposal(targetRoot, '--profile', 'ai-assisted', '--adapter', 'claude');
+  const apply = run(targetRoot, 'adopt', 'apply', id, '--confirm');
+  assert.equal(apply.status, 0, apply.stderr);
+  assert.equal(existsSync(join(targetRoot, 'CLAUDE.md')), true);
+
+  const check = run(targetRoot, 'check');
+  assert.equal(check.status, 0, check.stderr);
+  assert.match(check.stdout, /Status: clean/);
+});
+
+test('keeps check clean when only unmanaged prose changes', () => {
+  const targetRoot = copyFixture('e2e-clean');
+  const id = createReviewedProposal(targetRoot, '--profile', 'baseline');
+  const apply = run(targetRoot, 'adopt', 'apply', id, '--confirm');
+  assert.equal(apply.status, 0, apply.stderr);
+
+  const targetPath = join(targetRoot, 'GROUNDED_ENGINEERING.md');
+  const current = readFileSync(targetPath, 'utf8');
+  writeFileSync(targetPath, `Repository-owned preface.\n\n${current}\nRepository-owned footer.\n`);
+
+  const check = run(targetRoot, 'check');
+  assert.equal(check.status, 0, check.stderr);
+  assert.match(check.stdout, /Status: clean/);
+});
+
+test('reports a changed managed block as drift', () => {
+  const targetRoot = copyFixture('e2e-clean');
+  const id = createReviewedProposal(targetRoot, '--profile', 'baseline');
+  const apply = run(targetRoot, 'adopt', 'apply', id, '--confirm');
+  assert.equal(apply.status, 0, apply.stderr);
+
+  replaceFirstManagedBlock(join(targetRoot, 'GROUNDED_ENGINEERING.md'), 'Changed managed guidance for this test.');
+
+  const check = run(targetRoot, 'check');
+  assert.equal(check.status, 1);
+  assert.match(check.stderr, /MANAGED_BLOCK_CHANGED/);
+  assert.match(check.stderr, /GROUNDED_ENGINEERING\.md/);
+});
+
+test('reports a missing managed target as drift', () => {
+  const targetRoot = copyFixture('e2e-clean');
+  const id = createReviewedProposal(targetRoot, '--profile', 'baseline');
+  const apply = run(targetRoot, 'adopt', 'apply', id, '--confirm');
+  assert.equal(apply.status, 0, apply.stderr);
+
+  rmSync(join(targetRoot, 'GROUNDED_ENGINEERING.md'));
+
+  const check = run(targetRoot, 'check');
+  assert.equal(check.status, 1);
+  assert.match(check.stderr, /MISSING_TARGET/);
+  assert.match(check.stderr, /GROUNDED_ENGINEERING\.md/);
+});
+
+test('reports a missing manifest as drift', () => {
+  const targetRoot = copyFixture('e2e-clean');
+  const id = createReviewedProposal(targetRoot, '--profile', 'baseline');
+  const apply = run(targetRoot, 'adopt', 'apply', id, '--confirm');
+  assert.equal(apply.status, 0, apply.stderr);
+
+  rmSync(join(targetRoot, '.grounded-engineering', 'manifest.yaml'));
+
+  const check = run(targetRoot, 'check');
+  assert.equal(check.status, 1);
+  assert.match(check.stderr, /MISSING_MANIFEST/);
 });

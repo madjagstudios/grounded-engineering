@@ -87,15 +87,27 @@ test('create accepts the ai-assisted profile and saves a proposal', () => {
   assert.equal(existsSync(join(targetRoot, '.grounded-engineering', 'proposals')), true);
 });
 
-test('unsupported fast-follow commands return a documented exit code', () => {
+test('update remains reserved in this release', () => {
   const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
-  const result = spawnSync(process.execPath, [bin, 'check'], {
+  const result = spawnSync(process.execPath, [bin, 'update'], {
     cwd: targetRoot,
     encoding: 'utf8'
   });
 
   assert.equal(result.status, 2);
   assert.match(result.stderr, /reserved fast-follow command/);
+});
+
+test('check rejects unknown options with usage text', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
+  const result = spawnSync(process.execPath, [bin, 'check', '--wat'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /Unknown option: --wat/);
+  assert.match(result.stderr, /Usage:/);
 });
 
 test('unknown options fail with usage text', () => {
