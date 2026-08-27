@@ -230,3 +230,16 @@ test('an unknown --adapter fails closed and lists valid adapters', () => {
   assert.match(result.stderr, /neutral/);
   assert.match(result.stderr, /claude/);
 });
+
+test('help text advertises the v0.4.0 adoption surface', () => {
+  const result = spawnSync(process.execPath, [bin, '--help'], {
+    cwd: root,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /adopt preview --profile ai-assisted --adapter claude/);
+  assert.match(result.stdout, /adopt create --profile ai-assisted --adapter codex/);
+  assert.match(result.stdout, /grounded-engineering check/);
+  assert.match(result.stdout, /grounded-engineering update propose --release v0\.4\.0/);
+});

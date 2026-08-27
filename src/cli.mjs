@@ -12,12 +12,12 @@ function printHelp(write) {
   write(`Usage:
   grounded-engineering adopt
   grounded-engineering adopt preview --profile baseline
-  grounded-engineering adopt preview --profile baseline --adapter codex
+  grounded-engineering adopt preview --profile ai-assisted --adapter claude
   grounded-engineering adopt preview --cards GE-RC-001,inspect-repository-first
-  grounded-engineering adopt create --profile baseline
+  grounded-engineering adopt create --profile ai-assisted --adapter codex
   grounded-engineering adopt apply 20260826-143000-a1b2c3d4 --confirm
   grounded-engineering check
-  grounded-engineering update propose --release v0.3.0
+  grounded-engineering update propose --release v0.4.0
 `);
 }
 
