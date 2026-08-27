@@ -3,6 +3,7 @@ import { stdin, stdout as processStdout, stderr as processStderr } from 'node:pr
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveAdapter } from './lib/adapters.mjs';
+import { checkRepository } from './lib/check.mjs';
 import { applyProposal, buildProposal, createProposal, loadProposal, proposalConflicts, saveProposal } from './lib/proposals.mjs';
 
 const repositoryRoot = resolve(fileURLToPath(new URL('../', import.meta.url)));
@@ -11,12 +12,20 @@ function printHelp(write) {
   write(`Usage:
   grounded-engineering adopt
   grounded-engineering adopt preview --profile baseline
-  grounded-engineering adopt preview --profile baseline --adapter codex
+  grounded-engineering adopt preview --profile ai-assisted --adapter claude
   grounded-engineering adopt preview --cards GE-RC-001,inspect-repository-first
-  grounded-engineering adopt create --profile baseline
+  grounded-engineering adopt create --profile ai-assisted --adapter codex
   grounded-engineering adopt apply 20260826-143000-a1b2c3d4 --confirm
   grounded-engineering check
-  grounded-engineering update propose --release v0.3.0
+
+Reserved (unavailable in v0.4.0):
+  grounded-engineering update propose --release v0.4.0
+`);
+}
+
+function printCheckHelp(write) {
+  write(`Usage:
+  grounded-engineering check
 `);
 }
 
@@ -43,10 +52,16 @@ function parseOptions(args) {
   return options;
 }
 
+function parseCheckOptions(args) {
+  if (args.length === 0) return {};
+  if (args.length === 1 && args[0] === '--help') return { help: true };
+  throw new Error(`Unknown option: ${args[0]}`);
+}
+
 function validateSelection(options) {
   if (options.help) return;
   if (options.profile && options.cards) throw new Error('Choose --profile or --cards, not both');
-  if (options.profile && options.profile !== 'baseline') throw new Error(`Profile ${options.profile} is reserved for fast-follow work`);
+  if (options.profile && !['baseline', 'ai-assisted'].includes(options.profile)) throw new Error(`Profile ${options.profile} is reserved for fast-follow work`);
   if (options.adapter) resolveAdapter(options.adapter);
 }
 
@@ -110,8 +125,31 @@ export async function runCli(argv, context = {}) {
     return 0;
   }
 
-  if (argv[0] === 'check' || argv[0] === 'update') {
-    error(`${argv[0]} is a reserved fast-follow command in this release.`);
+  if (argv[0] === 'check') {
+    try {
+      const options = parseCheckOptions(argv.slice(1));
+      if (options.help) {
+        printCheckHelp(write);
+        return 0;
+      }
+
+      const result = checkRepository(root, { sourceRoot });
+      if (!result.ok) {
+        for (const diagnostic of result.diagnostics) error(`${diagnostic.code}: ${diagnostic.message}`);
+        return 1;
+      }
+
+      write('Status: clean');
+      return 0;
+    } catch (caught) {
+      error(caught.message);
+      printCheckHelp(error);
+      return 2;
+    }
+  }
+
+  if (argv[0] === 'update') {
+    error('update is a reserved fast-follow command in this release.');
     return 2;
   }
   if (argv[0] !== 'adopt') {

@@ -7,6 +7,29 @@ project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 Practice cards are point-in-time observations against pinned sources; a release
 records the state of the catalog and tooling at that tag.
 
+## [0.4.0] - 2026-08-27
+
+### Added
+- Claude Code adapter: `grounded-engineering adopt ... --adapter claude` now
+  targets the repository-root `CLAUDE.md`, preserves unmanaged prose outside
+  card-keyed managed blocks, and reports nearby Claude instruction surfaces
+  without editing them.
+- AI-assisted adoption profile: `--profile ai-assisted` ships the full
+  thirteen-card pack across repository context, code quality, testing,
+  verification, and agent-skill design.
+- Read-only drift checking: `grounded-engineering check` validates the local
+  manifest and managed blocks against the pack bundled with the installed CLI.
+  Exit code `0` means clean, `1` means drift or repository-state mismatch, and
+  `2` remains reserved for invocation errors.
+
+### Changed
+- Public documentation now reflects the supported v0.4.0 adoption surface,
+  including the three adapter choices, the one-adapter-per-manifest limitation,
+  and the explicit review/apply/check lifecycle.
+- The baseline pack metadata intentionally remains at `v0.2.0` with
+  `pack_version: 1.0.0`, so existing baseline adopters are not forced into
+  manual manifest deletion while `update propose` is still reserved.
+
 ## [0.3.0] - 2026-08-26
 
 ### Added
@@ -44,6 +67,7 @@ records the state of the catalog and tooling at that tag.
   cards across repository context, code quality, testing, and verification, with
   the research provenance model, schema, and local validator.
 
+[0.4.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.4.0
 [0.3.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.3.0
 [0.2.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.2.0
 [0.1.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.1.0

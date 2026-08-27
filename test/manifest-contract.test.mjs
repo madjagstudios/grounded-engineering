@@ -86,6 +86,21 @@ test('manifest accepts the codex-agents-md target kind', () => {
   assert.equal(result.valid, true, JSON.stringify(result.errors));
 });
 
+test('manifest accepts the claude-md target kind', () => {
+  const manifest = buildManifest({
+    ...baseInput,
+    grounded_engineering_release: 'v0.4.0',
+    targets: [{
+      ...baseInput.targets[0],
+      path: 'CLAUDE.md',
+      kind: 'claude-md'
+    }]
+  });
+
+  const result = validateManifest(manifest);
+  assert.equal(result.valid, true, JSON.stringify(result.errors));
+});
+
 test('manifest rejects an unknown target kind', () => {
   const manifest = buildManifest({
     ...baseInput,

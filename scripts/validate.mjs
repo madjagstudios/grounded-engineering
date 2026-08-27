@@ -122,6 +122,12 @@ try {
 }
 
 try {
+  loadPack(root, 'ai-assisted');
+} catch (error) {
+  errors.push(`packs/ai-assisted.yaml: ${error.message}`);
+}
+
+try {
   getManifestValidator(root);
 } catch (error) {
   errors.push(`packs/manifest-schema.yaml: invalid JSON Schema: ${error.message}`);
@@ -139,12 +145,25 @@ try {
   errors.push(`package.json: unable to validate CLI entrypoint: ${error.message}`);
 }
 
+const readmeText = read(join(root, 'README.md'));
+for (const snippet of [
+  'npx grounded-engineering adopt preview --profile ai-assisted --adapter claude',
+  'grounded-engineering check',
+  'v0.2.0',
+  'does not rewrite existing policy'
+]) {
+  if (!readmeText.includes(snippet)) {
+    errors.push(`README.md: missing required public release text: ${snippet}`);
+  }
+}
+
 const sourceTexts = walkRepository(join(root, 'research', 'sources'))
   .filter((path) => path.endsWith('.md'))
   .map((path) => read(path))
   .join('\n');
 
 for (const path of walkRepository(root)) {
+  if (path === join(root, '.git')) continue;
   if (path.endsWith('.md')) checkRelativeLinks(path, read(path));
   if (path !== join(root, 'scripts', 'validate.mjs')) checkPublicText(path, read(path));
 }

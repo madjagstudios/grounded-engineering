@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { chooseCodexTarget, inspectRepository, chooseProviderNeutralTarget } from '../src/lib/preflight.mjs';
+import { chooseClaudeTarget, chooseCodexTarget, inspectRepository, chooseProviderNeutralTarget } from '../src/lib/preflight.mjs';
 
 const fixtureRoot = new URL('./fixtures/existing-policy/', import.meta.url).pathname;
 const cleanRoot = new URL('./fixtures/clean-repository/', import.meta.url).pathname;
@@ -46,4 +46,31 @@ test('chooseCodexTarget fails closed when a Codex override file is present', () 
   writeFileSync(join(root, 'AGENTS.override.md'), '# override\n');
 
   assert.throws(() => chooseCodexTarget({ root }), /override/i);
+});
+
+test('inspects Claude instruction surfaces with relative paths that preserve location', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ge-claude-preflight-'));
+  mkdirSync(join(root, '.claude'), { recursive: true });
+  mkdirSync(join(root, 'docs', 'nested'), { recursive: true });
+  writeFileSync(join(root, 'CLAUDE.md'), '# root\n');
+  writeFileSync(join(root, '.claude', 'CLAUDE.md'), '# dot claude\n');
+  writeFileSync(join(root, 'docs', 'nested', 'CLAUDE.md'), '# nested\n');
+  writeFileSync(join(root, 'CLAUDE.local.md'), '# local\n');
+
+  const report = inspectRepository(root);
+
+  assert.deepEqual(report.instructionFiles.sort(), [
+    '.claude/CLAUDE.md',
+    'CLAUDE.local.md',
+    'CLAUDE.md',
+    'docs/nested/CLAUDE.md',
+  ]);
+});
+
+test('chooseClaudeTarget targets root CLAUDE.md and reports existence', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ge-claude-target-'));
+
+  assert.deepEqual(chooseClaudeTarget({ root }), { path: 'CLAUDE.md', existing: false });
+  writeFileSync(join(root, 'CLAUDE.md'), '# existing\n');
+  assert.deepEqual(chooseClaudeTarget({ root }), { path: 'CLAUDE.md', existing: true });
 });

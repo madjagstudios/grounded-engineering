@@ -12,4 +12,13 @@ Practice cards are the concise consumption surface. They intentionally omit rese
 
 Cards are not universal law. Check applicability, boundaries, evidence level, and local policy before translating one into an agent instruction or deterministic control.
 
-The first adoption pack, `baseline`, selects the eight Context & Instructions cards covering repository context, code quality, testing, and verification. The pack preserves each card's canonical ID and public disposition while leaving local applicability and acceptance to the consuming repository's review.
+Grounded Engineering currently ships two reviewable adoption packs:
+
+- `baseline`: the historical eight-card Context & Instructions starter pack for
+  repository context, code quality, testing, and verification.
+- `ai-assisted`: all thirteen current cards, combining the baseline set with
+  the five Agent & Skill Design cards.
+
+Both packs preserve each card's canonical ID and public disposition while
+leaving local applicability, acceptance, and provider-specific translation to
+the consuming repository's review.

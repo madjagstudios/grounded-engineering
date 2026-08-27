@@ -1,7 +1,18 @@
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const ignoredDirectories = new Set(['.git', 'node_modules', 'coverage', 'dist']);
+const ignoredDirectories = new Set([
+  '.git',
+  '.grounded-engineering',
+  '.private',
+  '.superpowers',
+  '.worktrees',
+  'coverage',
+  'dist',
+  'node_modules',
+  'reports',
+  'worktrees'
+]);
 
 export function walkRepository(directory) {
   const entries = readdirSync(directory, { withFileTypes: true })

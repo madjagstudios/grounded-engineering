@@ -61,15 +61,53 @@ test('create saves a proposal but does not write the canonical target', () => {
   assert.equal(existsSync(join(targetRoot, '.grounded-engineering', 'proposals')), true);
 });
 
-test('unsupported fast-follow commands return a documented exit code', () => {
+test('preview accepts the ai-assisted profile', () => {
   const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
-  const result = spawnSync(process.execPath, [bin, 'check'], {
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'ai-assisted'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Profile: ai-assisted/);
+  assert.match(result.stdout, /GE-AS-001/);
+  assert.equal(existsSync(join(targetRoot, '.grounded-engineering')), false);
+});
+
+test('create accepts the ai-assisted profile and saves a proposal', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'create', '--profile', 'ai-assisted'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Proposal created: 20[0-9]{6}-[0-9]{6}-[0-9a-f]{8}/);
+  assert.equal(existsSync(join(targetRoot, 'GROUNDED_ENGINEERING.md')), false);
+  assert.equal(existsSync(join(targetRoot, '.grounded-engineering', 'proposals')), true);
+});
+
+test('update remains reserved in this release', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
+  const result = spawnSync(process.execPath, [bin, 'update'], {
     cwd: targetRoot,
     encoding: 'utf8'
   });
 
   assert.equal(result.status, 2);
   assert.match(result.stderr, /reserved fast-follow command/);
+});
+
+test('check rejects unknown options with usage text', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-cli-'));
+  const result = spawnSync(process.execPath, [bin, 'check', '--wat'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /Unknown option: --wat/);
+  assert.match(result.stderr, /Usage:/);
 });
 
 test('unknown options fail with usage text', () => {
@@ -132,6 +170,31 @@ test('preview --adapter codex preserves an existing AGENTS.md and only plans a m
   assert.equal(readFileSync(join(targetRoot, 'AGENTS.md'), 'utf8'), '# My rules\n\nKeep it tidy.\n');
 });
 
+test('preview --adapter claude targets CLAUDE.md and writes nothing', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-claude-cli-'));
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'baseline', '--adapter', 'claude'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Adapter: claude/);
+  assert.match(result.stdout, /Target: CLAUDE\.md/);
+  assert.equal(existsSync(join(targetRoot, 'CLAUDE.md')), false);
+});
+
+test('preview --adapter claude preserves an existing CLAUDE.md and only plans a managed block', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-claude-existing-'));
+  writeFileSync(join(targetRoot, 'CLAUDE.md'), '# My Claude rules\n\nKeep this prose.\n');
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'baseline', '--adapter', 'claude'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(join(targetRoot, 'CLAUDE.md'), 'utf8'), '# My Claude rules\n\nKeep this prose.\n');
+});
+
 test('preview --adapter codex fails closed when an override file governs', () => {
   const targetRoot = mkdtempSync(join(tmpdir(), 'ge-codex-cli-override-'));
   writeFileSync(join(targetRoot, 'AGENTS.override.md'), '# override\n');
@@ -165,4 +228,19 @@ test('an unknown --adapter fails closed and lists valid adapters', () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, /Unknown adapter: bogus/);
   assert.match(result.stderr, /neutral/);
+  assert.match(result.stderr, /claude/);
+});
+
+test('help text advertises the v0.4.0 adoption surface', () => {
+  const result = spawnSync(process.execPath, [bin, '--help'], {
+    cwd: root,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /adopt preview --profile ai-assisted --adapter claude/);
+  assert.match(result.stdout, /adopt create --profile ai-assisted --adapter codex/);
+  assert.match(result.stdout, /grounded-engineering check/);
+  assert.match(result.stdout, /Reserved \(unavailable in v0\.4\.0\):/);
+  assert.match(result.stdout, /grounded-engineering update propose --release v0\.4\.0/);
 });
