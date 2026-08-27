@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { walkRepository } from './repository-walk.mjs';
 
-const instructionNames = new Set(['AGENTS.md', 'CLAUDE.md', 'copilot-instructions.md']);
+const instructionNames = new Set(['AGENTS.md', 'CLAUDE.md', 'CLAUDE.local.md', 'copilot-instructions.md']);
 const packageFiles = new Set(['package.json', 'pyproject.toml', 'Cargo.toml', 'go.mod', 'pom.xml', 'Gemfile']);
 const codexOverrideNames = ['AGENTS.override.md'];
 
@@ -58,5 +58,10 @@ export function chooseCodexTarget(report) {
   }
 
   const path = 'AGENTS.md';
+  return { path, existing: existsSync(join(report.root, path)) };
+}
+
+export function chooseClaudeTarget(report) {
+  const path = 'CLAUDE.md';
   return { path, existing: existsSync(join(report.root, path)) };
 }

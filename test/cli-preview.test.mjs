@@ -158,6 +158,31 @@ test('preview --adapter codex preserves an existing AGENTS.md and only plans a m
   assert.equal(readFileSync(join(targetRoot, 'AGENTS.md'), 'utf8'), '# My rules\n\nKeep it tidy.\n');
 });
 
+test('preview --adapter claude targets CLAUDE.md and writes nothing', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-claude-cli-'));
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'baseline', '--adapter', 'claude'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Adapter: claude/);
+  assert.match(result.stdout, /Target: CLAUDE\.md/);
+  assert.equal(existsSync(join(targetRoot, 'CLAUDE.md')), false);
+});
+
+test('preview --adapter claude preserves an existing CLAUDE.md and only plans a managed block', () => {
+  const targetRoot = mkdtempSync(join(tmpdir(), 'ge-claude-existing-'));
+  writeFileSync(join(targetRoot, 'CLAUDE.md'), '# My Claude rules\n\nKeep this prose.\n');
+  const result = spawnSync(process.execPath, [bin, 'adopt', 'preview', '--profile', 'baseline', '--adapter', 'claude'], {
+    cwd: targetRoot,
+    encoding: 'utf8'
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readFileSync(join(targetRoot, 'CLAUDE.md'), 'utf8'), '# My Claude rules\n\nKeep this prose.\n');
+});
+
 test('preview --adapter codex fails closed when an override file governs', () => {
   const targetRoot = mkdtempSync(join(tmpdir(), 'ge-codex-cli-override-'));
   writeFileSync(join(targetRoot, 'AGENTS.override.md'), '# override\n');
@@ -191,4 +216,5 @@ test('an unknown --adapter fails closed and lists valid adapters', () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, /Unknown adapter: bogus/);
   assert.match(result.stderr, /neutral/);
+  assert.match(result.stderr, /claude/);
 });

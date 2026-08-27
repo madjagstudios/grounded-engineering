@@ -1,5 +1,5 @@
-import { chooseCodexTarget, chooseProviderNeutralTarget } from './preflight.mjs';
-import { renderBaselineDocument, renderCodexDocument } from './rendering.mjs';
+import { chooseClaudeTarget, chooseCodexTarget, chooseProviderNeutralTarget } from './preflight.mjs';
+import { renderBaselineDocument, renderClaudeDocument, renderCodexDocument } from './rendering.mjs';
 
 const ADAPTERS = [
   {
@@ -13,6 +13,12 @@ const ADAPTERS = [
     kind: 'codex-agents-md',
     chooseTarget: chooseCodexTarget,
     renderDocument: renderCodexDocument,
+  },
+  {
+    id: 'claude',
+    kind: 'claude-md',
+    chooseTarget: chooseClaudeTarget,
+    renderDocument: renderClaudeDocument,
   },
 ];
 

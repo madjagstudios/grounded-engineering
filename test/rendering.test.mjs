@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { loadPack } from '../src/lib/packs.mjs';
-import { renderBaselineDocument, renderCardContent, renderCodexDocument, renderReviewMetadata } from '../src/lib/rendering.mjs';
+import { renderBaselineDocument, renderCardContent, renderClaudeDocument, renderCodexDocument, renderReviewMetadata } from '../src/lib/rendering.mjs';
 import { renderManagedBlock } from '../src/lib/managed-blocks.mjs';
 
 const root = new URL('../', import.meta.url).pathname;
@@ -56,4 +56,24 @@ test('codex document uses a codex-appropriate preamble, not the baseline header'
 
   assert.doesNotMatch(codex, /# Grounded Engineering baseline/);
   assert.match(codex, /managed by Grounded Engineering/i);
+});
+
+test('Claude document embeds the same per-card block as the neutral and Codex documents', () => {
+  const block = renderManagedBlock(codexCard.id, renderCardContent(codexCard));
+  const claude = renderClaudeDocument(codexPack, [codexCard]);
+  const codex = renderCodexDocument(codexPack, [codexCard]);
+  const neutral = renderBaselineDocument(codexPack, [codexCard]);
+
+  assert.ok(claude.includes(block), 'claude output must contain the identical managed block');
+  assert.ok(codex.includes(block), 'codex output must contain the identical managed block');
+  assert.ok(neutral.includes(block), 'neutral output must contain the identical managed block');
+});
+
+test('Claude document uses a Claude-specific preamble, not the codex or baseline header', () => {
+  const claude = renderClaudeDocument(codexPack, [codexCard]);
+
+  assert.doesNotMatch(claude, /# Grounded Engineering baseline/);
+  assert.doesNotMatch(claude, /# Agent guidance \(Grounded Engineering\)/);
+  assert.match(claude, /# Claude Code guidance \(Grounded Engineering\)/);
+  assert.match(claude, /managed by Grounded Engineering/i);
 });
