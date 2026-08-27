@@ -1,12 +1,10 @@
-# Codex Adapter Design (GE-9)
+# Codex Adapter Design
 
 Status: shipped in `main` at merge commit `747c92c` via PR #4.
 
 **Goal:** Let `grounded-engineering adopt` emit `AGENTS.md`-shaped output for OpenAI Codex, in addition to the existing provider-neutral Markdown, reusing the preview → create → apply → manifest flow. The external flow is preserved; the internal changes are: a `--adapter` axis with a small registry, two apply changes (a kind allowlist and adapter-driven new-file rendering), proposal-time conflict surfacing in `preview`/`create`, and a one-line manifest-schema widening of the `kind` field — all specified below.
 
-**Ticket:** [GE-9](https://madjagstudios.atlassian.net/browse/GE-9), under epic GE-1.
-
-**Related:** builds on the adoption-packs baseline slice (`docs/superpowers/specs/2026-08-26-adoption-packs-design.md`). GE-10 (Claude Code adapter) will reuse the seam introduced here.
+**Related:** builds on the adoption-packs baseline slice (`docs/superpowers/specs/2026-08-26-adoption-packs-design.md`). A later Claude Code adapter will reuse the seam introduced here.
 
 ## Motivation
 
@@ -77,7 +75,7 @@ Adapter resolution uses the proposal's persisted `adapter` id, cross-checked aga
 
 ### Conflict surfacing (proposal time)
 
-Today `buildProposal` calls `mergeManagedBlocks(existingText, blocks).text` and discards `.conflicts` (`proposals.mjs:107`), so a structural marker conflict (duplicate/malformed GE marker, stale full-file precondition) is invisible until apply. GE-9 closes this so the conflict is reported when it is first knowable.
+Today `buildProposal` calls `mergeManagedBlocks(existingText, blocks).text` and discards `.conflicts` (`proposals.mjs:107`), so a structural marker conflict (duplicate/malformed GE marker, stale full-file precondition) is invisible until apply. This adapter slice closes that gap so the conflict is reported when it is first knowable.
 
 - `buildProposal` captures `merged.conflicts` in the existing-file branch and attaches them to the target as `conflicts: [{ code, message }, ...]` (empty array when clean; absent/empty for the new-file branch, which cannot conflict).
 - A proposal is "conflicted" if any target has a non-empty `conflicts`.
@@ -91,7 +89,7 @@ This is a shared improvement to `buildProposal`, so it applies to the neutral ad
 
 The applied manifest records `target.path = AGENTS.md` and `target.kind = codex-agents-md`, in the same manifest shape as the neutral adapter.
 
-**One applied adapter per repository in v1.** `buildApplyChanges` refuses to run when a `.grounded-engineering/manifest.yaml` already exists (`"update is reserved for a later release"`). That guard is unchanged here, so a repository can hold exactly one applied manifest: a user applies *either* the neutral doc *or* the Codex adapter, and a second apply of a different adapter is blocked until the update flow (GE-11 / GE-12) lands. Carrying both adapters simultaneously, and updating either independently, is explicitly out of scope for GE-9 and is not claimed. (The manifest's `targets[]` is an array, so the future update flow can extend to multiple targets without a shape change — but v1 writes a single-target manifest and blocks re-apply.)
+**One applied adapter per repository in v1.** `buildApplyChanges` refuses to run when a `.grounded-engineering/manifest.yaml` already exists (`"update is reserved for a later release"`). That guard is unchanged here, so a repository can hold exactly one applied manifest: a user applies *either* the neutral doc *or* the Codex adapter, and a second apply of a different adapter is blocked until the update flow lands. Carrying both adapters simultaneously, and updating either independently, is explicitly out of scope for this adapter slice and is not claimed. (The manifest's `targets[]` is an array, so the future update flow can extend to multiple targets without a shape change — but v1 writes a single-target manifest and blocks re-apply.)
 
 One concrete schema change is required: `packs/manifest-schema.yaml` currently pins the target kind with `kind: { const: provider-neutral-markdown }` (line ~95). Change that `const` to `enum: [provider-neutral-markdown, codex-agents-md]` so an applied Codex manifest validates. This is the only schema edit; no other field changes. (The repository validator's own manifest checks run through this same schema.)
 
@@ -138,7 +136,7 @@ Integration (spawn):
 In scope: the adapter registry seam, the `neutral` refactor-in-place, the `codex` adapter (including the override-file guard), the `--adapter` flag, the two apply changes (kind allowlist, adapter `renderDocument`), **proposal-time conflict surfacing** (capture `mergeManagedBlocks` conflicts in `buildProposal`; `preview`/`create` report and fail closed), the `manifest-schema.yaml` `const → enum` edit, and the tests above.
 
 Out of scope (own tickets / follow-ups):
-- the `claude-code` adapter (GE-10 — one registry entry once this lands);
-- multi-adapter coexistence and independent update (blocked by the single-manifest guard; belongs with GE-11 `check` / GE-12 `update propose`);
+- the `claude-code` adapter (one registry entry once this lands);
+- multi-adapter coexistence and independent update (blocked by the single-manifest guard; belongs with future `check` and `update propose` work);
 - automatically targeting the Codex override file rather than failing closed;
 - the `ai-assisted`/`custom` profiles, an interactive adapter prompt, and any nested/scoped `AGENTS.md` handling beyond root.

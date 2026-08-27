@@ -17,6 +17,8 @@ function printHelp(write) {
   grounded-engineering adopt create --profile ai-assisted --adapter codex
   grounded-engineering adopt apply 20260826-143000-a1b2c3d4 --confirm
   grounded-engineering check
+
+Reserved (unavailable in v0.4.0):
   grounded-engineering update propose --release v0.4.0
 `);
 }

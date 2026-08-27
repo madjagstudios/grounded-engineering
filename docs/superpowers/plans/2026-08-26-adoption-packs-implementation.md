@@ -525,7 +525,7 @@ The first release should not add provider-specific integration files, a hosted s
 
 - [ ] **Step 5: Run the release walkthrough from a clean fixture.**
 
-  Run the exact commands documented in `README.md` from a temporary copy of `test/fixtures/e2e-clean`, inspect the proposal plan and diff, apply with explicit confirmation, and compare the final tree against the expected snapshot. Record the command output in the GE-7 work record, not in public repository content.
+  Run the exact commands documented in `README.md` from a temporary copy of `test/fixtures/e2e-clean`, inspect the proposal plan and diff, apply with explicit confirmation, and compare the final tree against the expected snapshot. Record the command output in the private work record, not in public repository content.
 
 - [ ] **Step 6: Commit the end-to-end validation and documentation.**
 

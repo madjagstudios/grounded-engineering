@@ -2,7 +2,7 @@
 
 Status: proposed after approval of the v0.4.0 launch bundle.
 Date: 2026-08-26
-Related work: GE-9 Codex adapter; adoption-packs baseline workflow.
+Related work: Codex adapter and adoption-packs baseline workflow.
 
 ## Summary
 

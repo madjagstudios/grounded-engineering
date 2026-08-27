@@ -241,5 +241,6 @@ test('help text advertises the v0.4.0 adoption surface', () => {
   assert.match(result.stdout, /adopt preview --profile ai-assisted --adapter claude/);
   assert.match(result.stdout, /adopt create --profile ai-assisted --adapter codex/);
   assert.match(result.stdout, /grounded-engineering check/);
+  assert.match(result.stdout, /Reserved \(unavailable in v0\.4\.0\):/);
   assert.match(result.stdout, /grounded-engineering update propose --release v0\.4\.0/);
 });

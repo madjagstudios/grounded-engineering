@@ -93,7 +93,7 @@ Expected: PASS (both new tests, and all pre-existing ones).
 
 ```bash
 git add packs/manifest-schema.yaml test/manifest-contract.test.mjs
-git commit -m "feat: allow codex-agents-md target kind in manifest schema (GE-9)"
+git commit -m "feat: allow codex-agents-md target kind in manifest schema"
 ```
 
 ---
@@ -162,7 +162,7 @@ Expected: PASS.
 
 ```bash
 git add src/lib/rendering.mjs test/rendering.test.mjs
-git commit -m "feat: add Codex document renderer (GE-9)"
+git commit -m "feat: add Codex document renderer"
 ```
 
 ---
@@ -232,7 +232,7 @@ Expected: PASS.
 
 ```bash
 git add src/lib/preflight.mjs test/preflight.test.mjs
-git commit -m "feat: add Codex target selection with override-file guard (GE-9)"
+git commit -m "feat: add Codex target selection with override-file guard"
 ```
 
 ---
@@ -335,7 +335,7 @@ Expected: PASS.
 
 ```bash
 git add src/lib/adapters.mjs test/adapters.test.mjs
-git commit -m "feat: add adapter registry (GE-9)"
+git commit -m "feat: add adapter registry"
 ```
 
 ---
@@ -465,7 +465,7 @@ If an existing assertion checks the exact proposal object shape and now trips on
 
 ```bash
 git add src/lib/proposals.mjs test/proposals.test.mjs
-git commit -m "feat: select output adapter in buildProposal and surface conflicts (GE-9)"
+git commit -m "feat: select output adapter in buildProposal and surface conflicts"
 ```
 
 ---
@@ -553,7 +553,7 @@ Expected: PASS (new Codex apply test and the existing neutral apply tests).
 
 ```bash
 git add src/lib/proposals.mjs test/cli-apply.test.mjs
-git commit -m "feat: resolve the adapter at apply time (GE-9)"
+git commit -m "feat: resolve the adapter at apply time"
 ```
 
 ---
@@ -704,7 +704,7 @@ Expected: validate passes and all `node --test` files pass. Run `npm audit --aud
 
 ```bash
 git add src/cli.mjs test/cli-preview.test.mjs
-git commit -m "feat: add --adapter flag with validation and preview conflict guard (GE-9)"
+git commit -m "feat: add --adapter flag with validation and preview conflict guard"
 ```
 
 ---
@@ -751,7 +751,7 @@ Expected: `Adapter: codex`, `Target: AGENTS.md`, "No repository files were chang
 
 ```bash
 git add README.md
-git commit -m "docs: document the Codex adapter (--adapter codex) (GE-9)"
+git commit -m "docs: document the Codex adapter (--adapter codex)"
 ```
 
 ---
