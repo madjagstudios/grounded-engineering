@@ -243,3 +243,22 @@ test('filePath ordering is code-point, not locale ("z" before "á")', () => {
   const d = validateCardSourceReferences([mk('á.md'), mk('z.md')], reg);
   assert.deepEqual(d.map((x) => x.filePath), ['z.md', 'á.md']); // 'z' U+007A < 'á' U+00E1
 });
+
+test('diagnostics are sorted: a directory-level error produced last sorts first', () => {
+  // Both files carry a stray commit-like URL in the preamble (line 1) and NO
+  // headings, so sectionCount stays 0 and the directory-level "no ## sections"
+  // diagnostic (filePath = the sources dir, line null) is pushed LAST. The
+  // sources-dir path is a prefix of every "<dir>/x.md" path, so it must sort
+  // FIRST. Production order (a.md, b.md, dir) differs from sorted order
+  // (dir, a.md, b.md): remove the final sort and errors[0] becomes a.md.
+  const files = {
+    'a.md': '- Source: R, [x](https://github.com/o/r/blob/main/x.md)\n',
+    'b.md': '- Source: R, [x](https://github.com/o/r/blob/main/y.md)\n'
+  };
+  const { errors } = buildSourceRegistry(sourcesDir(files));
+  assert.ok(errors.length >= 3);
+  assert.equal(errors[0].line, null);
+  assert.match(errors[0].message, /no ## sections/);
+  assert.ok(errors[1].filePath.endsWith('a.md') && errors[1].line === 1);
+  assert.ok(errors[2].filePath.endsWith('b.md') && errors[2].line === 1);
+});
