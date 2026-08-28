@@ -22,37 +22,34 @@ function withValidation(validation) {
   return { ...structuredClone(baseRecord), validation };
 }
 
+const sha = 'a'.repeat(40);
+const entry = (source_id, revisions) => ({ source_id, revisions });
+
 test('not_validated is valid without validated_against', () => {
   assert.equal(validate(withValidation({ status: 'not_validated' })), true, JSON.stringify(validate.errors));
 });
-
 test('validated without validated_against is rejected', () => {
   assert.equal(validate(withValidation({ status: 'validated' })), false);
 });
-
 test('needs_review without validated_against is rejected', () => {
-  assert.equal(validate(withValidation({ status: 'needs_review' })), false);
+  assert.equal(validate(withValidation({ status: 'needs_review', note: 'source moved upstream' })), false);
 });
-
-test('validated with a commit SHA is valid', () => {
-  const ok = validate(withValidation({
-    status: 'validated',
-    validated_against: 'dc08ace7821614a702b1214c9d08ae0db2634d82'
-  }));
-  assert.equal(ok, true, JSON.stringify(validate.errors));
+test('needs_review without note is rejected', () => {
+  assert.equal(validate(withValidation({ status: 'needs_review', validated_against: [entry('CODEX-A', [sha])] })), false);
 });
-
-test('needs_review with a tag is valid', () => {
-  const ok = validate(withValidation({
-    status: 'needs_review',
-    validated_against: 'v0.4.0'
-  }));
-  assert.equal(ok, true, JSON.stringify(validate.errors));
+test('validated with an array of {source_id, revisions} is valid', () => {
+  assert.equal(validate(withValidation({ status: 'validated', validated_against: [entry('CODEX-A', [sha]), entry('CLAUDE-B', ['2026-08-26'])] })), true, JSON.stringify(validate.errors));
 });
-
-test('validated with a malformed revision is rejected', () => {
-  assert.equal(validate(withValidation({
-    status: 'validated',
-    validated_against: 'not a revision!'
-  })), false);
+test('needs_review with note + entries is valid', () => {
+  assert.equal(validate(withValidation({ status: 'needs_review', note: 'pin moved; re-audit', validated_against: [entry('CODEX-A', [sha])] })), true, JSON.stringify(validate.errors));
+});
+test('a scalar validated_against (the old shape) is now rejected', () => {
+  assert.equal(validate(withValidation({ status: 'validated', validated_against: sha })), false);
+});
+test('bad source_id pattern and bad revision shape are rejected', () => {
+  assert.equal(validate(withValidation({ status: 'validated', validated_against: [entry('bad id', [sha])] })), false);
+  assert.equal(validate(withValidation({ status: 'validated', validated_against: [entry('CODEX-A', ['not-a-rev'])] })), false);
+});
+test('duplicate revisions within one entry are rejected', () => {
+  assert.equal(validate(withValidation({ status: 'validated', validated_against: [entry('CODEX-A', [sha, sha])] })), false);
 });
