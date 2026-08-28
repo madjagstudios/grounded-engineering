@@ -153,7 +153,18 @@ $defs:
         minLength: 10
       validated_against:
         type: string
-        minLength: 8
+        description: >-
+          The source revision the card was checked against: a commit SHA
+          (7-40 hex) or a tag/ref. Required once status leaves not_validated.
+        pattern: '^(?:[0-9a-f]{7,40}|[A-Za-z0-9][A-Za-z0-9._/-]{2,})$'
+    allOf:
+      - if:
+          properties:
+            status:
+              enum: [validated, needs_review]
+          required: [status]
+        then:
+          required: [validated_against]
   revisit:
     type: object
     additionalProperties: false
