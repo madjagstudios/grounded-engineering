@@ -58,3 +58,31 @@ test('validator runs from a path containing a space (subprocess regression)', ()
   const out = execFileSync(process.execPath, [join(tmp, 'scripts', 'validate.mjs')], { encoding: 'utf8' });
   assert.match(out, /validation passed/);
 });
+
+test('runValidation surfaces a stale validated provenance revision', () => {
+  // CODEX-AGENTS-IMPLEMENTATION is a real commit source; record a valid-but-wrong SHA.
+  const wrongSha = 'f'.repeat(40);
+  const staleCard = `---\nrecord_type: practice\nschema_version: 1.0.0\nid: GE-VF-902\ntitle: Stale provenance fixture\ncategory: Verification\nsubcategory: Reporting\npattern: fixture pattern text.\nunderlying_principle: fixture principle text.\nobserved_implementation: fixture observed text.\napplicability: [AI_ASSISTED]\ncontrol_types: [ADVISORY]\ndisposition: ADOPT\nrationale: fixture rationale long enough for the schema.\ndelivery_horizon: V1\nconfidence: high\nevidence_level: recommended\nsource_ids: [CODEX-AGENTS-IMPLEMENTATION]\nevidence_refs:\n  - source_id: CODEX-AGENTS-IMPLEMENTATION\n    locator: fixture locator\n    relationship: generalized_principle\nvalidation:\n  status: validated\n  validated_against:\n    - source_id: CODEX-AGENTS-IMPLEMENTATION\n      revisions: [${wrongSha}]\nrevisit:\n  required: false\n---\n\n# Stale provenance fixture\n\nBody.\n`;
+  const root = fixtureRepo(staleCard);
+  const { errors } = runValidation({ root });
+  assert.ok(errors.some((e) => /CODEX-AGENTS-IMPLEMENTATION/.test(e) && /do not equal current pin/i.test(e)), errors.join('\n'));
+});
+
+// A schema-valid, stale `validated` card, reused by the gate tests below.
+const staleValidated = (sha) => `---\nrecord_type: practice\nschema_version: 1.0.0\nid: GE-VF-903\ntitle: Stale provenance gate fixture\ncategory: Verification\nsubcategory: Reporting\npattern: fixture pattern text.\nunderlying_principle: fixture principle text.\nobserved_implementation: fixture observed text.\napplicability: [AI_ASSISTED]\ncontrol_types: [ADVISORY]\ndisposition: ADOPT\nrationale: fixture rationale long enough for the schema.\ndelivery_horizon: V1\nconfidence: high\nevidence_level: recommended\nsource_ids: [CODEX-AGENTS-IMPLEMENTATION]\nevidence_refs:\n  - source_id: CODEX-AGENTS-IMPLEMENTATION\n    locator: fixture locator\n    relationship: generalized_principle\nvalidation:\n  status: validated\n  validated_against:\n    - source_id: CODEX-AGENTS-IMPLEMENTATION\n      revisions: [${sha}]\nrevisit:\n  required: false\n---\n\n# Stale provenance gate fixture\n\nBody.\n`;
+
+test('an unusable registry blocks the GE-19 provenance check (no pin diagnostic)', () => {
+  const root = fixtureRepo(staleValidated('f'.repeat(40)));
+  // Corrupt a source so buildSourceRegistry returns errors → gate closes.
+  writeFileSync(join(root, 'research', 'sources', 'broken.md'), '## codex-lower\n\n- Source: R, [x](https://code.claude.com/x)\n- Immutable reference: whatever\n');
+  const { errors } = runValidation({ root });
+  assert.ok(errors.some((e) => /does not match source-id pattern/i.test(e))); // registry error surfaced
+  assert.ok(!errors.some((e) => /do not equal current pin/i.test(e)));         // GE-19 skipped
+});
+
+test('a schema-invalid card never reaches the GE-19 check (no pin diagnostic)', () => {
+  const root = fixtureRepo(staleValidated('f'.repeat(40)).replace('category: Verification', 'category: NotACategory'));
+  const { errors } = runValidation({ root });
+  assert.ok(errors.some((e) => /category/i.test(e)));                          // AJV error present
+  assert.ok(!errors.some((e) => /do not equal current pin/i.test(e)));         // excluded from validCards
+});

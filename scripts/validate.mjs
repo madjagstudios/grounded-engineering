@@ -8,7 +8,7 @@ import { parsePracticeFrontmatter } from '../src/lib/frontmatter.mjs';
 import { loadPack } from '../src/lib/packs.mjs';
 import { walkRepository } from '../src/lib/repository-walk.mjs';
 import { getManifestValidator } from '../src/lib/manifest.mjs';
-import { buildSourceRegistry, validateCardSourceReferences } from './lib/source-registry.mjs';
+import { buildSourceRegistry, validateCardSourceReferences, validateCardValidationProvenance } from './lib/source-registry.mjs';
 
 function statExists(path) {
   try { statSync(path); return true; } catch { return false; }
@@ -101,6 +101,7 @@ export function runValidation({ root }) {
   for (const d of registryErrors) errors.push(`${displayPath(d.filePath)}${d.line ? `:${d.line}` : ''}: ${d.message}`);
   if (registryErrors.length === 0) {
     for (const d of validateCardSourceReferences(validCards, registry)) errors.push(`${displayPath(d.filePath)}: ${d.message}`);
+    for (const d of validateCardValidationProvenance(validCards, registry)) errors.push(`${displayPath(d.filePath)}: ${d.message}`);
   }
 
   return { errors };
