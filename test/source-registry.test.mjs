@@ -64,6 +64,7 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { buildSourceRegistry } from '../scripts/lib/source-registry.mjs';
+import { isValidIsoDate } from '../scripts/lib/source-registry.mjs';
 
 const SHA2 = 'b'.repeat(40);
 function sourcesDir(files) {
@@ -76,6 +77,22 @@ function sourcesDir(files) {
 const commit = (id, sha = SHA, path = 'x.rs') => `## ${id}\n\n- Source: Repo, [x](https://github.com/o/r/blob/${sha}/${path})\n- Immutable reference: commit \`${sha}\`\n`;
 const doc = (id) => `## ${id}\n\n- Source: Docs, [d](https://code.claude.com/x)\n- Immutable reference: retrieved 2026-08-26; page content is unversioned and requires deliberate re-audit when changed\n`;
 const errsOf = (files) => buildSourceRegistry(sourcesDir(files)).errors;
+
+test('isValidIsoDate: calendar validity incl. leap years', () => {
+  assert.equal(isValidIsoDate('2026-08-26'), true);
+  assert.equal(isValidIsoDate('2024-02-29'), true);   // leap
+  assert.equal(isValidIsoDate('2025-02-29'), false);  // non-leap
+  assert.equal(isValidIsoDate('2026-02-31'), false);  // impossible day
+  assert.equal(isValidIsoDate('2026-13-01'), false);  // impossible month
+  assert.equal(isValidIsoDate('2026-00-10'), false);
+  assert.equal(isValidIsoDate('2026-8-6'), false);    // wrong shape
+});
+
+test('buildSourceRegistry: an impossible retrieval date is a registry error', () => {
+  const body = `## CLAUDE-B\n\n- Source: Docs, [d](https://code.claude.com/x)\n- Immutable reference: retrieved 2026-02-31; page content is unversioned and requires deliberate re-audit when changed\n`;
+  const errs = buildSourceRegistry(sourcesDir({ 'a.md': body })).errors;
+  assert.ok(errs.some((e) => /valid calendar date|retrieval date/i.test(e.message)));
+});
 
 test('classifies commit and doc; commit target shape', () => {
   const { registry, errors } = buildSourceRegistry(sourcesDir({ 'a.md': commit('CODEX-A') + doc('CLAUDE-B') }));

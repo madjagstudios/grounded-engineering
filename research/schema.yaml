@@ -152,11 +152,28 @@ $defs:
         type: string
         minLength: 10
       validated_against:
-        type: string
+        type: array
         description: >-
-          The source revision the card was checked against: a commit SHA
-          (7-40 hex) or a tag/ref. Required once status leaves not_validated.
-        pattern: '^(?:[0-9a-f]{7,40}|[A-Za-z0-9][A-Za-z0-9._/-]{2,})$'
+          Per-source provenance: for each source the card was validated against,
+          the full revision set it was checked at (commit SHAs, or a YYYY-MM-DD
+          retrieval date for doc sources). Cross-checked against the registry by
+          the validator. Required once status leaves not_validated.
+        minItems: 1
+        items:
+          type: object
+          additionalProperties: false
+          required: [source_id, revisions]
+          properties:
+            source_id:
+              type: string
+              pattern: '^(?:CODEX|CLAUDE)-[A-Z0-9-]+$'
+            revisions:
+              type: array
+              minItems: 1
+              uniqueItems: true
+              items:
+                type: string
+                pattern: '^(?:[0-9a-f]{40}|\d{4}-\d{2}-\d{2})$'
     allOf:
       - if:
           properties:
@@ -165,6 +182,13 @@ $defs:
           required: [status]
         then:
           required: [validated_against]
+      - if:
+          properties:
+            status:
+              const: needs_review
+          required: [status]
+        then:
+          required: [note]
   revisit:
     type: object
     additionalProperties: false

@@ -1,5 +1,17 @@
 const SHA40 = /^[0-9a-f]{40}$/;
 
+export function isValidIsoDate(value) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) return false;
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  if (month < 1 || month > 12 || day < 1) return false;
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return day <= daysInMonth[month - 1];
+}
+
 // Ordered, de-duplicated link destinations on a line. malformed=true iff a
 // Markdown link is opened but not properly closed (unclosed dest, unterminated
 // title, or missing link-closing ")"). Markdown dests and bare URLs both balance
@@ -227,6 +239,7 @@ export function buildSourceRegistry(sourcesDir) {
         const date = imm.match(/retrieved\s+(\d{4}-\d{2}-\d{2})/i);
         const marker = /unversioned/i.test(imm) && /re-audit/i.test(imm);
         if (!date || !marker) { push(filePath, immLines[0].number, id, 'doc section requires a retrieval date and an unversioned/re-audit marker'); continue; }
+        if (!isValidIsoDate(date[1])) { push(filePath, immLines[0].number, id, `retrieval date ${date[1]} is not a valid calendar date`); continue; }
         registry.set(id, { id, kind: 'doc', filePath, headingLine: section.headingLine, sourceField: sourceLines[0].text, immutableRefShas: [], retrievalDate: date[1], targets: [] });
       }
     }
@@ -247,6 +260,51 @@ export function validateCardSourceReferences(cards, registry) {
     const b = new Set(evidenceIds);
     if (a.size !== b.size || [...a].some((id) => !b.has(id))) {
       diagnostics.push({ filePath, line: null, sourceId: null, message: 'source_ids and evidence_refs source-id sets differ' });
+    }
+  }
+  diagnostics.sort(compareDiagnostics);
+  return diagnostics;
+}
+
+export function validateCardValidationProvenance(cards, registry) {
+  const diagnostics = [];
+  const push = (filePath, sourceId, message) => diagnostics.push({ filePath, line: null, sourceId, message });
+  for (const { record, filePath } of cards) {
+    const status = record.validation?.status;
+    const entries = record.validation?.validated_against ?? [];
+    if (status === 'not_validated') {
+      if (entries.length > 0) push(filePath, null, 'not_validated card must not carry validated_against');
+      continue;
+    }
+    if (status !== 'validated' && status !== 'needs_review') continue; // schema owns other states
+
+    const entrySourceIds = entries.map((e) => e.source_id);
+    const cardSources = new Set(record.source_ids ?? []);
+    const entrySet = new Set(entrySourceIds);
+    for (const id of new Set(entrySourceIds.filter((id, i) => entrySourceIds.indexOf(id) !== i))) {
+      push(filePath, id, `duplicate validated_against entry for ${id}`);
+    }
+    for (const id of entrySet) if (!cardSources.has(id)) push(filePath, id, `validated_against references ${id}, not in source_ids`);
+    for (const id of cardSources) if (!entrySet.has(id)) push(filePath, id, `validated_against missing entry for ${id}`);
+
+    for (const entry of entries) {
+      const rec = registry.get(entry.source_id);
+      if (!rec) { push(filePath, entry.source_id, `validated_against references unknown source ${entry.source_id}`); continue; }
+      const revisions = entry.revisions ?? [];
+      for (const r of revisions) {
+        if (!/^[0-9a-f]{40}$/.test(r) && !isValidIsoDate(r)) {
+          push(filePath, entry.source_id, `revision ${r} for ${entry.source_id} is not a SHA or valid calendar date`);
+        }
+      }
+      if (status === 'validated') {
+        const pins = rec.kind === 'commit' ? rec.immutableRefShas : (rec.retrievalDate ? [rec.retrievalDate] : []);
+        const got = [...new Set(revisions)].sort();
+        const want = [...new Set(pins)].sort();
+        if (got.length !== want.length || got.some((v, i) => v !== want[i])) {
+          push(filePath, entry.source_id, `validated: ${entry.source_id} recorded revisions [${got.join(', ')}] do not equal current pin [${want.join(', ')}]`);
+        }
+      }
+      // needs_review: well-formedness only (checked above); no pin/kind match required.
     }
   }
   diagnostics.sort(compareDiagnostics);

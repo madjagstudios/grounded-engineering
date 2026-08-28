@@ -11,10 +11,12 @@ records the state of the catalog and tooling at that tag.
 
 ### Changed
 - Provenance floor for validation: a practice card whose `validation.status`
-  is `validated` or `needs_review` must now record `validation.validated_against`:
-  the commit or tag it was checked against. The record schema enforces this, so
-  a card can no longer report a validation state without naming the revision
-  behind it. All existing cards are `not_validated`, so none needed changing.
+  is `validated` or `needs_review` must now record `validation.validated_against`
+  as per-source `{source_id, revisions[]}` entries. Validated revision sets are
+  cross-checked offline against the exact source registry pins; `needs_review`
+  also requires a note, and retrieval dates must be calendar-valid. The record
+  schema remains `1.0.0` as a pre-1.0 erratum because the scalar was declared but
+  never populated. All existing cards are `not_validated`, so none needed changing.
 
 ## [0.4.0] - 2026-08-27
 
