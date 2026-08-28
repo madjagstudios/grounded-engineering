@@ -7,7 +7,7 @@ Retrieval date: 2026-08-26. The documentation page is unversioned; these observa
 ## CLAUDE-MEMORY-HIERARCHY
 
 - Source: Anthropic Claude Code, [memory and instruction documentation](https://code.claude.com/docs/en/memory)
-- Immutable reference: official documentation page retrieved 2026-08-26
+- Immutable reference: official documentation page retrieved 2026-08-26; page content is unversioned and requires deliberate re-audit when changed
 - Locator: the documentation sections on instruction-file scope, load order, and path-scoped rules
 - License/use: official vendor documentation; `link-only`; no verbatim redistribution
 - Observed implementation: Claude Code describes multiple instruction scopes, path-specific rules, imports, and context diagnostics as distinct mechanisms.
@@ -16,7 +16,7 @@ Retrieval date: 2026-08-26. The documentation page is unversioned; these observa
 ## CLAUDE-LOCAL-CONTEXT
 
 - Source: Anthropic Claude Code, [memory and instruction documentation](https://code.claude.com/docs/en/memory)
-- Immutable reference: official documentation page retrieved 2026-08-26
+- Immutable reference: official documentation page retrieved 2026-08-26; page content is unversioned and requires deliberate re-audit when changed
 - Locator: the documentation sections comparing persistent instructions with auto memory, scope, and load order
 - License/use: official vendor documentation; `link-only`; no verbatim redistribution
 - Observed implementation: local and durable context are described separately, and context diagnostics help users inspect what is available to the model.
@@ -25,7 +25,7 @@ Retrieval date: 2026-08-26. The documentation page is unversioned; these observa
 ## CLAUDE-ENFORCEMENT-BOUNDARY
 
 - Source: Anthropic Claude Code, [memory and instruction documentation](https://code.claude.com/docs/en/memory)
-- Immutable reference: official documentation page retrieved 2026-08-26
+- Immutable reference: official documentation page retrieved 2026-08-26; page content is unversioned and requires deliberate re-audit when changed
 - Locator: the documentation sections comparing guidance with enforcement, describing managed policy, and troubleshooting missed instructions
 - License/use: official vendor documentation; `link-only`; no verbatim redistribution
 - Observed implementation: the documentation distinguishes behavioral guidance from mechanisms that can enforce or gate behavior.

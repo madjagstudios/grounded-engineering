@@ -189,3 +189,16 @@ test('an unreadable *.md entry produces an exact read diagnostic', () => {
   assert.equal(read.line, null);
   assert.equal(read.sourceId, null);
 });
+
+import { fileURLToPath } from 'node:url';
+
+test('real repository sources are complete and clean', () => {
+  const realDir = fileURLToPath(new URL('../research/sources', import.meta.url));
+  const { registry, errors } = buildSourceRegistry(realDir);
+  assert.deepEqual(errors, [], `unexpected errors: ${JSON.stringify(errors)}`);
+  const recs = [...registry.values()];
+  assert.equal(registry.size, 13);
+  assert.equal(recs.filter((r) => r.kind === 'commit').length, 5);
+  assert.equal(recs.filter((r) => r.kind === 'doc').length, 8);
+  assert.equal(recs.reduce((n, r) => n + r.targets.length, 0), 5);
+});
