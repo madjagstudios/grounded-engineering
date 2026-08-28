@@ -27,6 +27,7 @@ export function createGithubClient({ fetchImpl = globalThis.fetch, token, timeou
       ]);
       if (outcome.error) return outcome;
       const res = outcome.res;
+      if (!res || !res.headers || typeof res.headers.get !== 'function') return { error: { reason: 'malformed_response' } };
       const rem = res.headers.get('x-ratelimit-remaining');
       const rst = res.headers.get('x-ratelimit-reset');
       if (rem !== null) state.remaining = Number(rem);

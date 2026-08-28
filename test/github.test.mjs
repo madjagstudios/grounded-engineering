@@ -32,8 +32,10 @@ test('resolveHead: branch with slash is query-encoded', async () => {
 });
 
 test('resolveHead: non-2xx repo/commit, missing default_branch, bad/empty head sha → error (no eager parse)', async () => {
-  const err404 = createGithubClient({ fetchImpl: scripted([{ res: res({ status: 404, json: { default_branch: 'main' } }) }]) });
+  const f404 = scripted([{ res: res({ status: 404, json: { default_branch: 'main' } }) }]);
+  const err404 = createGithubClient({ fetchImpl: f404 });
   assert.ok((await err404.resolveHead('o', 'r')).error);
+  assert.equal(f404.calls.length, 1); // proves it did NOT make the commits request
   const noBranch = createGithubClient({ fetchImpl: scripted([{ res: res({ json: {}, headers: okHeaders }) }]) });
   assert.ok((await noBranch.resolveHead('o', 'r')).error);
   const bad500 = createGithubClient({ fetchImpl: scripted([{ res: res({ json: { default_branch: 'main' }, headers: okHeaders }) }, { res: res({ status: 500 }) }]) });
@@ -82,7 +84,8 @@ test('rate-limit persists across calls (resolveHead→getObject); 429/Retry-Afte
   assert.match((await c3.getObject('o', 'r', SHA, 'b')).reason, /rate_limited.*unknown/); // fail closed
 });
 
-test('rejected fetch → error; never-settling fetch ignoring signal → timeout', async () => {
+test('rejected fetch → error; null result → malformed; never-settling fetch → timeout', async () => {
   assert.match((await createGithubClient({ fetchImpl: async () => { throw new Error('network'); } }).getObject('o', 'r', SHA, 'a')).reason, /fetch_failed/);
+  assert.match((await createGithubClient({ fetchImpl: async () => null }).getObject('o', 'r', SHA, 'a')).reason, /malformed_response/);
   assert.match((await createGithubClient({ fetchImpl: () => new Promise(() => {}), timeoutMs: 20 }).getObject('o', 'r', SHA, 'a')).reason, /timeout/);
 });
