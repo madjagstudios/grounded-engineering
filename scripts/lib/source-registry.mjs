@@ -1,5 +1,17 @@
 const SHA40 = /^[0-9a-f]{40}$/;
 
+export function isValidIsoDate(value) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) return false;
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  if (month < 1 || month > 12 || day < 1) return false;
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return day <= daysInMonth[month - 1];
+}
+
 // Ordered, de-duplicated link destinations on a line. malformed=true iff a
 // Markdown link is opened but not properly closed (unclosed dest, unterminated
 // title, or missing link-closing ")"). Markdown dests and bare URLs both balance
@@ -227,6 +239,7 @@ export function buildSourceRegistry(sourcesDir) {
         const date = imm.match(/retrieved\s+(\d{4}-\d{2}-\d{2})/i);
         const marker = /unversioned/i.test(imm) && /re-audit/i.test(imm);
         if (!date || !marker) { push(filePath, immLines[0].number, id, 'doc section requires a retrieval date and an unversioned/re-audit marker'); continue; }
+        if (!isValidIsoDate(date[1])) { push(filePath, immLines[0].number, id, `retrieval date ${date[1]} is not a valid calendar date`); continue; }
         registry.set(id, { id, kind: 'doc', filePath, headingLine: section.headingLine, sourceField: sourceLines[0].text, immutableRefShas: [], retrievalDate: date[1], targets: [] });
       }
     }
