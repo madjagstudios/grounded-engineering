@@ -104,3 +104,133 @@ export function parseSourceUrl(rawUrl) {
   if (decoded.some((s) => s === null)) return { kind: 'invalid', url: rawUrl, reason: 'malformed percent-escape in path' };
   return { kind: 'blob', owner, repo, commit: ref, path: decoded.join('/'), lineRange: url.hash ? url.hash.slice(1) : null, url: rawUrl };
 }
+
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+
+const SOURCE_ID_PATTERN = /^(?:CODEX|CLAUDE)-[A-Z0-9-]+$/;
+const cmpStr = (a, b) => (a < b ? -1 : a > b ? 1 : 0); // code-point order
+
+export function compareDiagnostics(a, b) {
+  return cmpStr(a.filePath, b.filePath) || ((a.line ?? Infinity) - (b.line ?? Infinity)) || cmpStr(a.message, b.message);
+}
+
+function splitSections(text) {
+  const lines = text.split(/\r?\n/); // CRLF-safe
+  const sections = [];
+  const preamble = [];
+  let current = null;
+  lines.forEach((raw, i) => {
+    const heading = raw.match(/^##\s+(.+?)\s*$/);
+    if (heading) {
+      if (current) sections.push(current);
+      current = { id: heading[1], headingLine: i + 1, lines: [] };
+    } else if (current) current.lines.push({ text: raw, number: i + 1 });
+    else preamble.push({ text: raw, number: i + 1 });
+  });
+  if (current) sections.push(current);
+  return { sections, preamble };
+}
+
+const fieldLines = (section, label) => section.lines.filter((l) => new RegExp(`^-\\s+${label}:`).test(l.text));
+
+// Case-sensitive anchored grammar for the Immutable-reference payload.
+function parseImmutableRefShas(lineText) {
+  const m = lineText.match(/^-\s+Immutable reference:[ \t]*(\S.*?)[ \t]*$/);
+  if (!m) return { ok: false, reason: 'unreadable Immutable reference field' };
+  const cm = m[1].match(/^(commit|commits) (.+)$/); // exactly one space, lowercase keyword
+  if (!cm) return { ok: false, reason: 'Immutable reference must be "commit <sha>" or "commits <sha>, ..."' };
+  const items = cm[1] === 'commits' ? cm[2].split(', ') : [cm[2]];
+  if (cm[1] === 'commit' && cm[2].includes(',')) return { ok: false, reason: 'singular "commit" with multiple SHAs' };
+  if (cm[1] === 'commits' && items.length < 2) return { ok: false, reason: 'plural "commits" needs at least two SHAs' };
+  const shas = [];
+  for (const item of items) {
+    const sm = item.match(/^([0-9a-f]{40})$/) || item.match(/^`([0-9a-f]{40})`$/); // bare OR matched backticks
+    if (!sm) return { ok: false, reason: `Immutable reference has a non-bare-SHA token: ${item}` };
+    shas.push(sm[1]);
+  }
+  if (new Set(shas).size !== shas.length) return { ok: false, reason: 'duplicate SHA in Immutable reference' };
+  return { ok: true, shas };
+}
+
+export function buildSourceRegistry(sourcesDir) {
+  const registry = new Map();
+  const seenSourceIds = new Set();
+  const errors = [];
+  const push = (filePath, line, sourceId, message) => errors.push({ filePath, line, sourceId, message });
+  const done = () => { errors.sort(compareDiagnostics); return { registry, errors }; };
+
+  let names;
+  try {
+    if (!statSync(sourcesDir).isDirectory()) { push(sourcesDir, null, null, 'sources path is not a directory'); return done(); }
+    names = readdirSync(sourcesDir).filter((n) => n.endsWith('.md')).sort(cmpStr);
+  } catch { push(sourcesDir, null, null, 'sources directory is missing'); return done(); }
+  if (names.length === 0) { push(sourcesDir, null, null, 'no Markdown files found'); return done(); }
+
+  let sectionCount = 0;
+  for (const name of names) {
+    const filePath = join(sourcesDir, name);
+    let text;
+    try { text = readFileSync(filePath, 'utf8'); }
+    catch { push(filePath, null, null, 'unreadable file'); continue; }
+
+    const { sections, preamble } = splitSections(text);
+    for (const p of preamble) {
+      const { dests, malformed } = extractDestinations(p.text);
+      if (malformed) push(filePath, p.number, null, 'malformed Markdown link outside any ## section');
+      else if (/^-\s+(Source|Immutable reference):/.test(p.text) || dests.some(isCommitLikeUrl)) {
+        push(filePath, p.number, null, 'source metadata appears outside any ## section');
+      }
+    }
+
+    for (const section of sections) {
+      sectionCount += 1;
+      const id = section.id;
+      if (!SOURCE_ID_PATTERN.test(id)) { push(filePath, section.headingLine, id, `heading "${id}" does not match source-id pattern`); continue; }
+      if (seenSourceIds.has(id)) { push(filePath, section.headingLine, id, `duplicate source heading ${id}`); continue; }
+      seenSourceIds.add(id);
+
+      const sourceLines = fieldLines(section, 'Source');
+      const immLines = fieldLines(section, 'Immutable reference');
+      if (sourceLines.length !== 1) { push(filePath, section.headingLine, id, `expected exactly one Source field, found ${sourceLines.length}`); continue; }
+      if (immLines.length !== 1) { push(filePath, section.headingLine, id, `expected exactly one Immutable reference field, found ${immLines.length}`); continue; }
+
+      const extracted = extractDestinations(sourceLines[0].text);
+      if (extracted.malformed) { push(filePath, sourceLines[0].number, id, 'malformed Markdown link in Source field'); continue; }
+      const parsed = extracted.dests.map(parseSourceUrl);
+      if (parsed.length === 0) { push(filePath, sourceLines[0].number, id, 'Source field has no URL'); continue; }
+      const invalid = parsed.find((u) => u.kind === 'invalid');
+      if (invalid) { push(filePath, sourceLines[0].number, id, `invalid Source URL: ${invalid.reason}`); continue; }
+      if (parsed.some((u) => u.kind === 'raw')) { push(filePath, sourceLines[0].number, id, 'Source URL on unsupported raw host'); continue; }
+
+      const blobs = parsed.filter((u) => u.kind === 'blob');
+      const docs = parsed.filter((u) => u.kind === 'doc');
+      if (blobs.length > 0 && docs.length > 0) { push(filePath, sourceLines[0].number, id, 'mixed commit and doc URLs in one Source field'); continue; }
+
+      if (blobs.length > 0) {
+        const ref = parseImmutableRefShas(immLines[0].text);
+        if (!ref.ok) { push(filePath, immLines[0].number, id, ref.reason); continue; }
+        const urlShas = new Set(blobs.map((b) => b.commit));
+        const refShas = new Set(ref.shas);
+        if (urlShas.size !== refShas.size || [...urlShas].some((s) => !refShas.has(s))) { push(filePath, immLines[0].number, id, 'Immutable-reference SHA set does not match Source URL SHA set'); continue; }
+        registry.set(id, { id, kind: 'commit', filePath, headingLine: section.headingLine, sourceField: sourceLines[0].text, immutableRefShas: ref.shas, retrievalDate: null,
+          targets: blobs.map((b) => ({ owner: b.owner, repo: b.repo, commit: b.commit, path: b.path, lineRange: b.lineRange, url: b.url, sourceId: id, filePath, headingLine: section.headingLine })) });
+      } else {
+        let stray = null;
+        for (const l of section.lines) {
+          const r = extractDestinations(l.text);
+          if (r.malformed) { stray = { number: l.number, message: 'malformed Markdown link in a doc section' }; break; }
+          if (r.dests.some(isCommitLikeUrl)) { stray = { number: l.number, message: 'commit-like URL present outside Source in a doc section' }; break; }
+        }
+        if (stray) { push(filePath, stray.number, id, stray.message); continue; }
+        const imm = immLines[0].text;
+        const date = imm.match(/retrieved\s+(\d{4}-\d{2}-\d{2})/i);
+        const marker = /unversioned/i.test(imm) && /re-audit/i.test(imm);
+        if (!date || !marker) { push(filePath, immLines[0].number, id, 'doc section requires a retrieval date and an unversioned/re-audit marker'); continue; }
+        registry.set(id, { id, kind: 'doc', filePath, headingLine: section.headingLine, sourceField: sourceLines[0].text, immutableRefShas: [], retrievalDate: date[1], targets: [] });
+      }
+    }
+  }
+  if (sectionCount === 0) push(sourcesDir, null, null, 'no ## sections found');
+  return done();
+}

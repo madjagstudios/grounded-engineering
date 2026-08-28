@@ -59,3 +59,133 @@ test('isCommitLikeUrl: blob shape regardless of ref; raw host; not relative/doc'
   assert.equal(isCommitLikeUrl('https://code.claude.com/x'), false);
   assert.equal(isCommitLikeUrl('../relative/x.md'), false);
 });
+
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { buildSourceRegistry } from '../scripts/lib/source-registry.mjs';
+
+const SHA2 = 'b'.repeat(40);
+function sourcesDir(files) {
+  const dir = mkdtempSync(join(tmpdir(), 'ge18-'));
+  const sub = join(dir, 'sources');
+  mkdirSync(sub);
+  for (const [name, body] of Object.entries(files)) writeFileSync(join(sub, name), body);
+  return sub;
+}
+const commit = (id, sha = SHA, path = 'x.rs') => `## ${id}\n\n- Source: Repo, [x](https://github.com/o/r/blob/${sha}/${path})\n- Immutable reference: commit \`${sha}\`\n`;
+const doc = (id) => `## ${id}\n\n- Source: Docs, [d](https://code.claude.com/x)\n- Immutable reference: retrieved 2026-08-26; page content is unversioned and requires deliberate re-audit when changed\n`;
+const errsOf = (files) => buildSourceRegistry(sourcesDir(files)).errors;
+
+test('classifies commit and doc; commit target shape', () => {
+  const { registry, errors } = buildSourceRegistry(sourcesDir({ 'a.md': commit('CODEX-A') + doc('CLAUDE-B') }));
+  assert.deepEqual(errors, []);
+  const t = registry.get('CODEX-A').targets[0];
+  assert.deepEqual({ owner: t.owner, repo: t.repo, commit: t.commit, path: t.path, sourceId: t.sourceId }, { owner: 'o', repo: 'r', commit: SHA, path: 'x.rs', sourceId: 'CODEX-A' });
+  assert.equal(registry.get('CLAUDE-B').kind, 'doc');
+});
+
+test('multiple blob URLs at different commits → multiple targets; plural immutable ref', () => {
+  const body = `## CODEX-A\n\n- Source: R, [x](https://github.com/o/r/blob/${SHA}/x.rs) and [y](https://github.com/o/r/blob/${SHA2}/y.rs)\n- Immutable reference: commits \`${SHA}\`, \`${SHA2}\`\n`;
+  const { registry, errors } = buildSourceRegistry(sourcesDir({ 'a.md': body }));
+  assert.deepEqual(errors, []);
+  assert.equal(registry.get('CODEX-A').targets.length, 2);
+});
+
+test('immutable-ref grammar rejects out-of-grammar forms', () => {
+  const bad = (imm) => `## CODEX-A\n\n- Source: R, [x](https://github.com/o/r/blob/${SHA}/x.rs)\n- Immutable reference: ${imm}\n`;
+  for (const imm of [
+    `unrelated prose https://example.test/${SHA}`,     // not commit ...
+    `commit \`${SHA}\` and notes`,                      // extra prose
+    `commit \`${SHA2}\``,                               // SHA mismatch
+    `COMMIT \`${SHA}\``,                                // uppercase keyword
+    `commit \`${SHA}`,                                  // one-sided backtick
+    `commits \`${SHA}\``,                               // plural keyword, one SHA
+    `commits \`${SHA}\`,\`${SHA2}\``,                   // no space after comma
+    `commits \`${SHA}\`, \`${SHA}\``                    // duplicate SHA
+  ]) assert.ok(buildSourceRegistry(sourcesDir({ 'a.md': bad(imm) })).errors.length > 0, imm);
+});
+
+test('branch ref, mixed source, raw host', () => {
+  assert.ok(errsOf({ 'a.md': `## CODEX-A\n\n- Source: R, [x](https://github.com/o/r/blob/main/x.rs)\n- Immutable reference: commit \`${SHA}\`\n` }).some((e) => /ref/i.test(e.message)));
+  assert.ok(errsOf({ 'a.md': `## CODEX-A\n\n- Source: R, [x](https://github.com/o/r/blob/${SHA}/x.rs) and [d](https://code.claude.com/x)\n- Immutable reference: commit \`${SHA}\`\n` }).some((e) => /mixed/i.test(e.message)));
+  assert.ok(errsOf({ 'a.md': `## CODEX-A\n\n- Source: R, [x](https://raw.githubusercontent.com/o/r/${SHA}/x.rs)\n- Immutable reference: commit \`${SHA}\`\n` }).some((e) => /raw/i.test(e.message)));
+});
+
+test('bad heading pattern reports exact sourceId', () => {
+  const e = errsOf({ 'a.md': `## codex-lower\n\n- Source: R, [d](https://code.claude.com/x)\n- Immutable reference: retrieved 2026-08-26; unversioned re-audit\n` }).find((x) => /pattern/i.test(x.message));
+  assert.equal(e.sourceId, 'codex-lower');
+});
+
+test('duplicate heading is caught even when the first occurrence is invalid', () => {
+  // First CODEX-A lacks a Source field (invalid, not inserted); second is valid.
+  const body = `## CODEX-A\n\n- Immutable reference: commit \`${SHA}\`\n\n${commit('CODEX-A')}`;
+  const dup = errsOf({ 'a.md': body }).filter((e) => /duplicate/i.test(e.message));
+  assert.equal(dup.length, 1);
+  assert.equal(dup[0].sourceId, 'CODEX-A');
+});
+
+test('doc guard: a commit-like URL on a Locator line errors at that exact line', () => {
+  // lines: 1 heading, 2 blank, 3 Source, 4 Immutable, 5 Locator
+  const body = `## CLAUDE-B\n\n- Source: Docs, [d](https://code.claude.com/x)\n- Immutable reference: retrieved 2026-08-26; page content is unversioned and requires deliberate re-audit when changed\n- Locator: see https://github.com/o/r/blob/main/x.md\n`;
+  const errs = buildSourceRegistry(sourcesDir({ 'a.md': body })).errors;
+  assert.equal(errs.length, 1);
+  assert.equal(errs[0].line, 5);
+  assert.equal(errs[0].filePath.endsWith('a.md'), true);
+  assert.equal(errs[0].sourceId, 'CLAUDE-B');
+});
+
+test('doc guard: a malformed commit-like link on a Locator line errors at that line', () => {
+  // Unclosed `](` — extractDestinations returns {dests:[], malformed:true}; the
+  // guard must still flag it (line 5) rather than accept a clean doc record.
+  const body = `## CLAUDE-B\n\n- Source: Docs, [d](https://code.claude.com/x)\n- Immutable reference: retrieved 2026-08-26; page content is unversioned and requires deliberate re-audit when changed\n- Locator: [x](https://github.com/o/r/blob/main/x.md\n`;
+  const errs = buildSourceRegistry(sourcesDir({ 'a.md': body })).errors;
+  assert.equal(errs.length, 1);
+  assert.equal(errs[0].line, 5);
+  assert.match(errs[0].message, /malformed/);
+});
+
+test('CRLF commit sections parse (Windows checkout)', () => {
+  const crlf = commit('CODEX-A').replace(/\n/g, '\r\n');
+  const { registry, errors } = buildSourceRegistry(sourcesDir({ 'a.md': crlf }));
+  assert.deepEqual(errors, []);
+  assert.equal(registry.get('CODEX-A').kind, 'commit');
+  assert.equal(registry.get('CODEX-A').immutableRefShas[0], SHA);
+});
+
+test('doc missing unversioned marker rejected; malformed Source link rejected', () => {
+  assert.ok(errsOf({ 'a.md': `## CLAUDE-B\n\n- Source: Docs, [d](https://code.claude.com/x)\n- Immutable reference: official documentation page retrieved 2026-08-26\n` }).some((e) => /unversioned|re-audit/i.test(e.message)));
+  assert.ok(errsOf({ 'a.md': `## CODEX-A\n\n- Source: R, [x](https://github.com/o/r/blob/${SHA}/x.rs\n- Immutable reference: commit \`${SHA}\`\n` }).some((e) => /malformed|Source/i.test(e.message)));
+});
+
+test('field cardinality: zero/duplicate Source or Immutable reference', () => {
+  assert.ok(errsOf({ 'a.md': `## CODEX-A\n\n- Immutable reference: commit \`${SHA}\`\n` }).some((e) => /exactly one Source|Source field, found 0/i.test(e.message)));
+  assert.ok(errsOf({ 'a.md': `## CODEX-A\n\n- Source: R, [x](https://github.com/o/r/blob/${SHA}/x.rs)\n- Source: R, [y](https://github.com/o/r/blob/${SHA}/y.rs)\n- Immutable reference: commit \`${SHA}\`\n` }).some((e) => /exactly one Source field, found 2/i.test(e.message)));
+  assert.ok(errsOf({ 'a.md': commit('CODEX-A') + `- Immutable reference: commit \`${SHA}\`\n` }).some((e) => /Immutable reference field, found 2/i.test(e.message)));
+});
+
+test('directory-level failures with exact null-line diagnostics', () => {
+  const notDir = join(mkdtempSync(join(tmpdir(), 'ge18-nd-')), 'file.md');
+  writeFileSync(notDir, 'x');
+  assert.ok(buildSourceRegistry(notDir).errors.some((e) => /not a directory/i.test(e.message) && e.line === null && e.sourceId === null));
+  const empty = mkdtempSync(join(tmpdir(), 'ge18-empty-'));
+  assert.ok(buildSourceRegistry(empty).errors.some((e) => /no Markdown files/i.test(e.message)));
+  assert.ok(buildSourceRegistry(join(empty, 'nope')).errors.some((e) => /missing/i.test(e.message)));
+  assert.ok(errsOf({ 'a.md': 'no headings here\n' }).some((e) => /no ## sections/i.test(e.message) && e.line === null));
+  const stray = errsOf({ 'a.md': `- Source: R, [x](https://github.com/o/r/blob/${SHA}/x.rs)\n\n## CODEX-A\n\n- Source: R, [x](https://github.com/o/r/blob/${SHA}/x.rs)\n- Immutable reference: commit \`${SHA}\`\n` }).find((e) => /outside/i.test(e.message));
+  assert.equal(stray.line, 1);
+});
+
+test('an unreadable *.md entry produces an exact read diagnostic', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ge18-unread-'));
+  const sub = join(dir, 'sources');
+  mkdirSync(sub);
+  mkdirSync(join(sub, 'broken.md')); // reading a directory throws EISDIR
+  writeFileSync(join(sub, 'ok.md'), commit('CODEX-A')); // keep sectionCount > 0
+  const errs = buildSourceRegistry(sub).errors;
+  const read = errs.find((e) => e.filePath.endsWith('broken.md'));
+  assert.ok(read, `expected a broken.md read diagnostic, got ${JSON.stringify(errs)}`);
+  assert.equal(read.message, 'unreadable file');
+  assert.equal(read.line, null);
+  assert.equal(read.sourceId, null);
+});
