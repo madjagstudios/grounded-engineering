@@ -234,3 +234,21 @@ export function buildSourceRegistry(sourcesDir) {
   if (sectionCount === 0) push(sourcesDir, null, null, 'no ## sections found');
   return done();
 }
+
+export function validateCardSourceReferences(cards, registry) {
+  const diagnostics = [];
+  for (const { record, filePath } of cards) {
+    const sourceIds = record.source_ids ?? [];
+    const evidenceIds = (record.evidence_refs ?? []).map((r) => r.source_id);
+    for (const id of new Set([...sourceIds, ...evidenceIds])) {
+      if (!registry.has(id)) diagnostics.push({ filePath, line: null, sourceId: id, message: `unknown source id ${id}` });
+    }
+    const a = new Set(sourceIds);
+    const b = new Set(evidenceIds);
+    if (a.size !== b.size || [...a].some((id) => !b.has(id))) {
+      diagnostics.push({ filePath, line: null, sourceId: null, message: 'source_ids and evidence_refs source-id sets differ' });
+    }
+  }
+  diagnostics.sort(compareDiagnostics);
+  return diagnostics;
+}

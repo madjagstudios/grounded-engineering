@@ -202,3 +202,44 @@ test('real repository sources are complete and clean', () => {
   assert.equal(recs.filter((r) => r.kind === 'doc').length, 8);
   assert.equal(recs.reduce((n, r) => n + r.targets.length, 0), 5);
 });
+
+import { validateCardSourceReferences } from '../scripts/lib/source-registry.mjs';
+
+const reg = new Map([['CODEX-SKILL-DESIGN', {}], ['CLAUDE-B', {}]]);
+const card = (over, filePath = 'c.md') => ({ record: { source_ids: ['CODEX-SKILL-DESIGN'], evidence_refs: [{ source_id: 'CODEX-SKILL-DESIGN', locator: 'x', relationship: 'generalized_principle' }], ...over }, filePath });
+
+test('exact ref passes', () => assert.deepEqual(validateCardSourceReferences([card()], reg), []));
+test('substring near-miss rejected; line null; exact sourceId', () => {
+  const d = validateCardSourceReferences([card({ source_ids: ['CODEX-SKILL'], evidence_refs: [{ source_id: 'CODEX-SKILL', locator: 'x', relationship: 'generalized_principle' }] })], reg);
+  assert.ok(d.some((x) => x.sourceId === 'CODEX-SKILL' && /unknown source/i.test(x.message)));
+  assert.ok(d.every((x) => x.line === null));
+});
+test('set inequality rejected', () => {
+  assert.ok(validateCardSourceReferences([card({ source_ids: ['CODEX-SKILL-DESIGN', 'CLAUDE-B'] })], reg).some((x) => /set/i.test(x.message)));
+});
+test('duplicate evidence_refs with distinct locators stays valid', () => {
+  assert.deepEqual(validateCardSourceReferences([card({ evidence_refs: [
+    { source_id: 'CODEX-SKILL-DESIGN', locator: 'a', relationship: 'generalized_principle' },
+    { source_id: 'CODEX-SKILL-DESIGN', locator: 'b', relationship: 'observed_implementation' }
+  ] })], reg), []);
+});
+test('diagnostics order by message not sourceId (discriminates the old comparator)', () => {
+  // Unequal source/evidence sets emit two unknown-id diagnostics (sourceId ZZZ,
+  // AAA) plus a null-sourceId set-difference diagnostic. message-order (code
+  // point) = [set-difference "source_ids…", unknown AAA, unknown ZZZ]. A
+  // sourceId-first comparator would order [AAA, ZZZ, null→"null"], which differs
+  // — so this assertion fails under the old comparator and passes under the new.
+  const d = validateCardSourceReferences([
+    card({ source_ids: ['ZZZ-UNKNOWN'], evidence_refs: [{ source_id: 'AAA-UNKNOWN', locator: 'x', relationship: 'generalized_principle' }] }, 'c.md')
+  ], reg);
+  assert.deepEqual(d.map((x) => x.message), [
+    'source_ids and evidence_refs source-id sets differ',
+    'unknown source id AAA-UNKNOWN',
+    'unknown source id ZZZ-UNKNOWN'
+  ]);
+});
+test('filePath ordering is code-point, not locale ("z" before "á")', () => {
+  const mk = (fp) => card({ source_ids: ['X-UNKNOWN'], evidence_refs: [{ source_id: 'X-UNKNOWN', locator: 'x', relationship: 'generalized_principle' }] }, fp);
+  const d = validateCardSourceReferences([mk('á.md'), mk('z.md')], reg);
+  assert.deepEqual(d.map((x) => x.filePath), ['z.md', 'á.md']); // 'z' U+007A < 'á' U+00E1
+});
