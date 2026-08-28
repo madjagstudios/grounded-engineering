@@ -265,3 +265,48 @@ export function validateCardSourceReferences(cards, registry) {
   diagnostics.sort(compareDiagnostics);
   return diagnostics;
 }
+
+export function validateCardValidationProvenance(cards, registry) {
+  const diagnostics = [];
+  const push = (filePath, sourceId, message) => diagnostics.push({ filePath, line: null, sourceId, message });
+  for (const { record, filePath } of cards) {
+    const status = record.validation?.status;
+    const entries = record.validation?.validated_against ?? [];
+    if (status === 'not_validated') {
+      if (entries.length > 0) push(filePath, null, 'not_validated card must not carry validated_against');
+      continue;
+    }
+    if (status !== 'validated' && status !== 'needs_review') continue; // schema owns other states
+
+    const entrySourceIds = entries.map((e) => e.source_id);
+    const cardSources = new Set(record.source_ids ?? []);
+    const entrySet = new Set(entrySourceIds);
+    for (const id of new Set(entrySourceIds.filter((id, i) => entrySourceIds.indexOf(id) !== i))) {
+      push(filePath, id, `duplicate validated_against entry for ${id}`);
+    }
+    for (const id of entrySet) if (!cardSources.has(id)) push(filePath, id, `validated_against references ${id}, not in source_ids`);
+    for (const id of cardSources) if (!entrySet.has(id)) push(filePath, id, `validated_against missing entry for ${id}`);
+
+    for (const entry of entries) {
+      const rec = registry.get(entry.source_id);
+      if (!rec) { push(filePath, entry.source_id, `validated_against references unknown source ${entry.source_id}`); continue; }
+      const revisions = entry.revisions ?? [];
+      for (const r of revisions) {
+        if (!/^[0-9a-f]{40}$/.test(r) && !isValidIsoDate(r)) {
+          push(filePath, entry.source_id, `revision ${r} for ${entry.source_id} is not a SHA or valid calendar date`);
+        }
+      }
+      if (status === 'validated') {
+        const pins = rec.kind === 'commit' ? rec.immutableRefShas : (rec.retrievalDate ? [rec.retrievalDate] : []);
+        const got = [...new Set(revisions)].sort();
+        const want = [...new Set(pins)].sort();
+        if (got.length !== want.length || got.some((v, i) => v !== want[i])) {
+          push(filePath, entry.source_id, `validated: ${entry.source_id} recorded revisions [${got.join(', ')}] do not equal current pin [${want.join(', ')}]`);
+        }
+      }
+      // needs_review: well-formedness only (checked above); no pin/kind match required.
+    }
+  }
+  diagnostics.sort(compareDiagnostics);
+  return diagnostics;
+}
