@@ -9,6 +9,11 @@ records the state of the catalog and tooling at that tag.
 
 ## [Unreleased]
 
+### Added
+- Opt-in `check:sources` source-drift command using the GitHub API. It is a
+  report-only, fail-closed online complement to GE-19's offline provenance
+  check and flags validated cards for re-audit.
+
 ### Changed
 - Provenance floor for validation: a practice card whose `validation.status`
   is `validated` or `needs_review` must now record `validation.validated_against`

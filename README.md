@@ -47,6 +47,18 @@ npm test
 
 The validator is local and deterministic. It does not fetch sources or make repository changes.
 
+Source drift checking is an opt-in, report-only operation:
+
+```bash
+npm run check:sources
+```
+
+The command uses the GitHub API to compare commit-pinned source blobs with the
+current repository heads. It refuses to run unless the catalog validates, and
+does not run as part of the default validator or test suite. Drift affecting a
+`validated` card is reported with a reminder to move it to `needs_review` and
+re-audit it; the command makes no repository changes.
+
 ## Adopt a profile
 
 Every adoption flow is reviewable and local-first. `preview` and `create` are
