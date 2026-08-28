@@ -15,7 +15,8 @@
   "scripts": {
     "validate": "node scripts/validate.mjs",
     "test:unit": "node --test test/*.test.mjs",
-    "test": "npm run validate && npm run test:unit"
+    "test": "npm run validate && npm run test:unit",
+    "check:sources": "node scripts/check-sources.mjs"
   },
   "engines": {
     "node": ">=20"
