@@ -57,3 +57,39 @@ Retrieval date for the documentation pages: 2026-08-26. Repository observations 
 - License/use: repository Apache-2.0; `link-only`; concepts are paraphrased
 - Observed implementation: the guidance distinguishes frontmatter validation from proving that a skill makes good decisions, then recommends real usage and targeted iteration when complexity warrants it.
 - Generalizable principle: a valid skill package is not necessarily a useful skill; behavioral validation should match risk and complexity.
+
+## CODEX-PATCH-FORMAT
+
+- Source: `openai/codex`, [`apply-patch/src/parser.rs`](https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/apply-patch/src/parser.rs)
+- Immutable reference: commit `03861e69ef549717c0fc7045abad56321d4a082b`
+- Locator: `parser.rs:1-2, 6-25, 145-210` for the module's own statement that it does not check filesystem applicability, the explicit patch grammar, and the parse-into-hunks logic
+- License/use: repository Apache-2.0; `link-only`; concepts are paraphrased
+- Observed implementation: the module parses a patch into typed hunks against an explicit grammar; its own doc comment states it does not check whether the patch can be applied to the filesystem, so applicability is resolved separately at apply time rather than during parsing.
+- Generalizable principle: agent-generated edits should be expressed in an explicit, parseable format with surrounding context, so a malformed edit is rejected during parsing and the target's applicability is validated before mutation, instead of silently corrupting files.
+
+## CODEX-SAFETY-POLICY
+
+- Source: `openai/codex`, [`core/src/safety.rs`](https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/core/src/safety.rs)
+- Immutable reference: commit `03861e69ef549717c0fc7045abad56321d4a082b`
+- Locator: `safety.rs:19-97, 100-188` for the three-way safety verdict, the assessment function's inputs, and the rejection-reason helpers
+- License/use: repository Apache-2.0; `link-only`; concepts are paraphrased
+- Observed implementation: a dedicated function returns one of auto-approve, ask-the-user, or reject-with-reason for a patch action, computed from the approval policy, permission profile, filesystem sandbox policy, and whether a platform sandbox can be enforced; a write constrained to writable roots may be auto-approved when a sandbox can contain it, asked about, or rejected depending on that combination, rather than uniformly rejected.
+- Generalizable principle: whether an action is permitted should be computed by an explicit policy, separate from the code that performs the action, with risky or non-conforming actions routed to approval or refusal rather than performed unchecked.
+
+## CODEX-NETWORK-CAPABILITY
+
+- Source: `openai/codex`, [`core/src/tools/network_approval.rs`](https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/core/src/tools/network_approval.rs)
+- Immutable reference: commit `03861e69ef549717c0fc7045abad56321d4a082b`
+- Locator: `network_approval.rs:600-706, 1032-1136` for the policy decider's allow/deny/approval decision and the execution-scoped proxy construction
+- License/use: repository Apache-2.0; `link-only`; concepts are paraphrased
+- Observed implementation: when managed network enforcement is active, network access for agent-run work is mediated by an execution-scoped proxy and a policy decider that yields an allow, deny, or approval decision — an allowlist miss can enter the approval flow rather than being denied outright; when managed enforcement is inactive the approval path returns without mediating.
+- Generalizable principle: treat network access from agent-executed work as a distinct capability mediated by an enforcing proxy and explicit policy — allowed, denied, or routed to approval — rather than an ambient default of running code.
+
+## CODEX-SANDBOX-ISOLATION
+
+- Source: `openai/codex`, [`sandboxing/src/lib.rs`](https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/sandboxing/src/lib.rs)
+- Immutable reference: commit `03861e69ef549717c0fc7045abad56321d4a082b`
+- Locator: `lib.rs:1-48` for the crate's module surface — the platform sandbox managers (Landlock, Seatbelt, Windows) and the filesystem/network violation recorders declared and re-exported behind a common interface
+- License/use: repository Apache-2.0; `link-only`; concepts are paraphrased
+- Observed implementation: the crate's root module declares and re-exports platform-specific sandbox backends (Landlock on Linux, Seatbelt on macOS, and a Windows backend) through a common `SandboxManager`, along with filesystem and network violation recorders; the enforcement and recording behavior itself lives in the backend modules, not this file, and platform selection can resolve to no sandbox.
+- Generalizable principle: confine agent-executed commands in an operating-system sandbox with a least-privilege policy and recorded violations where a supported backend is enabled, so isolation is enforced by the platform rather than by the agent's judgment.
