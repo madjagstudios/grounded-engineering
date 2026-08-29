@@ -17,10 +17,12 @@ The layers are intentionally separate. Research preserves provenance and decisio
 
 ## Current status
 
-`v0.4.0` is the current release. It ships the historical eight-card `baseline`
+`v0.5.0` is the current release. It ships the historical eight-card `baseline`
 pack, the thirteen-card `ai-assisted` pack, provider-neutral Markdown output,
-the Codex `AGENTS.md` adapter, the Claude root `CLAUDE.md` adapter, and the
-read-only `check` command for managed-block drift detection.
+the Codex `AGENTS.md` adapter, the Claude root `CLAUDE.md` adapter, the
+read-only `check` command for managed-block drift detection, the per-source
+validation-provenance floor, and the opt-in `check:sources` online drift
+check.
 
 The historical baseline pack metadata remains at `v0.2.0` with
 `pack_version: 1.0.0` so existing adopters can stay green while

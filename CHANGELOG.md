@@ -7,7 +7,7 @@ project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 Practice cards are point-in-time observations against pinned sources; a release
 records the state of the catalog and tooling at that tag.
 
-## [Unreleased]
+## [0.5.0] - 2026-08-28
 
 ### Added
 - Opt-in `check:sources` source-drift command using the GitHub API. It is a
@@ -83,6 +83,7 @@ records the state of the catalog and tooling at that tag.
   cards across repository context, code quality, testing, and verification, with
   the research provenance model, schema, and local validator.
 
+[0.5.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.5.0
 [0.4.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.4.0
 [0.3.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.3.0
 [0.2.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.2.0
