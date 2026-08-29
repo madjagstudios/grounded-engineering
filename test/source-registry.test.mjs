@@ -214,10 +214,10 @@ test('real repository sources are complete and clean', () => {
   const { registry, errors } = buildSourceRegistry(realDir);
   assert.deepEqual(errors, [], `unexpected errors: ${JSON.stringify(errors)}`);
   const recs = [...registry.values()];
-  assert.equal(registry.size, 13);
-  assert.equal(recs.filter((r) => r.kind === 'commit').length, 5);
+  assert.equal(registry.size, 17);
+  assert.equal(recs.filter((r) => r.kind === 'commit').length, 9);
   assert.equal(recs.filter((r) => r.kind === 'doc').length, 8);
-  assert.equal(recs.reduce((n, r) => n + r.targets.length, 0), 5);
+  assert.equal(recs.reduce((n, r) => n + r.targets.length, 0), 9);
 });
 
 import { validateCardSourceReferences } from '../scripts/lib/source-registry.mjs';
