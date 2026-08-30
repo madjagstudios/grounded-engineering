@@ -61,6 +61,20 @@ does not run as part of the default validator or test suite. Drift affecting a
 `validated` card is reported with a reminder to move it to `needs_review` and
 re-audit it; the command makes no repository changes.
 
+To prepare validation provenance for a card after genuinely exercising its
+practice, print the current source pins locally:
+
+```bash
+npm run scaffold:validation -- GE-VF-003
+npm run scaffold:validation -- practices/verification/decision-separate-from-action.md
+```
+
+The command is offline and report-only. It emits a paste-ready
+`validated_against` block in source order, but never edits a card or changes
+`validation.status`; the maintainer remains responsible for recording the
+validation claim. Add `--check` to report whether an existing block matches
+the current local source pins.
+
 ## Adopt a profile
 
 Every adoption flow is reviewable and local-first. `preview` and `create` are
