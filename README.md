@@ -125,6 +125,10 @@ grounded-engineering adopt apply <proposal-id> --confirm
 grounded-engineering check
 ```
 
+The write-path contract is documented in the packaged
+[first-party adopt apply policy](policies/adopt-apply.md), which the CLI also
+names in its help output.
+
 ### Provider adapters
 
 By default `adopt` emits provider-neutral Markdown to
