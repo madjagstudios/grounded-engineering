@@ -86,8 +86,13 @@ export function runValidation({ root }) {
   } catch (error) { errors.push(`package.json: unable to validate CLI entrypoint: ${error.message}`); }
 
   const readmeText = read(join(validationRoot, 'README.md'));
-  for (const snippet of ['npx grounded-engineering adopt preview --profile ai-assisted --adapter claude', 'grounded-engineering check', 'v0.2.0', 'does not rewrite existing policy']) {
+  for (const snippet of ['npx grounded-engineering adopt preview --profile ai-assisted --adapter claude', 'grounded-engineering adopt apply <proposal-id> --confirm', 'grounded-engineering check', 'v0.2.0', 'does not rewrite existing policy']) {
     if (!readmeText.includes(snippet)) errors.push(`README.md: missing required public release text: ${snippet}`);
+  }
+
+  const applyPolicyText = read(join(validationRoot, 'policies', 'adopt-apply.md'));
+  for (const snippet of ['Policy version: 1.0', 'grounded-engineering adopt apply <proposal-id> --confirm', 'does not depend on or endorse any third-party wrapper']) {
+    if (!applyPolicyText.includes(snippet)) errors.push(`policies/adopt-apply.md: missing required public policy text: ${snippet}`);
   }
 
   const selfPath = join(validationRoot, 'scripts', 'validate.mjs');

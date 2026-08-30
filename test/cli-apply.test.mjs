@@ -87,6 +87,24 @@ test('applies a reviewed proposal to a new target and writes a valid manifest', 
   assert.match(manifest.targets[0].managed_block_sha256, /^[0-9a-f]{64}$/);
 });
 
+test('rejects re-applying a proposal when the manifest already exists without a second write', () => {
+  const targetRoot = copyFixture('apply-clean');
+  const { proposal, decisions } = createReviewedProposal(targetRoot);
+  applyProposal(targetRoot, proposal.proposal_id, { sourceRoot: root, confirm: true, decisions });
+
+  const targetPath = join(targetRoot, 'GROUNDED_ENGINEERING.md');
+  const manifestPath = join(targetRoot, '.grounded-engineering', 'manifest.yaml');
+  const targetBeforeSecondApply = readFileSync(targetPath, 'utf8');
+  const manifestBeforeSecondApply = readFileSync(manifestPath, 'utf8');
+
+  assert.throws(
+    () => applyProposal(targetRoot, proposal.proposal_id, { sourceRoot: root, confirm: true, decisions }),
+    /manifest already exists/i
+  );
+  assert.equal(readFileSync(targetPath, 'utf8'), targetBeforeSecondApply);
+  assert.equal(readFileSync(manifestPath, 'utf8'), manifestBeforeSecondApply);
+});
+
 test('requires reviewed local decisions before apply', () => {
   const targetRoot = copyFixture('apply-clean');
   const { proposal } = createReviewedProposal(targetRoot);

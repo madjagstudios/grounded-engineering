@@ -10,7 +10,8 @@
     "bin",
     "src",
     "packs",
-    "practices"
+    "practices",
+    "policies"
   ],
   "scripts": {
     "validate": "node scripts/validate.mjs",

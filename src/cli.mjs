@@ -15,8 +15,10 @@ function printHelp(write) {
   grounded-engineering adopt preview --profile ai-assisted --adapter claude
   grounded-engineering adopt preview --cards GE-RC-001,inspect-repository-first
   grounded-engineering adopt create --profile ai-assisted --adapter codex
-  grounded-engineering adopt apply 20260826-143000-a1b2c3d4 --confirm
+  grounded-engineering adopt apply <proposal-id> --confirm
   grounded-engineering check
+
+Apply contract: policies/adopt-apply.md (included in the package)
 
 Reserved (unavailable in v0.4.0):
   grounded-engineering update propose --release v0.4.0
