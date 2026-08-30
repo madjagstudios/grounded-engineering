@@ -11,18 +11,21 @@ grounded-engineering adopt apply <proposal-id> --confirm
 
 ## What apply may write
 
-Apply writes the one target selected by the proposal's adapter and the
-repository manifest at `.grounded-engineering/manifest.yaml`:
+For a proposal created by this CLI, apply writes the one target selected by
+the proposal's adapter and the repository manifest at
+`.grounded-engineering/manifest.yaml`:
 
 - `neutral`: `docs/grounded-engineering.md` when the consuming repository has
   a `docs/` directory; otherwise `GROUNDED_ENGINEERING.md`.
 - `codex`: the repository-root `AGENTS.md`.
 - `claude`: the repository-root `CLAUDE.md`.
 
-The Codex adapter refuses to write when `AGENTS.override.md` is present. The
-Claude adapter does not write `.claude/CLAUDE.md`, nested `CLAUDE.md`, or
-`CLAUDE.local.md`. Paths from a proposal cannot escape the consuming
-repository root.
+When creating a proposal, the Codex adapter refuses to select a target when
+`AGENTS.override.md` is present. The Claude adapter selects only the root
+`CLAUDE.md`, not `.claude/CLAUDE.md`, nested `CLAUDE.md`, or
+`CLAUDE.local.md`. Apply does not re-run adapter preflight; it uses the
+serialized target path and kind from the saved proposal, while still refusing
+unsafe paths outside the consuming repository root.
 
 ## Write boundary and gates
 
@@ -33,16 +36,19 @@ hold:
 
 1. The proposal ID resolves to a saved proposal and its pack, schema, and
    release metadata are valid.
-2. The target still matches the proposal's saved precondition and has no
-   unresolved proposal conflict.
+2. The target still matches the proposal's saved precondition. Proposal
+   conflicts are checked when this CLI creates the proposal; apply does not
+   re-check a saved proposal's conflict list.
 3. Every local decision required by the proposal is present and accepted.
 4. Non-interactive use includes the explicit `--confirm` flag. Interactive
    use asks for confirmation before writing.
 
 The target and manifest are committed as one local transaction. If a write
 fails, the transaction rolls back. The manifest records the selected pack,
-cards, target precondition, managed-block fingerprint, and validation result
-used by `grounded-engineering check`.
+cards, target precondition, managed-block fingerprint, and apply-time
+validation result. `grounded-engineering check` schema-validates that
+manifest, then independently compares its pack, card, and target metadata;
+it does not interpret `validation.status` as a separate check gate.
 
 ## Re-apply and checking
 
