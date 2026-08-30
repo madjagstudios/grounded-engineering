@@ -12,3 +12,6 @@ dist/
 reports/
 .grounded-engineering/
 worktrees/
+
+# Local-only work notes
+docs/worknotes/
