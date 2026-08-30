@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import test from 'node:test';
+import { runScaffold } from '../scripts/scaffold-validation.mjs';
 
 const root = new URL('../', import.meta.url).pathname;
 const script = join(root, 'scripts', 'scaffold-validation.mjs');
@@ -33,4 +35,19 @@ test('--check flags a card with no existing validation provenance without editin
   assert.equal(result.status, 1);
   assert.match(result.stdout, /Validation provenance is stale or missing: GE-VF-003/);
   assert.equal(readFileSync(cardPath, 'utf8'), before);
+});
+
+test('--check can report stale provenance on the selected card', () => {
+  const fixture = mkdtempSync(join(tmpdir(), 'ge-validation-stale-'));
+  for (const entry of ['bin', 'packs', 'practices', 'research', 'scripts', 'src']) cpSync(join(root, entry), join(fixture, entry), { recursive: true });
+  for (const entry of ['CONTRIBUTING.md', 'LICENSE', 'README.md', 'package.json']) cpSync(join(root, entry), join(fixture, entry));
+  const fixtureCard = join(fixture, 'practices', 'verification', 'decision-separate-from-action.md');
+  const stale = readFileSync(fixtureCard, 'utf8').replace('status: not_validated', `status: validated\n  validated_against:\n    - source_id: CODEX-SAFETY-POLICY\n      revisions:\n        - "${'0'.repeat(40)}"`);
+  writeFileSync(fixtureCard, stale);
+  let output = '';
+
+  const code = runScaffold({ root: fixture, args: ['GE-VF-003', '--check'], write: (message) => { output += `${message}\n`; }, error: (message) => { output += `${message}\n`; } });
+
+  assert.equal(code, 1);
+  assert.match(output, /Validation provenance is stale or missing: GE-VF-003/);
 });
