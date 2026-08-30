@@ -1,11 +1,10 @@
-import { join, relative, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { realpathSync } from 'node:fs';
 import process from 'node:process';
 import { loadPracticeCards, resolveCardReference } from '../src/lib/cards.mjs';
 import { buildSourceRegistry } from './lib/source-registry.mjs';
 import { buildValidationEntries, renderValidationEntries, validationEntriesMatch } from './lib/validation-scaffold.mjs';
-import { runValidation } from './validate.mjs';
 
 const usage = `Usage:
   npm run scaffold:validation -- <card-id-or-path>
@@ -39,12 +38,6 @@ function resolveCard(root, reference, index) {
   return card;
 }
 
-function isSelectedProvenanceError(message, root, card) {
-  const prefix = `${relative(root, card.filePath)}: `;
-  if (!message.startsWith(prefix)) return false;
-  return /^(?:not_validated card must not carry validated_against|validated_against |revision .+ is not a SHA or valid calendar date|validated: .+ recorded revisions .+ do not equal current pin)/.test(message.slice(prefix.length));
-}
-
 export function runScaffold({ root, args, write = (message) => process.stdout.write(`${message}\n`), error = (message) => process.stderr.write(`${message}\n`) }) {
   let options;
   try {
@@ -69,16 +62,9 @@ export function runScaffold({ root, args, write = (message) => process.stdout.wr
     const index = loadPracticeCards(root);
     const card = resolveCard(root, options.reference, index);
     const expected = buildValidationEntries(card, registry);
-    const validation = runValidation({ root });
-    const catalogErrors = validation.errors.filter((message) => !isSelectedProvenanceError(message, root, card));
-    if (catalogErrors.length > 0) {
-      error(`scaffold:validation refuses to run — the catalog is not valid (${catalogErrors.length} issue${catalogErrors.length === 1 ? '' : 's'}):`);
-      for (const validationError of catalogErrors) error(`- ${validationError}`);
-      return 2;
-    }
     if (options.check) {
       const current = card.validation?.validated_against;
-      if (validationEntriesMatch(current, expected)) {
+      if (card.validation?.status === 'validated' && validationEntriesMatch(current, expected)) {
         write(`Validation provenance is current: ${card.id}`);
         return 0;
       }
