@@ -18,7 +18,7 @@ The layers are intentionally separate. Research preserves provenance and decisio
 ## Current status
 
 `v0.5.0` is the current release. It ships the historical eight-card `baseline`
-pack, the thirteen-card `ai-assisted` pack, provider-neutral Markdown output,
+pack, the seventeen-card `ai-assisted` pack, provider-neutral Markdown output,
 the Codex `AGENTS.md` adapter, the Claude root `CLAUDE.md` adapter, the
 read-only `check` command for managed-block drift detection, the per-source
 validation-provenance floor, and the opt-in `check:sources` online drift
@@ -27,7 +27,7 @@ check.
 The historical baseline pack metadata remains at `v0.2.0` with
 `pack_version: 1.0.0` so existing adopters can stay green while
 `update propose` is still reserved. The `ai-assisted` profile adds the full
-thirteen-card set, but it does not rewrite existing policy; it creates a
+seventeen-card set, but it does not rewrite existing policy; it creates a
 reviewable proposal that the consuming repository must explicitly accept.
 
 The recommendations are point-in-time observations against pinned sources. Source changes do not silently rewrite cards; re-auditing is a deliberate maintenance step. A card cannot report a validation state stronger than `not_validated` without recording, for each source, the full revision set it was checked against. A source re-pin is caught offline until the card is re-validated.
@@ -100,7 +100,7 @@ Profiles:
 - `baseline`: the historical eight-card Context & Instructions starter pack.
   Its pack metadata stays pinned at `v0.2.0` for compatibility with existing
   adopters.
-- `ai-assisted`: all thirteen current cards, adding the five Agent & Skill
+- `ai-assisted`: all seventeen current cards, adding the six Agent & Skill
   Design practices on top of the baseline set.
 
 Adapter choices:

@@ -7,6 +7,20 @@ project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 Practice cards are point-in-time observations against pinned sources; a release
 records the state of the catalog and tooling at that tag.
 
+## [Unreleased]
+
+### Added
+- Four practice cards sourced from `openai/codex`: expressing edits in an
+  explicit, verifiable format (`GE-CQ-003`), deciding permission separately
+  from the action (`GE-VF-003`), confining agent-executed commands in an OS
+  sandbox (`GE-VF-004`), and gating network egress from agent-run work
+  (`GE-AS-006`).
+
+### Changed
+- The `ai-assisted` pack now ships all seventeen cards, adding the four new
+  cards above; its `pack_version` is `1.1.0`. The `baseline` pack and the CLI
+  release are unchanged.
+
 ## [0.5.0] - 2026-08-28
 
 ### Added
