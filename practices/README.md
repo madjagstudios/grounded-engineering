@@ -16,8 +16,8 @@ Grounded Engineering currently ships two reviewable adoption packs:
 
 - `baseline`: the historical eight-card Context & Instructions starter pack for
   repository context, code quality, testing, and verification.
-- `ai-assisted`: all thirteen current cards, combining the baseline set with
-  the five Agent & Skill Design cards.
+- `ai-assisted`: all seventeen current cards, combining the baseline set with
+  the six Agent & Skill Design cards.
 
 Both packs preserve each card's canonical ID and public disposition while
 leaving local applicability, acceptance, and provider-specific translation to
