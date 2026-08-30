@@ -69,11 +69,14 @@ npm run scaffold:validation -- GE-VF-003
 npm run scaffold:validation -- practices/verification/decision-separate-from-action.md
 ```
 
-The command is offline and report-only. It emits a paste-ready
-`validated_against` block in source order, but never edits a card or changes
-`validation.status`; the maintainer remains responsible for recording the
-validation claim. Add `--check` to report whether an existing block matches
-the current local source pins.
+The command is offline and report-only. It validates the source registry and
+selected card reference, then emits a paste-ready `validated_against` block in
+source order; it never edits a card or changes `validation.status`. The
+maintainer remains responsible for recording the validation claim. Add
+`--check` to report whether a `validated` card's existing block matches the
+current local source pins. The command intentionally does not require the
+unrelated card catalog to be clean, so a provenance repair can be prepared
+before a full repository validation run.
 
 ## Adopt a profile
 
