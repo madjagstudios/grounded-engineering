@@ -26,7 +26,8 @@ evidence_refs:
 validation:
   status: not_validated
 revisit:
-  required: false
+  required: true
+  trigger: Current sources describe context assembly, not integration testing; re-source or reword before validation.
 agent_snippet: When wiring or registration changes, run the narrowest real-path check that exercises the composition boundary.
 ---
 

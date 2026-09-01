@@ -26,7 +26,8 @@ evidence_refs:
 validation:
   status: not_validated
 revisit:
-  required: false
+  required: true
+  trigger: Current sources demonstrate instruction discovery, not code-helper reuse; re-source or reword before validation.
 agent_snippet: Before adding a helper, search the repository for an existing capability and explain why it is insufficient if you add a new abstraction.
 ---
 
