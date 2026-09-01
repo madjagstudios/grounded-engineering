@@ -24,7 +24,14 @@ evidence_refs:
     locator: official setup guidance on repeated prompts and updating extensions; retrieved 2026-08-26
     relationship: generalized_principle
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CODEX-SKILL-VALIDATION
+      revisions:
+        - f5420174dafba153913a3e697f89002c338dfd7e
+    - source_id: CLAUDE-SKILL-SURFACE
+      revisions:
+        - 2026-08-26
 revisit:
   required: false
 agent_snippet: After structural validation, exercise a complex skill on representative tasks and revise it from observed routing or decision failures.

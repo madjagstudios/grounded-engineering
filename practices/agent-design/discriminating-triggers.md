@@ -24,7 +24,14 @@ evidence_refs:
     locator: official skills documentation on invocation and discovery; retrieved 2026-08-26
     relationship: observed_implementation
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CODEX-SKILL-DESCRIPTION
+      revisions:
+        - f5420174dafba153913a3e697f89002c338dfd7e
+    - source_id: CLAUDE-SKILL-DISCOVERY
+      revisions:
+        - 2026-08-26
 revisit:
   required: false
 agent_snippet: Describe the capability and its real trigger in the skill description; add an exclusion only when it prevents likely misrouting.

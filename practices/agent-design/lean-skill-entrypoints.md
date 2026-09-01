@@ -24,7 +24,14 @@ evidence_refs:
     locator: official feature-selection table for skills and context cost; retrieved 2026-08-26
     relationship: generalized_principle
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CODEX-SKILL-DESIGN
+      revisions:
+        - f5420174dafba153913a3e697f89002c338dfd7e
+    - source_id: CLAUDE-SKILL-SURFACE
+      revisions:
+        - 2026-08-26
 revisit:
   required: false
 agent_snippet: Keep the skill entrypoint focused; move conditional procedures and references out of the default context when they are not needed for every invocation.

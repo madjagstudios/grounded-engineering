@@ -24,7 +24,14 @@ evidence_refs:
     locator: pinned `SKILL.md:16-22` for scope and permission boundaries
     relationship: generalized_principle
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CLAUDE-SUBAGENT-BOUNDARIES
+      revisions:
+        - 2026-08-26
+    - source_id: CODEX-SKILL-DESIGN
+      revisions:
+        - f5420174dafba153913a3e697f89002c338dfd7e
 revisit:
   required: false
 agent_snippet: Give delegated work only the tools, authority, context, and duration required for its result; isolate repository changes when the task warrants it.
