@@ -24,7 +24,14 @@ evidence_refs:
     locator: official memory documentation sections distinguishing guidance from enforcement; retrieved 2026-08-26
     relationship: generalized_principle
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CODEX-TRUST-BOUNDARY
+      revisions:
+        - dc08ace7821614a702b1214c9d08ae0db2634d82
+    - source_id: CLAUDE-ENFORCEMENT-BOUNDARY
+      revisions:
+        - 2026-08-26
 revisit:
   required: false
 agent_snippet: Make each completion claim match the evidence lane that actually passed, and name any unverified lane.
