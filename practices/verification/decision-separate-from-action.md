@@ -21,7 +21,11 @@ evidence_refs:
     locator: safety.rs:19-97, 100-188 for the three-way verdict, its policy inputs, and the rejection-reason helpers
     relationship: observed_implementation
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CODEX-SAFETY-POLICY
+      revisions:
+        - 03861e69ef549717c0fc7045abad56321d4a082b
 revisit:
   required: false
 agent_snippet: Before an escalating or irreversible action, compute an explicit allow/ask/reject verdict from policy, profile, and sandbox availability, and route risky writes to approval rather than running them unchecked.

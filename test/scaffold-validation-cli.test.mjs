@@ -18,6 +18,14 @@ function run(...args) {
   return spawnSync(process.execPath, [script, ...args], { cwd: root, encoding: 'utf8' });
 }
 
+// Reset a card's validation block to a clean not_validated baseline so these
+// tests build the state they assert regardless of whether the card has since
+// been validated in the catalog. Replaces everything from `validation:` up to
+// the following `revisit:` key.
+function notValidated(text) {
+  return text.replace(/^validation:\n(?:.*\n)*?revisit:/m, 'validation:\n  status: not_validated\nrevisit:');
+}
+
 test('emits the same scaffold when resolving a card by ID or repository-relative path', () => {
   const before = readFileSync(cardPath, 'utf8');
   const byId = run('GE-VF-003');
@@ -33,12 +41,19 @@ test('emits the same scaffold when resolving a card by ID or repository-relative
 });
 
 test('--check flags a card with no existing validation provenance without editing it', () => {
-  const before = readFileSync(cardPath, 'utf8');
-  const result = run('GE-VF-003', '--check');
+  const fixture = mkdtempSync(join(tmpdir(), 'ge-validation-missing-'));
+  for (const entry of ['bin', 'packs', 'practices', 'research', 'scripts', 'src']) cpSync(join(root, entry), join(fixture, entry), { recursive: true });
+  for (const entry of ['CONTRIBUTING.md', 'LICENSE', 'README.md', 'package.json']) cpSync(join(root, entry), join(fixture, entry));
+  const fixtureCard = join(fixture, 'practices', 'verification', 'decision-separate-from-action.md');
+  writeFileSync(fixtureCard, notValidated(readFileSync(fixtureCard, 'utf8')));
+  const before = readFileSync(fixtureCard, 'utf8');
+  let output = '';
 
-  assert.equal(result.status, 1);
-  assert.match(result.stdout, /Validation provenance is stale or missing: GE-VF-003/);
-  assert.equal(readFileSync(cardPath, 'utf8'), before);
+  const code = runScaffold({ root: fixture, args: ['GE-VF-003', '--check'], write: (message) => { output += `${message}\n`; }, error: (message) => { output += `${message}\n`; } });
+
+  assert.equal(code, 1);
+  assert.match(output, /Validation provenance is stale or missing: GE-VF-003/);
+  assert.equal(readFileSync(fixtureCard, 'utf8'), before);
 });
 
 test('--check can report stale provenance on the selected card', () => {
@@ -46,7 +61,7 @@ test('--check can report stale provenance on the selected card', () => {
   for (const entry of ['bin', 'packs', 'practices', 'research', 'scripts', 'src']) cpSync(join(root, entry), join(fixture, entry), { recursive: true });
   for (const entry of ['CONTRIBUTING.md', 'LICENSE', 'README.md', 'package.json']) cpSync(join(root, entry), join(fixture, entry));
   const fixtureCard = join(fixture, 'practices', 'verification', 'decision-separate-from-action.md');
-  const stale = readFileSync(fixtureCard, 'utf8').replace('status: not_validated', `status: validated\n  validated_against:\n    - source_id: CODEX-SAFETY-POLICY\n      revisions:\n        - "${'0'.repeat(40)}"`);
+  const stale = notValidated(readFileSync(fixtureCard, 'utf8')).replace('status: not_validated', `status: validated\n  validated_against:\n    - source_id: CODEX-SAFETY-POLICY\n      revisions:\n        - "${'0'.repeat(40)}"`);
   writeFileSync(fixtureCard, stale);
   let output = '';
 
@@ -65,7 +80,7 @@ test('--check returns 0 only for validated cards with current provenance', () =>
   const fixtureCard = fixtureIndex.byId.get('GE-VF-003');
   const entries = renderValidationEntries(buildValidationEntries(fixtureCard, registry)).trimEnd().split('\n').map((line) => `  ${line}`).join('\n');
   const cardFile = join(fixture, 'practices', 'verification', 'decision-separate-from-action.md');
-  const current = readFileSync(cardFile, 'utf8').replace('validation:\n  status: not_validated', `validation:\n  status: validated\n${entries}`);
+  const current = notValidated(readFileSync(cardFile, 'utf8')).replace('validation:\n  status: not_validated', `validation:\n  status: validated\n${entries}`);
   writeFileSync(cardFile, current);
 
   const result = runScaffold({ root: fixture, args: ['GE-VF-003', '--check'] });
@@ -82,7 +97,7 @@ test('--check rejects matching provenance when the card is still not validated',
   const fixtureCard = fixtureIndex.byId.get('GE-VF-003');
   const entries = renderValidationEntries(buildValidationEntries(fixtureCard, registry)).trimEnd().split('\n').map((line) => `  ${line}`).join('\n');
   const cardFile = join(fixture, 'practices', 'verification', 'decision-separate-from-action.md');
-  const invalid = readFileSync(cardFile, 'utf8').replace('validation:\n  status: not_validated', `validation:\n  status: not_validated\n${entries}`);
+  const invalid = notValidated(readFileSync(cardFile, 'utf8')).replace('validation:\n  status: not_validated', `validation:\n  status: not_validated\n${entries}`);
   writeFileSync(cardFile, invalid);
 
   const result = runScaffold({ root: fixture, args: ['GE-VF-003', '--check'], write: () => {}, error: () => {} });

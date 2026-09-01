@@ -21,7 +21,11 @@ evidence_refs:
     locator: network_approval.rs:600-706, 1032-1136 for the allow/deny/approval decision and the execution-scoped proxy construction
     relationship: observed_implementation
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CODEX-NETWORK-CAPABILITY
+      revisions:
+        - 03861e69ef549717c0fc7045abad56321d4a082b
 revisit:
   required: false
 agent_snippet: Route network access from agent-run code through an enforcing proxy and explicit policy — allow, deny, or approve — rather than leaving egress ambient, and confirm a real proxy is in the path before relying on the gate.

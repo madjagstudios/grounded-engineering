@@ -21,7 +21,11 @@ evidence_refs:
     locator: parser.rs:1-2, 6-25, 145-210 for the parse-into-hunks grammar and the note that applicability is not checked here
     relationship: observed_implementation
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CODEX-PATCH-FORMAT
+      revisions:
+        - 03861e69ef549717c0fc7045abad56321d4a082b
 revisit:
   required: false
 agent_snippet: Produce edits in an explicit, context-anchored format and verify the target context matches before mutating, so a stale or mistargeted change is caught rather than corrupting the file.
