@@ -7,7 +7,7 @@ category: Code Quality
 subcategory: Change scope
 pattern: Keep a change limited to the behavior and evidence needed for the task.
 underlying_principle: Prefer the smallest complete change over speculative cleanup or unrelated refactoring.
-observed_implementation: Scoped instruction systems distinguish repository-wide guidance from narrower path and task context.
+observed_implementation: Codex skill guidance directs authors to scope work to the requested task, include only what changes the outcome, and avoid expanding the assignment or modifying unrelated configuration.
 applicability: [AI_ASSISTED, TRADITIONAL, REPOSITORY_GOVERNANCE]
 control_types: [ADVISORY, HUMAN_REVIEW]
 disposition: ADAPT
@@ -15,16 +15,17 @@ rationale: Narrow scope reduces review and regression risk, but a necessary refa
 delivery_horizon: V1
 confidence: medium
 evidence_level: recommended
-source_ids: [CLAUDE-LOCAL-CONTEXT, CODEX-AGENTS-IMPLEMENTATION]
+source_ids: [CODEX-SKILL-DESIGN]
 evidence_refs:
-  - source_id: CLAUDE-LOCAL-CONTEXT
-    locator: official memory documentation sections on local context and scoped instructions; retrieved 2026-08-26
-    relationship: generalized_principle
-  - source_id: CODEX-AGENTS-IMPLEMENTATION
-    locator: agents_md.rs:1-16 and :185-187 for root and path boundaries
+  - source_id: CODEX-SKILL-DESIGN
+    locator: SKILL.md:14-20 for scoping work to the task, removing speculative detail, and matching specificity to the risk
     relationship: generalized_principle
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CODEX-SKILL-DESIGN
+      revisions:
+        - f5420174dafba153913a3e697f89002c338dfd7e
 revisit:
   required: false
 agent_snippet: Keep the change proportional to the requested behavior; separate required refactoring from unrelated cleanup.
@@ -36,5 +37,4 @@ Use this when a task touches more than the requested behavior. Include refactori
 
 ## Evidence trail
 
-- [CLAUDE-LOCAL-CONTEXT](../../research/sources/claude-code.md#claude-local-context): local and scoped context sections.
-- [CODEX-AGENTS-IMPLEMENTATION](../../research/sources/codex.md#codex-agents-implementation): root and path boundary implementation.
+- [CODEX-SKILL-DESIGN](../../research/sources/codex.md#codex-skill-design): scoping work to the task and matching specificity to the risk.
