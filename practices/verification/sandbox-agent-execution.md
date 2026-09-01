@@ -21,7 +21,11 @@ evidence_refs:
     locator: lib.rs:1-48 for the module surface — platform sandbox managers and filesystem/network violation recorders re-exported behind a common interface
     relationship: observed_implementation
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CODEX-SANDBOX-ISOLATION
+      revisions:
+        - 03861e69ef549717c0fc7045abad56321d4a082b
 revisit:
   required: false
 agent_snippet: Run agent-executed commands inside an OS sandbox with least privilege where a supported backend is enabled, surface violations instead of widening the policy silently, and treat "no sandbox available" as fail-safe rather than permission to run unconfined.
