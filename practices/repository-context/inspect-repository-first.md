@@ -27,7 +27,17 @@ evidence_refs:
     locator: official memory documentation sections on hierarchy and path rules; retrieved 2026-08-26
     relationship: observed_implementation
 validation:
-  status: not_validated
+  status: validated
+  validated_against:
+    - source_id: CODEX-AGENTS-GUIDE
+      revisions:
+        - 2026-08-26
+    - source_id: CODEX-AGENTS-IMPLEMENTATION
+      revisions:
+        - dc08ace7821614a702b1214c9d08ae0db2634d82
+    - source_id: CLAUDE-MEMORY-HIERARCHY
+      revisions:
+        - 2026-08-26
 revisit:
   required: false
 agent_snippet: Before editing, inspect applicable instructions, repository status, structure, declared commands, and affected paths.
