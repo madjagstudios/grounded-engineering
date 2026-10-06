@@ -28,7 +28,7 @@ Practice cards should be small enough to use during a real change. They should s
 
 ## Skill-repo records
 
-`npm run discover:skill-repos` only proposes candidates; it never writes a record. A person reads the repository, then writes the record in their own words (see `research/skill-repos/README.md`). Link, never copy: records carry metadata and a pointer, with no skill text or files. When an author asks to be removed, delist the record without debate.
+Skill-repo records are written by hand after reading the repository; see `research/skill-repos/README.md`.
 
 ## Validation
 

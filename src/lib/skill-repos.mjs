@@ -3,8 +3,6 @@ import { basename, join, relative } from 'node:path';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { parse } from 'yaml';
 
-export const SKILL_REPO_TAGS = Object.freeze(['planning', 'testing', 'review', 'debugging', 'docs', 'frontend', 'typescript', 'python', 'devops', 'security', 'data', 'writing', 'design']);
-
 export function loadSkillRepos(root) {
   const dir = join(root, 'research', 'skill-repos');
   if (!existsSync(dir)) return { records: [], errors: [] };

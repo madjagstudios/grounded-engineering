@@ -6,12 +6,8 @@ import { loadFitRules } from '../../src/lib/fit-rules.mjs';
 import { SIGNALS } from '../../src/lib/signals.mjs';
 import { buildSourceRegistry, extractDestinations } from './source-registry.mjs';
 
-// plugin/catalog.json contract. catalog_version 1: fields are additive-only
-// within a version (new fields may appear; none are renamed, retyped, or
-// removed). The plugin mod reads this file only, with no Node imports, so the
-// catalog carries everything the UI shows: practices, evidence links
-// (sources), signal descriptions, fit rules, and the listed skill repos.
-// Regenerate with `npm run build:catalog`; `npm test` fails when it is stale.
+// plugin/catalog.json is versioned by catalog_version. Within a version, fields are
+// only added, never removed or renamed. The plugin reads this file and nothing else.
 
 export const REPOSITORY_URL = 'https://github.com/madjagstudios/grounded-engineering';
 

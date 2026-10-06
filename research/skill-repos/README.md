@@ -12,8 +12,6 @@ traffic go to the authors.
   person reads the repository and writes the record.
 - Run discovery with `GITHUB_TOKEN` set; anonymous GitHub requests are limited
   to 60 per hour and discovery will skip lookups once that runs out.
-- Reference repositories only as `owner/name`, with no deep links. The
-  public-content check rejects certain repository-name substrings when they are
-  followed by a slash or a colon, so a link into such a path fails validation.
+- Reference repositories only as `owner/name`, with no deep links.
 - To delist, set `status: delisted` with a `status_reason`. Authors who ask to
   be removed are delisted without debate.

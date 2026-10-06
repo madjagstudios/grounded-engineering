@@ -1,5 +1,4 @@
-// The repository signals the mod reads. The mod implements exactly these;
-// plan 2 adds a test that its reader covers every name here.
+// Repository signals the plugin reads. Fit rules may reference only the boolean ones.
 export const SIGNALS = Object.freeze([
   { name: 'has_claude_md', type: 'boolean', description: 'CLAUDE.md exists at the repository root or in .claude/.' },
   { name: 'has_agents_md', type: 'boolean', description: 'AGENTS.md exists at the repository root.' },

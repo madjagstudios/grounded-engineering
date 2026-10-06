@@ -12,16 +12,14 @@ records the state of the catalog and tooling at that tag.
 ### Added
 - Skill-repo records: reviewed, link-only pointers to third-party skill
   repositories under `research/skill-repos/`, with a schema
-  (`research/skill-repo-schema.yaml`) and validation in `npm test`. Listed
-  records require an SPDX-shaped license.
+  (`research/skill-repo-schema.yaml`) and validation in `npm test`.
 - Repository signal vocabulary and fit rules (`plugin/fit-rules.yaml`) that map
   signals to practice cards, validated against the real cards.
 - Deterministic plugin catalog `plugin/catalog.json`, built by
-  `npm run build:catalog`; `npm test` fails when it is stale. It carries
-  practices, evidence source links, signal descriptions, fit rules, and listed
+  `npm run build:catalog`. It carries practices, evidence source links, signal descriptions, fit rules, and listed
   skill repos.
-- Report-only `npm run discover:skill-repos` to surface candidate skill
-  repositories for human review; it never writes records.
+- `npm run discover:skill-repos`, which prints candidate skill repositories for
+  human review.
 - Four practice cards sourced from `openai/codex`: expressing edits in an
   explicit, verifiable format (`GE-CQ-003`), deciding permission separately
   from the action (`GE-VF-003`), confining agent-executed commands in an OS
@@ -36,9 +34,10 @@ records the state of the catalog and tooling at that tag.
 ## [0.5.0] - 2026-08-28
 
 ### Added
-- Opt-in `check:sources` source-drift command using the GitHub API. It is a
-  report-only, fail-closed online complement to GE-19's offline provenance
-  check and flags validated cards for re-audit.
+- Opt-in `check:sources` source-drift command using the GitHub API. It is an
+  online complement to the offline provenance check added in this release; it
+  only reports, and exits non-zero when a lookup fails. It flags validated cards
+  for re-audit.
 
 ### Changed
 - Provenance floor for validation: a practice card whose `validation.status`
