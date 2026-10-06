@@ -8,19 +8,30 @@ export const GENERIC_PUBLIC_PATTERNS = Object.freeze([
 
 export const LOCAL_PATTERNS_PATH = '.private/public-content-patterns.txt';
 
-// A maintainer can add their own patterns in an untracked file: one per line,
-// written as /source/flags or as a case-sensitive source; # starts a comment.
+// A maintainer can add their own patterns in an untracked file, one per line:
+// /source/flags, or a case-sensitive source that does not start with a slash.
+// Lines starting with # are comments. The g and y flags are dropped because the
+// same pattern is tested against every file.
 export function loadLocalPublicPatterns(root) {
   const path = join(root, LOCAL_PATTERNS_PATH);
   if (!existsSync(path)) return { patterns: [], errors: [] };
+  let text;
+  try { text = readFileSync(path, 'utf8'); }
+  catch (error) { return { patterns: [], errors: [`${LOCAL_PATTERNS_PATH}: cannot read: ${error.message}`] }; }
+
   const patterns = [];
   const errors = [];
-  readFileSync(path, 'utf8').split(/\r?\n/).forEach((raw, index) => {
+  text.replace(/^﻿/, '').split(/\r?\n/).forEach((raw, index) => {
     const line = raw.trim();
     if (!line || line.startsWith('#')) return;
-    const literal = /^\/(.+)\/([a-z]*)$/.exec(line);
-    try { patterns.push(literal ? new RegExp(literal[1], literal[2]) : new RegExp(line)); }
-    catch (error) { errors.push(`${LOCAL_PATTERNS_PATH}:${index + 1}: invalid pattern: ${error.message}`); }
+    const delimited = /^\/(.+)\/([A-Za-z]*)$/.exec(line);
+    try {
+      patterns.push(delimited
+        ? new RegExp(delimited[1], delimited[2].replace(/[gy]/g, ''))
+        : new RegExp(line));
+    } catch (error) {
+      errors.push(`${LOCAL_PATTERNS_PATH}:${index + 1}: invalid pattern: ${error.message}`);
+    }
   });
   return { patterns, errors };
 }

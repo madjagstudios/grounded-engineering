@@ -95,11 +95,10 @@ export function runValidation({ root }) {
     if (!applyPolicyText.includes(snippet)) errors.push(`policies/adopt-apply.md: missing required public policy text: ${snippet}`);
   }
 
-  const selfPath = join(validationRoot, 'scripts', 'validate.mjs');
   for (const path of walkRepository(validationRoot)) {
     if (path === join(validationRoot, '.git')) continue;
     if (path.endsWith('.md')) checkRelativeLinks(path, read(path));
-    if (path !== selfPath) checkPublicText(path, read(path));
+    checkPublicText(path, read(path));
   }
 
   const { registry, errors: registryErrors } = buildSourceRegistry(join(validationRoot, 'research', 'sources'));

@@ -15,9 +15,8 @@ records the state of the catalog and tooling at that tag.
   (`research/skill-repo-schema.yaml`) and validation in `npm test`.
 - Repository signal vocabulary and fit rules (`plugin/fit-rules.yaml`) that map
   signals to practice cards, validated against the real cards.
-- Deterministic plugin catalog `plugin/catalog.json`, built by
-  `npm run build:catalog`. It carries practices, evidence source links, signal descriptions, fit rules, and listed
-  skill repos.
+- Plugin catalog `plugin/catalog.json`, built by `npm run build:catalog`. It
+  rebuilds byte-identical, so CI can tell when it is out of date.
 - `npm run discover:skill-repos`, which prints candidate skill repositories for
   human review.
 - Four practice cards sourced from `openai/codex`: expressing edits in an

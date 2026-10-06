@@ -25,11 +25,6 @@ function fixture({ patterns, content }) {
 // file does not trip the check it tests.
 const sampleOf = (pattern) => pattern.source.replace(/\\b/g, '').replace(/\\\//g, '/');
 
-test('each generic pattern rejects a sample built from its own source', () => {
-  assert.equal(GENERIC_PUBLIC_PATTERNS.length, 5);
-  for (const pattern of GENERIC_PUBLIC_PATTERNS) assert.ok(pattern.test(sampleOf(pattern)), pattern.source);
-});
-
 test('no local file means no local patterns and no errors', () => {
   const root = fixture({ content: 'plain text\n' });
   try {
@@ -46,6 +41,49 @@ test('local lines parse as /source/flags or as case-sensitive raw source', () =>
     assert.ok(patterns[0].test('ACME-INTERNAL'));
     assert.ok(patterns[1].test('ExactCase'));
     assert.ok(!patterns[1].test('exactcase'));
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('generic word patterns ignore case and path patterns do not', () => {
+  const [word, , , users] = GENERIC_PUBLIC_PATTERNS;
+  assert.ok(word.test(sampleOf(word).toLowerCase()));
+  assert.ok(!users.test(sampleOf(users).toUpperCase()));
+});
+
+test('a g or y flag does not make a local pattern skip later files', () => {
+  const root = fixture({ patterns: '/secret/gy\n', content: '' });
+  try {
+    const [pattern] = loadLocalPublicPatterns(root).patterns;
+    assert.ok(pattern.test('secret'));
+    assert.ok(pattern.test('secret'));
+    assert.equal(pattern.flags, '');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('CRLF, a byte-order mark, and a slash inside the source all load', () => {
+  const root = fixture({ patterns: '\uFEFF# notes\r\n/a/b/i\r\n', content: '' });
+  try {
+    const { patterns, errors } = loadLocalPublicPatterns(root);
+    assert.deepEqual(errors, []);
+    assert.ok(patterns[0].test('A/B'));
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('a slash-delimited line with bad flags is an error, not a raw pattern', () => {
+  const root = fixture({ patterns: '/x/I\n', content: '' });
+  try {
+    const { patterns, errors } = loadLocalPublicPatterns(root);
+    assert.equal(patterns.length, 0);
+    assert.match(errors[0], /:1: invalid pattern/);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('an unreadable local file is reported, not thrown', () => {
+  const root = fixture({ content: '' });
+  try {
+    mkdirSync(join(root, '.private', 'public-content-patterns.txt'), { recursive: true });
+    const { errors } = loadLocalPublicPatterns(root);
+    assert.match(errors[0], /public-content-patterns\.txt: cannot read/);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -70,9 +108,18 @@ test('runValidation applies local patterns only when the local file exists', () 
   }
 });
 
-test('runValidation still applies the generic patterns', () => {
-  const root = fixture({ content: `${sampleOf(GENERIC_PUBLIC_PATTERNS[1])} later\n` });
+test('runValidation rejects a sample of every generic pattern', () => {
+  for (const pattern of GENERIC_PUBLIC_PATTERNS) {
+    const root = fixture({ content: `see ${sampleOf(pattern)} here\n` });
+    try {
+      assert.ok(runValidation({ root }).errors.some((e) => /notes\.md: public-content check matched/.test(e)), pattern.source);
+    } finally { rmSync(root, { recursive: true, force: true }); }
+  }
+});
+
+test('the local pattern file is never scanned against itself', () => {
+  const root = fixture({ patterns: '/acme-internal/i\n', content: 'plain text\n' });
   try {
-    assert.ok(runValidation({ root }).errors.some((e) => /notes\.md: public-content check matched/.test(e)));
+    assert.ok(!runValidation({ root }).errors.some((e) => /public-content check matched/.test(e)));
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
