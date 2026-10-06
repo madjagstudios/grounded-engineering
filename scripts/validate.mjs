@@ -9,6 +9,8 @@ import { loadPack } from '../src/lib/packs.mjs';
 import { walkRepository } from '../src/lib/repository-walk.mjs';
 import { getManifestValidator } from '../src/lib/manifest.mjs';
 import { buildSourceRegistry, validateCardSourceReferences, validateCardValidationProvenance } from './lib/source-registry.mjs';
+import { loadSkillRepos } from '../src/lib/skill-repos.mjs';
+import { loadFitRules } from '../src/lib/fit-rules.mjs';
 
 function statExists(path) {
   try { statSync(path); return true; } catch { return false; }
@@ -108,6 +110,12 @@ export function runValidation({ root }) {
     for (const d of validateCardSourceReferences(validCards, registry)) errors.push(`${displayPath(d.filePath)}: ${d.message}`);
     for (const d of validateCardValidationProvenance(validCards, registry)) errors.push(`${displayPath(d.filePath)}: ${d.message}`);
   }
+
+  const skillRepos = loadSkillRepos(validationRoot);
+  errors.push(...skillRepos.errors);
+
+  const fitRules = loadFitRules(validationRoot, new Set(validCards.map((c) => c.record.id)));
+  errors.push(...fitRules.errors);
 
   return { errors };
 }

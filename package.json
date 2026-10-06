@@ -15,10 +15,12 @@
   ],
   "scripts": {
     "validate": "node scripts/validate.mjs",
+    "build:catalog": "node scripts/build-catalog.mjs",
+    "test": "npm run validate && node scripts/build-catalog.mjs --check && npm run test:unit",
     "test:unit": "node --test test/*.test.mjs",
-    "test": "npm run validate && npm run test:unit",
     "check:sources": "node scripts/check-sources.mjs",
-    "scaffold:validation": "node scripts/scaffold-validation.mjs"
+    "scaffold:validation": "node scripts/scaffold-validation.mjs",
+    "discover:skill-repos": "node scripts/discover-skill-repos.mjs"
   },
   "engines": {
     "node": ">=20"

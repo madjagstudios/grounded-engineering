@@ -71,5 +71,22 @@ export function createGithubClient({ fetchImpl = globalThis.fetch, token, timeou
     return { kind: 'error', reason: 'unexpected_object' };
   }
 
-  return { resolveHead, getObject, callCount: () => state.calls };
+  async function searchRepositories(query) {
+    const r = await request(`${BASE}/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=50`);
+    if (r.error) return { error: r.error.reason };
+    if (!r.res.ok) return { error: `search_http_${r.res.status}` };
+    let json; try { json = await r.res.json(); } catch { return { error: 'search_json_invalid' }; }
+    return { items: Array.isArray(json?.items) ? json.items : [] };
+  }
+
+  async function listTreePaths(owner, repo, ref) {
+    const r = await request(`${BASE}/repos/${owner}/${repo}/git/trees/${encodeURIComponent(ref)}?recursive=1`);
+    if (r.error) return { error: r.error.reason };
+    if (!r.res.ok) return { error: `tree_http_${r.res.status}` };
+    let json; try { json = await r.res.json(); } catch { return { error: 'tree_json_invalid' }; }
+    const tree = Array.isArray(json?.tree) ? json.tree : [];
+    return { paths: tree.filter((t) => t.type === 'blob').map((t) => t.path), truncated: json?.truncated === true };
+  }
+
+  return { resolveHead, getObject, searchRepositories, listTreePaths, callCount: () => state.calls };
 }

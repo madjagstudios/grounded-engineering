@@ -89,3 +89,22 @@ test('rejected fetch → error; null result → malformed; never-settling fetch 
   assert.match((await createGithubClient({ fetchImpl: async () => null }).getObject('o', 'r', SHA, 'a')).reason, /malformed_response/);
   assert.match((await createGithubClient({ fetchImpl: () => new Promise(() => {}), timeoutMs: 20 }).getObject('o', 'r', SHA, 'a')).reason, /timeout/);
 });
+
+test('searchRepositories: encodes the query and returns items', async () => {
+  const f = scripted([{ res: res({ json: { items: [{ full_name: 'o/r' }] }, headers: okHeaders }) }]);
+  const out = await createGithubClient({ fetchImpl: f }).searchRepositories('topic:claude-skills fork:false');
+  assert.deepEqual(out, { items: [{ full_name: 'o/r' }] });
+  assert.match(f.calls[0].url, /\/search\/repositories\?q=topic%3Aclaude-skills%20fork%3Afalse&sort=stars&order=desc&per_page=50$/);
+});
+
+test('listTreePaths: returns blob paths and the truncated flag', async () => {
+  const f = scripted([{ res: res({ json: { truncated: false, tree: [{ path: 'a/SKILL.md', type: 'blob' }, { path: 'a', type: 'tree' }] }, headers: okHeaders }) }]);
+  const out = await createGithubClient({ fetchImpl: f }).listTreePaths('o', 'r', 'main');
+  assert.deepEqual(out, { paths: ['a/SKILL.md'], truncated: false });
+  assert.match(f.calls[0].url, /\/repos\/o\/r\/git\/trees\/main\?recursive=1$/);
+});
+
+test('searchRepositories: http errors become { error }', async () => {
+  const f = scripted([{ res: res({ status: 422, headers: okHeaders }) }]);
+  assert.deepEqual(await createGithubClient({ fetchImpl: f }).searchRepositories('x'), { error: 'search_http_422' });
+});

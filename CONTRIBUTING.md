@@ -26,6 +26,10 @@ Paraphrase by default. A short quotation is an exception, not a substitute for a
 
 Practice cards should be small enough to use during a real change. They should state the practice, explain its boundary, identify control types, link to evidence, and avoid turning a local preference into a universal rule. `ADOPT`, `ADAPT`, `REJECT`, and `DEFER` describe the evaluated principle in its category; they do not rate an entire vendor or repository.
 
+## Skill-repo records
+
+Skill-repo records are written by hand after reading the repository; see `research/skill-repos/README.md`.
+
 ## Validation
 
 Run the local checks before submitting a change:
@@ -34,6 +38,8 @@ Run the local checks before submitting a change:
 npm install
 npm test
 ```
+
+After changing cards, skill-repo records, fit rules, or the package version, run `npm run build:catalog` and commit the updated `plugin/catalog.json`; `npm test` fails when it is stale.
 
 Changes to the evidence model must also be reviewed for source fidelity, licensing, broken links, temporary markers, and accidental disclosure of private context.
 
