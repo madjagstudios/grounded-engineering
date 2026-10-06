@@ -10,6 +10,7 @@ import { walkRepository } from '../src/lib/repository-walk.mjs';
 import { getManifestValidator } from '../src/lib/manifest.mjs';
 import { buildSourceRegistry, validateCardSourceReferences, validateCardValidationProvenance } from './lib/source-registry.mjs';
 import { loadSkillRepos } from '../src/lib/skill-repos.mjs';
+import { loadFitRules } from '../src/lib/fit-rules.mjs';
 
 function statExists(path) {
   try { statSync(path); return true; } catch { return false; }
@@ -112,6 +113,9 @@ export function runValidation({ root }) {
 
   const skillRepos = loadSkillRepos(validationRoot);
   errors.push(...skillRepos.errors);
+
+  const fitRules = loadFitRules(validationRoot, new Set(validCards.map((c) => c.record.id)));
+  errors.push(...fitRules.errors);
 
   return { errors };
 }

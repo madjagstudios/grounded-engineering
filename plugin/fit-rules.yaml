@@ -1,0 +1,26 @@
+# Signal -> practice rules for the "Fits this repo" section.
+# Conditions use boolean signals from src/lib/signals.mjs.
+- card: GE-RC-001
+  when: { none: [has_claude_md, has_agents_md] }
+  why: No CLAUDE.md or AGENTS.md tells agents how this repo works.
+- card: GE-RC-002
+  when: { all: [has_claude_md], none: [has_agents_md] }
+  why: Only Claude reads your rules; other agents get nothing.
+- card: GE-RC-002
+  when: { all: [has_claude_md, has_agents_md] }
+  why: Two instruction files; keep one canonical and the other a pointer.
+- card: GE-VF-001
+  when: { all: [has_tests], none: [has_ci] }
+  why: Tests exist, but no CI gate runs them.
+- card: GE-TS-001
+  when: { none: [has_tests] }
+  why: No tests detected for agents to verify against.
+- card: GE-AS-004
+  when: { all: [subagents_without_tool_limits] }
+  why: Some subagents have no tool limits.
+- card: GE-AS-001
+  when: { all: [has_large_skill_md] }
+  why: A SKILL.md here is over 500 lines.
+- card: GE-VF-004
+  when: { all: [has_claude_md], none: [sandbox_enabled] }
+  why: Agent commands run without the OS sandbox.
