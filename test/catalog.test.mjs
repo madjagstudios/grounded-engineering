@@ -39,3 +39,22 @@ test('signals and fit rules are included', () => {
   assert.ok(catalog.signals.some((s) => s.name === 'has_ci' && s.type === 'boolean'));
   assert.ok(catalog.fit_rules.length >= 6);
 });
+
+test('signals carry name, type, and description', () => {
+  for (const s of buildCatalog(root).signals) {
+    assert.deepEqual(Object.keys(s).sort(), ['description', 'name', 'type']);
+    assert.ok(s.description.length > 0, s.name);
+  }
+});
+
+test('every practice source id resolves to an https URL in sources', () => {
+  const catalog = buildCatalog(root);
+  const ids = catalog.sources.map((s) => s.id);
+  assert.deepEqual(ids, [...ids].sort());
+  assert.equal(new Set(ids).size, ids.length);
+  const urls = new Map(catalog.sources.map((s) => [s.id, s.url]));
+  const referenced = new Set(catalog.practices.flatMap((p) => p.source_ids));
+  assert.deepEqual([...referenced].sort(), ids);
+  for (const id of referenced) assert.match(urls.get(id) ?? '', /^https:\/\//, id);
+  for (const s of catalog.sources) assert.deepEqual(Object.keys(s).sort(), ['id', 'url']);
+});

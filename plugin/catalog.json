@@ -31,7 +31,7 @@
           "has_agents_md"
         ]
       },
-      "why": "Only Claude reads your rules; other agents get nothing."
+      "why": "Agents that read only AGENTS.md won't see your rules."
     },
     {
       "card": "GE-RC-002",
@@ -102,7 +102,7 @@
           "sandbox_enabled"
         ]
       },
-      "why": "Agent commands run without the OS sandbox."
+      "why": "This repo's settings don't turn on the OS sandbox."
     }
   ],
   "package_version": "0.5.0",
@@ -546,57 +546,140 @@
   "repository": "https://github.com/madjagstudios/grounded-engineering",
   "signals": [
     {
+      "description": "CLAUDE.md exists at the repository root or in .claude/.",
       "name": "has_claude_md",
       "type": "boolean"
     },
     {
+      "description": "AGENTS.md exists at the repository root.",
       "name": "has_agents_md",
       "type": "boolean"
     },
     {
+      "description": "At least one .claude/skills/*/SKILL.md exists.",
       "name": "has_skills",
       "type": "boolean"
     },
     {
+      "description": "A .claude/skills/*/SKILL.md is longer than 500 lines.",
       "name": "has_large_skill_md",
       "type": "boolean"
     },
     {
+      "description": "At least one .claude/agents/*.md exists.",
       "name": "has_subagents",
       "type": "boolean"
     },
     {
+      "description": "A .claude/agents/*.md frontmatter has no tools field.",
       "name": "subagents_without_tool_limits",
       "type": "boolean"
     },
     {
+      "description": ".claude/settings.json defines at least one hook.",
       "name": "hooks_configured",
       "type": "boolean"
     },
     {
+      "description": ".claude/settings.json sets sandbox.enabled to true.",
       "name": "sandbox_enabled",
       "type": "boolean"
     },
     {
+      "description": "A test framework or a test directory is detected.",
       "name": "has_tests",
       "type": "boolean"
     },
     {
+      "description": "A CI configuration exists, such as .github/workflows/*.yml.",
       "name": "has_ci",
       "type": "boolean"
     },
     {
+      "description": ".grounded-engineering/manifest.yaml exists.",
       "name": "grounded_adopted",
       "type": "boolean"
     },
     {
+      "description": "Languages detected from manifests: typescript, javascript, python, go, rust.",
       "name": "languages",
       "type": "string[]"
     },
     {
+      "description": "Detected test framework: vitest, jest, node-test, pytest, go-test, cargo-test.",
       "name": "test_framework",
       "type": "string|null"
     }
   ],
-  "skill_repos": []
+  "skill_repos": [],
+  "sources": [
+    {
+      "id": "CLAUDE-ENFORCEMENT-BOUNDARY",
+      "url": "https://code.claude.com/docs/en/memory"
+    },
+    {
+      "id": "CLAUDE-HOOKS-DETERMINISM",
+      "url": "https://code.claude.com/docs/en/features-overview"
+    },
+    {
+      "id": "CLAUDE-LOCAL-CONTEXT",
+      "url": "https://code.claude.com/docs/en/memory"
+    },
+    {
+      "id": "CLAUDE-MEMORY-HIERARCHY",
+      "url": "https://code.claude.com/docs/en/memory"
+    },
+    {
+      "id": "CLAUDE-SKILL-DISCOVERY",
+      "url": "https://code.claude.com/docs/en/slash-commands"
+    },
+    {
+      "id": "CLAUDE-SKILL-SURFACE",
+      "url": "https://code.claude.com/docs/en/features-overview"
+    },
+    {
+      "id": "CLAUDE-SUBAGENT-BOUNDARIES",
+      "url": "https://code.claude.com/docs/en/sub-agents"
+    },
+    {
+      "id": "CODEX-AGENTS-GUIDE",
+      "url": "https://developers.openai.com/codex/guides/agents-md#how-codex-discovers-guidance"
+    },
+    {
+      "id": "CODEX-AGENTS-IMPLEMENTATION",
+      "url": "https://github.com/openai/codex/blob/dc08ace7821614a702b1214c9d08ae0db2634d82/codex-rs/core/src/agents_md.rs#L1-L16"
+    },
+    {
+      "id": "CODEX-NETWORK-CAPABILITY",
+      "url": "https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/core/src/tools/network_approval.rs"
+    },
+    {
+      "id": "CODEX-PATCH-FORMAT",
+      "url": "https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/apply-patch/src/parser.rs"
+    },
+    {
+      "id": "CODEX-SAFETY-POLICY",
+      "url": "https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/core/src/safety.rs"
+    },
+    {
+      "id": "CODEX-SANDBOX-ISOLATION",
+      "url": "https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/sandboxing/src/lib.rs"
+    },
+    {
+      "id": "CODEX-SKILL-DESCRIPTION",
+      "url": "https://github.com/openai/codex/blob/f5420174dafba153913a3e697f89002c338dfd7e/codex-rs/skills/src/assets/samples/skill-creator/SKILL.md"
+    },
+    {
+      "id": "CODEX-SKILL-DESIGN",
+      "url": "https://github.com/openai/codex/blob/f5420174dafba153913a3e697f89002c338dfd7e/codex-rs/skills/src/assets/samples/skill-creator/SKILL.md"
+    },
+    {
+      "id": "CODEX-SKILL-VALIDATION",
+      "url": "https://github.com/openai/codex/blob/f5420174dafba153913a3e697f89002c338dfd7e/codex-rs/skills/src/assets/samples/skill-creator/SKILL.md"
+    },
+    {
+      "id": "CODEX-TRUST-BOUNDARY",
+      "url": "https://github.com/openai/codex/blob/dc08ace7821614a702b1214c9d08ae0db2634d82/codex-rs/ext/guardian-v2/src/sync_reviewer/policy_template.md#L5-L13"
+    }
+  ]
 }
