@@ -1,0 +1,602 @@
+{
+  "catalog_version": 1,
+  "categories": [
+    "Agent & Skill Design",
+    "Code Quality",
+    "Repository Context",
+    "Testing",
+    "Verification"
+  ],
+  "fit_rules": [
+    {
+      "card": "GE-RC-001",
+      "when": {
+        "all": [],
+        "any": [],
+        "none": [
+          "has_claude_md",
+          "has_agents_md"
+        ]
+      },
+      "why": "No CLAUDE.md or AGENTS.md tells agents how this repo works."
+    },
+    {
+      "card": "GE-RC-002",
+      "when": {
+        "all": [
+          "has_claude_md"
+        ],
+        "any": [],
+        "none": [
+          "has_agents_md"
+        ]
+      },
+      "why": "Only Claude reads your rules; other agents get nothing."
+    },
+    {
+      "card": "GE-RC-002",
+      "when": {
+        "all": [
+          "has_claude_md",
+          "has_agents_md"
+        ],
+        "any": [],
+        "none": []
+      },
+      "why": "Two instruction files; keep one canonical and the other a pointer."
+    },
+    {
+      "card": "GE-VF-001",
+      "when": {
+        "all": [
+          "has_tests"
+        ],
+        "any": [],
+        "none": [
+          "has_ci"
+        ]
+      },
+      "why": "Tests exist, but no CI gate runs them."
+    },
+    {
+      "card": "GE-TS-001",
+      "when": {
+        "all": [],
+        "any": [],
+        "none": [
+          "has_tests"
+        ]
+      },
+      "why": "No tests detected for agents to verify against."
+    },
+    {
+      "card": "GE-AS-004",
+      "when": {
+        "all": [
+          "subagents_without_tool_limits"
+        ],
+        "any": [],
+        "none": []
+      },
+      "why": "Some subagents have no tool limits."
+    },
+    {
+      "card": "GE-AS-001",
+      "when": {
+        "all": [
+          "has_large_skill_md"
+        ],
+        "any": [],
+        "none": []
+      },
+      "why": "A SKILL.md here is over 500 lines."
+    },
+    {
+      "card": "GE-VF-004",
+      "when": {
+        "all": [
+          "has_claude_md"
+        ],
+        "any": [],
+        "none": [
+          "sandbox_enabled"
+        ]
+      },
+      "why": "Agent commands run without the OS sandbox."
+    }
+  ],
+  "package_version": "0.5.0",
+  "practices": [
+    {
+      "agent_snippet": "Keep the skill entrypoint focused; move conditional procedures and references out of the default context when they are not needed for every invocation.",
+      "applicability": [
+        "AI_ASSISTED",
+        "ONBOARDING",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Agent & Skill Design",
+      "confidence": "high",
+      "control_types": [
+        "ADVISORY",
+        "HUMAN_REVIEW"
+      ],
+      "id": "GE-AS-001",
+      "path": "practices/agent-design/lean-skill-entrypoints.md",
+      "pattern": "Keep the skill entrypoint focused and load conditional detail only when the task needs it.",
+      "rationale": "Lean entrypoints reduce context cost and make the actual operating contract easier to inspect and maintain.",
+      "source_ids": [
+        "CODEX-SKILL-DESIGN",
+        "CLAUDE-SKILL-SURFACE"
+      ],
+      "subcategory": "Progressive disclosure",
+      "title": "Keep skill entrypoints lean",
+      "validation_status": "validated"
+    },
+    {
+      "agent_snippet": "Describe the capability and its real trigger in the skill description; add an exclusion only when it prevents likely misrouting.",
+      "applicability": [
+        "AI_ASSISTED",
+        "ONBOARDING"
+      ],
+      "category": "Agent & Skill Design",
+      "confidence": "high",
+      "control_types": [
+        "ADVISORY",
+        "HUMAN_REVIEW"
+      ],
+      "id": "GE-AS-002",
+      "path": "practices/agent-design/discriminating-triggers.md",
+      "pattern": "Describe what a capability does and when it applies without turning its trigger into a catchall.",
+      "rationale": "Precise triggers reduce accidental activation, missed capabilities, and context spent evaluating unrelated work.",
+      "source_ids": [
+        "CODEX-SKILL-DESCRIPTION",
+        "CLAUDE-SKILL-DISCOVERY"
+      ],
+      "subcategory": "Activation contract",
+      "title": "Write discriminating skill triggers",
+      "validation_status": "validated"
+    },
+    {
+      "agent_snippet": "Use skills for reusable reasoning, subagents for isolated specialization, and hooks or CI for behavior that must happen deterministically.",
+      "applicability": [
+        "AI_ASSISTED",
+        "REPOSITORY_GOVERNANCE",
+        "PUBLICATION"
+      ],
+      "category": "Agent & Skill Design",
+      "confidence": "high",
+      "control_types": [
+        "ADVISORY",
+        "DETERMINISTIC_CHECK",
+        "HOOK",
+        "CI",
+        "PERMISSION",
+        "APPROVAL"
+      ],
+      "id": "GE-AS-003",
+      "path": "practices/agent-design/control-surface.md",
+      "pattern": "Put guidance, isolation, and invariant enforcement in the mechanism designed to provide that guarantee.",
+      "rationale": "Matching mechanism to guarantee prevents advisory text from being mistaken for enforcement or authorization.",
+      "source_ids": [
+        "CLAUDE-SKILL-SURFACE",
+        "CLAUDE-HOOKS-DETERMINISM"
+      ],
+      "subcategory": "Mechanism selection",
+      "title": "Choose the control surface",
+      "validation_status": "not_validated"
+    },
+    {
+      "agent_snippet": "Give delegated work only the tools, authority, context, and duration required for its result; isolate repository changes when the task warrants it.",
+      "applicability": [
+        "AI_ASSISTED",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Agent & Skill Design",
+      "confidence": "high",
+      "control_types": [
+        "PERMISSION",
+        "APPROVAL",
+        "HUMAN_REVIEW"
+      ],
+      "id": "GE-AS-004",
+      "path": "practices/agent-design/bounded-delegation.md",
+      "pattern": "Scope delegated agents by capability, authority, duration, and isolation.",
+      "rationale": "Least privilege and isolation reduce accidental side effects, but the right boundary depends on the repository and the delegated task's risk.",
+      "source_ids": [
+        "CLAUDE-SUBAGENT-BOUNDARIES",
+        "CODEX-SKILL-DESIGN"
+      ],
+      "subcategory": "Delegation safety",
+      "title": "Bound delegated work",
+      "validation_status": "validated"
+    },
+    {
+      "agent_snippet": "After structural validation, exercise a complex skill on representative tasks and revise it from observed routing or decision failures.",
+      "applicability": [
+        "AI_ASSISTED",
+        "ONBOARDING",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Agent & Skill Design",
+      "confidence": "medium",
+      "control_types": [
+        "ADVISORY",
+        "HUMAN_REVIEW",
+        "DETERMINISTIC_CHECK"
+      ],
+      "id": "GE-AS-005",
+      "path": "practices/agent-design/real-usage-validation.md",
+      "pattern": "Validate a reusable capability with realistic use when structural checks cannot show that its decisions are useful.",
+      "rationale": "Realistic forward use catches routing and decision failures, but a formal behavioral test should match the skill's complexity and consequence.",
+      "source_ids": [
+        "CODEX-SKILL-VALIDATION",
+        "CLAUDE-SKILL-SURFACE"
+      ],
+      "subcategory": "Behavioral validation",
+      "title": "Validate real skill usage",
+      "validation_status": "validated"
+    },
+    {
+      "agent_snippet": "Route network access from agent-run code through an enforcing proxy and explicit policy — allow, deny, or approve — rather than leaving egress ambient, and confirm a real proxy is in the path before relying on the gate.",
+      "applicability": [
+        "AI_ASSISTED",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Agent & Skill Design",
+      "confidence": "medium",
+      "control_types": [
+        "PERMISSION",
+        "APPROVAL",
+        "DETERMINISTIC_CHECK"
+      ],
+      "id": "GE-AS-006",
+      "path": "practices/agent-design/gated-network-egress.md",
+      "pattern": "Treat network access from agent-executed work as a capability mediated by an enforcing proxy and policy — allowed, denied, or routed to approval — not an ambient default of running code.",
+      "rationale": "Gating network egress through an enforcing proxy and explicit policy — allow, deny, or approve — contains exfiltration and supply-chain risk that ambient network access would leave open.",
+      "source_ids": [
+        "CODEX-NETWORK-CAPABILITY"
+      ],
+      "subcategory": "Capability scoping",
+      "title": "Gate network egress from agent-run work",
+      "validation_status": "validated"
+    },
+    {
+      "agent_snippet": "Before adding a helper, search the repository for an existing capability and explain why it is insufficient if you add a new abstraction.",
+      "applicability": [
+        "AI_ASSISTED",
+        "TRADITIONAL",
+        "ONBOARDING"
+      ],
+      "category": "Code Quality",
+      "confidence": "medium",
+      "control_types": [
+        "ADVISORY",
+        "HUMAN_REVIEW"
+      ],
+      "id": "GE-CQ-001",
+      "path": "practices/code-quality/search-before-adding-helpers.md",
+      "pattern": "Search the repository before introducing a helper or parallel abstraction.",
+      "rationale": "The search-first heuristic prevents duplicate abstractions, but it must allow a new helper when existing capabilities do not meet the requirement.",
+      "source_ids": [
+        "CODEX-AGENTS-GUIDE",
+        "CLAUDE-MEMORY-HIERARCHY"
+      ],
+      "subcategory": "Existing capability discovery",
+      "title": "Search before adding helpers",
+      "validation_status": "not_validated"
+    },
+    {
+      "agent_snippet": "Keep the change proportional to the requested behavior; separate required refactoring from unrelated cleanup.",
+      "applicability": [
+        "AI_ASSISTED",
+        "TRADITIONAL",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Code Quality",
+      "confidence": "medium",
+      "control_types": [
+        "ADVISORY",
+        "HUMAN_REVIEW"
+      ],
+      "id": "GE-CQ-002",
+      "path": "practices/code-quality/proportional-changes.md",
+      "pattern": "Keep a change limited to the behavior and evidence needed for the task.",
+      "rationale": "Narrow scope reduces review and regression risk, but a necessary refactor is appropriate when the requested behavior cannot be correct without it.",
+      "source_ids": [
+        "CODEX-SKILL-DESIGN"
+      ],
+      "subcategory": "Change scope",
+      "title": "Make proportional changes",
+      "validation_status": "validated"
+    },
+    {
+      "agent_snippet": "Produce edits in an explicit, context-anchored format and verify the target context matches before mutating, so a stale or mistargeted change is caught rather than corrupting the file.",
+      "applicability": [
+        "AI_ASSISTED",
+        "TRADITIONAL"
+      ],
+      "category": "Code Quality",
+      "confidence": "medium",
+      "control_types": [
+        "DETERMINISTIC_CHECK",
+        "ADVISORY"
+      ],
+      "id": "GE-CQ-003",
+      "path": "practices/code-quality/explicit-edit-format.md",
+      "pattern": "Express an agent-generated edit in an explicit, parseable format with surrounding context.",
+      "rationale": "An explicit, context-anchored edit format lets the target be checked for a match before mutation, so a stale or mistargeted edit is caught rather than silently corrupting the file.",
+      "source_ids": [
+        "CODEX-PATCH-FORMAT"
+      ],
+      "subcategory": "Reliable edits",
+      "title": "Express edits in an explicit, verifiable format",
+      "validation_status": "validated"
+    },
+    {
+      "agent_snippet": "Before editing, inspect applicable instructions, repository status, structure, declared commands, and affected paths.",
+      "applicability": [
+        "AI_ASSISTED",
+        "TRADITIONAL",
+        "ONBOARDING",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Repository Context",
+      "confidence": "high",
+      "control_types": [
+        "ADVISORY",
+        "HUMAN_REVIEW"
+      ],
+      "id": "GE-RC-001",
+      "path": "practices/repository-context/inspect-repository-first.md",
+      "pattern": "Inspect repository structure, instruction files, scripts, and declared checks before acting.",
+      "rationale": "Orientation prevents agents and humans from inventing incompatible conventions or repeating work already represented in the repository.",
+      "source_ids": [
+        "CODEX-AGENTS-GUIDE",
+        "CODEX-AGENTS-IMPLEMENTATION",
+        "CLAUDE-MEMORY-HIERARCHY"
+      ],
+      "subcategory": "Orientation",
+      "title": "Inspect the repository first",
+      "validation_status": "validated"
+    },
+    {
+      "agent_snippet": "Keep durable policy canonical and make agent-specific files thin, discoverable adapters rather than disconnected copies.",
+      "applicability": [
+        "AI_ASSISTED",
+        "TRADITIONAL",
+        "ONBOARDING",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Repository Context",
+      "confidence": "high",
+      "control_types": [
+        "ADVISORY",
+        "HUMAN_REVIEW",
+        "CI"
+      ],
+      "id": "GE-RC-002",
+      "path": "practices/repository-context/canonical-context.md",
+      "pattern": "Keep durable repository policy canonical and make tool-specific adapters point back to it.",
+      "rationale": "A discoverable canonical source reduces semantic drift while allowing each tool to receive the syntax and scope it can actually consume.",
+      "source_ids": [
+        "CODEX-AGENTS-GUIDE",
+        "CLAUDE-MEMORY-HIERARCHY",
+        "CLAUDE-ENFORCEMENT-BOUNDARY"
+      ],
+      "subcategory": "Source of truth",
+      "title": "Keep canonical context discoverable",
+      "validation_status": "not_validated"
+    },
+    {
+      "agent_snippet": "Test the changed behavior and its plausible failure modes; do not add tests solely to satisfy an arbitrary size threshold.",
+      "applicability": [
+        "AI_ASSISTED",
+        "TRADITIONAL",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Testing",
+      "confidence": "medium",
+      "control_types": [
+        "ADVISORY",
+        "DETERMINISTIC_CHECK",
+        "HUMAN_REVIEW"
+      ],
+      "id": "GE-TS-001",
+      "path": "practices/testing/meaningful-behavior.md",
+      "pattern": "Test behavior and risk rather than an arbitrary test-count or line-count target.",
+      "rationale": "Behavior-focused tests provide stronger evidence than coverage theater while preserving room for judgment on genuinely trivial changes.",
+      "source_ids": [
+        "CODEX-AGENTS-GUIDE",
+        "CLAUDE-ENFORCEMENT-BOUNDARY"
+      ],
+      "subcategory": "Risk-based coverage",
+      "title": "Test meaningful behavior",
+      "validation_status": "not_validated"
+    },
+    {
+      "agent_snippet": "When wiring or registration changes, run the narrowest real-path check that exercises the composition boundary.",
+      "applicability": [
+        "AI_ASSISTED",
+        "TRADITIONAL",
+        "ONBOARDING"
+      ],
+      "category": "Testing",
+      "confidence": "medium",
+      "control_types": [
+        "DETERMINISTIC_CHECK",
+        "CI",
+        "HUMAN_REVIEW"
+      ],
+      "id": "GE-TS-002",
+      "path": "practices/testing/real-wiring.md",
+      "pattern": "Exercise the real call path or integration boundary when wiring is part of the change.",
+      "rationale": "End-to-end or integration-level evidence catches registration and composition failures that isolated tests cannot see.",
+      "source_ids": [
+        "CODEX-AGENTS-IMPLEMENTATION",
+        "CLAUDE-LOCAL-CONTEXT"
+      ],
+      "subcategory": "Integration paths",
+      "title": "Test real wiring",
+      "validation_status": "not_validated"
+    },
+    {
+      "agent_snippet": "Run the repository's declared verification gate and report exactly what passed, what was skipped, and what remains unverified.",
+      "applicability": [
+        "AI_ASSISTED",
+        "TRADITIONAL",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Verification",
+      "confidence": "high",
+      "control_types": [
+        "DETERMINISTIC_CHECK",
+        "HOOK",
+        "CI",
+        "APPROVAL"
+      ],
+      "id": "GE-VF-001",
+      "path": "practices/verification/real-verification-gate.md",
+      "pattern": "Run the repository's real verification gate before claiming a change is complete.",
+      "rationale": "A real gate makes evidence repeatable, but the consuming repository must define which checks and human acceptance conditions are authoritative.",
+      "source_ids": [
+        "CODEX-AGENTS-GUIDE",
+        "CLAUDE-ENFORCEMENT-BOUNDARY"
+      ],
+      "subcategory": "Repository checks",
+      "title": "Use the real verification gate",
+      "validation_status": "not_validated"
+    },
+    {
+      "agent_snippet": "Make each completion claim match the evidence lane that actually passed, and name any unverified lane.",
+      "applicability": [
+        "AI_ASSISTED",
+        "TRADITIONAL",
+        "ONBOARDING",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Verification",
+      "confidence": "high",
+      "control_types": [
+        "ADVISORY",
+        "DETERMINISTIC_CHECK",
+        "HUMAN_REVIEW",
+        "APPROVAL"
+      ],
+      "id": "GE-VF-002",
+      "path": "practices/verification/claims-match-evidence.md",
+      "pattern": "Describe completion, validation, and acceptance only as strongly as the evidence supports.",
+      "rationale": "Evidence-scoped reporting prevents false confidence and preserves the distinction between what was inspected, tested, deployed, and accepted.",
+      "source_ids": [
+        "CODEX-TRUST-BOUNDARY",
+        "CLAUDE-ENFORCEMENT-BOUNDARY"
+      ],
+      "subcategory": "Reporting",
+      "title": "Match claims to evidence",
+      "validation_status": "validated"
+    },
+    {
+      "agent_snippet": "Before an escalating or irreversible action, compute an explicit allow/ask/reject verdict from policy, profile, and sandbox availability, and route risky writes to approval rather than running them unchecked.",
+      "applicability": [
+        "AI_ASSISTED",
+        "TRADITIONAL",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Verification",
+      "confidence": "medium",
+      "control_types": [
+        "DETERMINISTIC_CHECK",
+        "APPROVAL",
+        "HUMAN_REVIEW"
+      ],
+      "id": "GE-VF-003",
+      "path": "practices/verification/decision-separate-from-action.md",
+      "pattern": "Compute whether an action is allowed with an explicit policy, separate from the code that performs it.",
+      "rationale": "Separating the allow, ask, or reject decision from the action makes authorization auditable and lets risky or non-conforming writes route to approval or refusal instead of running unchecked.",
+      "source_ids": [
+        "CODEX-SAFETY-POLICY"
+      ],
+      "subcategory": "Authorization",
+      "title": "Decide permission separately from the action",
+      "validation_status": "validated"
+    },
+    {
+      "agent_snippet": "Run agent-executed commands inside an OS sandbox with least privilege where a supported backend is enabled, surface violations instead of widening the policy silently, and treat \"no sandbox available\" as fail-safe rather than permission to run unconfined.",
+      "applicability": [
+        "AI_ASSISTED",
+        "REPOSITORY_GOVERNANCE"
+      ],
+      "category": "Verification",
+      "confidence": "medium",
+      "control_types": [
+        "DETERMINISTIC_CHECK",
+        "PERMISSION"
+      ],
+      "id": "GE-VF-004",
+      "path": "practices/verification/sandbox-agent-execution.md",
+      "pattern": "Run agent-executed commands inside an operating-system sandbox with a least-privilege policy.",
+      "rationale": "Where a supported OS sandbox backend is enabled, it contains the blast radius of an agent-run command regardless of the agent's intent, and recorded violations make over-broad access visible instead of silent.",
+      "source_ids": [
+        "CODEX-SANDBOX-ISOLATION"
+      ],
+      "subcategory": "Execution isolation",
+      "title": "Confine agent-executed commands in an OS sandbox",
+      "validation_status": "validated"
+    }
+  ],
+  "repository": "https://github.com/madjagstudios/grounded-engineering",
+  "signals": [
+    {
+      "name": "has_claude_md",
+      "type": "boolean"
+    },
+    {
+      "name": "has_agents_md",
+      "type": "boolean"
+    },
+    {
+      "name": "has_skills",
+      "type": "boolean"
+    },
+    {
+      "name": "has_large_skill_md",
+      "type": "boolean"
+    },
+    {
+      "name": "has_subagents",
+      "type": "boolean"
+    },
+    {
+      "name": "subagents_without_tool_limits",
+      "type": "boolean"
+    },
+    {
+      "name": "hooks_configured",
+      "type": "boolean"
+    },
+    {
+      "name": "sandbox_enabled",
+      "type": "boolean"
+    },
+    {
+      "name": "has_tests",
+      "type": "boolean"
+    },
+    {
+      "name": "has_ci",
+      "type": "boolean"
+    },
+    {
+      "name": "grounded_adopted",
+      "type": "boolean"
+    },
+    {
+      "name": "languages",
+      "type": "string[]"
+    },
+    {
+      "name": "test_framework",
+      "type": "string|null"
+    }
+  ],
+  "skill_repos": []
+}
