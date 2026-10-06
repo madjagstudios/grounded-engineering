@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { runValidation } from './validate.mjs';
-import { buildCatalog, serializeCatalog } from '../src/lib/catalog.mjs';
+import { buildCatalog, serializeCatalog } from './lib/catalog.mjs';
 
 export function runBuildCatalog({ root, check = false, write = (s) => process.stdout.write(s) }) {
   const { errors } = runValidation({ root });

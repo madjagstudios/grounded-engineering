@@ -4,7 +4,7 @@ import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildCatalog, serializeCatalog } from '../src/lib/catalog.mjs';
+import { buildCatalog, serializeCatalog } from '../scripts/lib/catalog.mjs';
 import { loadPracticeCards } from '../src/lib/cards.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));

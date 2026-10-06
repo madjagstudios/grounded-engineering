@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { loadPracticeCards } from './cards.mjs';
-import { loadSkillRepos } from './skill-repos.mjs';
-import { loadFitRules } from './fit-rules.mjs';
-import { SIGNALS } from './signals.mjs';
-import { buildSourceRegistry, extractDestinations } from '../../scripts/lib/source-registry.mjs';
+import { loadPracticeCards } from '../../src/lib/cards.mjs';
+import { loadSkillRepos } from '../../src/lib/skill-repos.mjs';
+import { loadFitRules } from '../../src/lib/fit-rules.mjs';
+import { SIGNALS } from '../../src/lib/signals.mjs';
+import { buildSourceRegistry, extractDestinations } from './source-registry.mjs';
 
 // plugin/catalog.json contract. catalog_version 1: fields are additive-only
 // within a version (new fields may appear; none are renamed, retyped, or
