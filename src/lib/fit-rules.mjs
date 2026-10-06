@@ -21,8 +21,15 @@ export function loadFitRules(root, cardIds) {
     const at = `${shown} rules[${i}]`;
     const before = errors.length;
     if (!cardIds.has(rule?.card)) errors.push(`${at}: unknown card ${rule?.card}`);
-    const when = Object.fromEntries(KEYS.map((k) => [k, Array.isArray(rule?.when?.[k]) ? rule.when[k] : []]));
-    const extra = Object.keys(rule?.when ?? {}).filter((k) => !KEYS.includes(k));
+    const rawWhen = rule?.when;
+    const whenIsMap = rawWhen !== null && typeof rawWhen === 'object' && !Array.isArray(rawWhen);
+    if (rawWhen !== undefined && !whenIsMap) errors.push(`${at}: when must be a mapping`);
+    const source = whenIsMap ? rawWhen : {};
+    for (const k of KEYS) {
+      if (source[k] !== undefined && !Array.isArray(source[k])) errors.push(`${at}: when.${k} must be a list`);
+    }
+    const when = Object.fromEntries(KEYS.map((k) => [k, Array.isArray(source[k]) ? source[k] : []]));
+    const extra = Object.keys(source).filter((k) => !KEYS.includes(k));
     if (extra.length) errors.push(`${at}: unknown condition keys ${extra.join(', ')}`);
     if (KEYS.every((k) => when[k].length === 0)) errors.push(`${at}: when needs at least one condition`);
     for (const name of KEYS.flatMap((k) => when[k])) {

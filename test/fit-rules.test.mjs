@@ -47,6 +47,19 @@ test('unknown card, unknown signal, non-boolean signal, empty when, and bad why 
   assert.ok(errors.some((e) => /rules\[4\].*why must be 10-100 characters/.test(e)), errors.join('\n'));
 });
 
+test('malformed conditions are rejected: non-mapping when, non-list condition, unknown key', () => {
+  const text = [
+    '- card: GE-VF-001\n  when: [has_ci]\n  why: When is a list not a mapping.',
+    '- card: GE-VF-001\n  when: { all: has_ci }\n  why: Condition is a scalar not a list.',
+    '- card: GE-TS-001\n  when: { some: [has_ci] }\n  why: Unknown condition key rule.'
+  ].join('\n') + '\n';
+  const { rules, errors } = loadFitRules(withRules(text), ids);
+  assert.deepEqual(rules, []);
+  assert.ok(errors.some((e) => /rules\[0\]: when must be a mapping/.test(e)), errors.join('\n'));
+  assert.ok(errors.some((e) => /rules\[1\]: when\.all must be a list/.test(e)), errors.join('\n'));
+  assert.ok(errors.some((e) => /rules\[2\].*unknown condition keys some/.test(e)), errors.join('\n'));
+});
+
 test('missing rules file is not an error', () => {
   assert.deepEqual(loadFitRules(mkdtempSync(join(tmpdir(), 'ge-fit-none-')), ids), { rules: [], errors: [] });
 });
