@@ -52,6 +52,20 @@ test('listed requires a real license', () => {
   assert.ok(errors.some((e) => /license/.test(e)), errors.join('\n'));
 });
 
+test('listed rejects non-license values in any letter case', () => {
+  for (const license of ['Other', 'unknown', 'NONE', 'none', 'NoAssertion', 'not a license', 'MIT OR']) {
+    const { errors } = loadSkillRepos(fixture([record({ license })]));
+    assert.ok(errors.some((e) => /license/.test(e)), `${license}: ${errors.join('\n')}`);
+  }
+});
+
+test('listed accepts SPDX-shaped licenses', () => {
+  for (const license of ['Apache-2.0', 'MIT OR Apache-2.0', 'GPL-2.0-or-later WITH Classpath-exception-2.0', 'LGPL-3.0+']) {
+    const { errors } = loadSkillRepos(fixture([record({ license })]));
+    assert.deepEqual(errors, [], license);
+  }
+});
+
 test('delisted requires a status_reason', () => {
   const { errors } = loadSkillRepos(fixture([record({ status: 'delisted', status_reason: null })]));
   assert.ok(errors.some((e) => /status_reason/.test(e)), errors.join('\n'));

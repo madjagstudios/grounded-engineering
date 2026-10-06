@@ -37,4 +37,8 @@ allOf:
       properties: { status_reason: { type: string, minLength: 10 } }
   - if: { properties: { status: { const: listed } }, required: [status] }
     then:
-      properties: { license: { type: string, minLength: 1, not: { enum: [NOASSERTION, NONE] } } }
+      properties:
+        license:
+          type: string
+          pattern: '^[A-Za-z0-9.+-]+( (AND|OR|WITH) [A-Za-z0-9.+-]+)*$'
+          not: { pattern: '^([Nn][Oo][Nn][Ee]|[Nn][Oo][Aa][Ss][Ss][Ee][Rr][Tt][Ii][Oo][Nn]|[Oo][Tt][Hh][Ee][Rr]|[Uu][Nn][Kk][Nn][Oo][Ww][Nn])$' }
