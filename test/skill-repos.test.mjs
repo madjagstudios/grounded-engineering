@@ -1,14 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { cpSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadSkillRepos } from '../src/lib/skill-repos.mjs';
+import { parse } from 'yaml';
+import { loadSkillRepos, SKILL_REPO_TAGS } from '../src/lib/skill-repos.mjs';
 import { runValidation } from '../scripts/validate.mjs';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 const SHA = 'b'.repeat(40);
+
+test('SKILL_REPO_TAGS matches the schema tag enum', () => {
+  const schema = parse(readFileSync(join(repoRoot, 'research', 'skill-repo-schema.yaml'), 'utf8'));
+  assert.deepEqual([...SKILL_REPO_TAGS], schema.properties.tags.items.enum);
+});
+
 const record = (overrides = {}) => ({
   record_type: 'skill_repo', schema_version: '1.0.0', id: 'GE-SR-001', name: 'example-skills',
   repo: 'example/skills', license: 'MIT', pinned_commit: SHA, reviewed_on: '2026-10-06',
