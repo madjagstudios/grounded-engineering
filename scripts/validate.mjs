@@ -9,6 +9,7 @@ import { loadPack } from '../src/lib/packs.mjs';
 import { walkRepository } from '../src/lib/repository-walk.mjs';
 import { getManifestValidator } from '../src/lib/manifest.mjs';
 import { buildSourceRegistry, validateCardSourceReferences, validateCardValidationProvenance } from './lib/source-registry.mjs';
+import { GENERIC_PUBLIC_PATTERNS, loadLocalPublicPatterns } from './lib/public-patterns.mjs';
 import { loadSkillRepos } from '../src/lib/skill-repos.mjs';
 import { loadFitRules } from '../src/lib/fit-rules.mjs';
 
@@ -41,13 +42,10 @@ export function runValidation({ root }) {
       if (!statExists(target)) errors.push(`${displayPath(path)}: broken relative link ${rawTarget}`);
     }
   };
+  const localPatterns = loadLocalPublicPatterns(validationRoot);
+  errors.push(...localPatterns.errors);
   const checkPublicText = (path, text) => {
-    const forbidden = [
-      /\bTODO\b/i, /\bTBD\b/i, /\bPLACEHOLDER\b/i, /\/Users\//, /\/home\//, /\bMJS-[0-9]+\b/,
-      new RegExp('Mad' + 'JagStudios'), /studio-ops/i, /MADJAG_STUDIO_OPS/i, /PUBLIC_ALLOWLIST/i,
-      /private (?:studio operations|publication|scanner)/i, /(?:\.git\/hooks\/commit-msg|\.githooks\/)/i,
-      /(?:docs\/)?superpowers\//i, /superpowers:/i, /REQUIRED SUB-SKILL/i
-    ];
+    const forbidden = [...GENERIC_PUBLIC_PATTERNS, ...localPatterns.patterns];
     for (const pattern of forbidden) if (pattern.test(text)) errors.push(`${displayPath(path)}: public-content check matched ${pattern}`);
   };
 

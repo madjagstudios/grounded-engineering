@@ -27,6 +27,9 @@ records the state of the catalog and tooling at that tag.
   (`GE-AS-006`).
 
 ### Changed
+- The validator's public-content check now ships only generic patterns
+  (unfinished-work markers and home-directory paths). A maintainer can add their
+  own in an untracked `.private/public-content-patterns.txt`.
 - The `ai-assisted` pack now ships all seventeen cards, adding the four new
   cards above; its `pack_version` is `1.1.0`. The `baseline` pack and the CLI
   release are unchanged.
