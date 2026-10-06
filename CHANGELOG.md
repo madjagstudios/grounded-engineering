@@ -10,6 +10,18 @@ records the state of the catalog and tooling at that tag.
 ## [Unreleased]
 
 ### Added
+- Skill-repo records: reviewed, link-only pointers to third-party skill
+  repositories under `research/skill-repos/`, with a schema
+  (`research/skill-repo-schema.yaml`) and validation in `npm test`. Listed
+  records require an SPDX-shaped license.
+- Repository signal vocabulary and fit rules (`plugin/fit-rules.yaml`) that map
+  signals to practice cards, validated against the real cards.
+- Deterministic plugin catalog `plugin/catalog.json`, built by
+  `npm run build:catalog`; `npm test` fails when it is stale. It carries
+  practices, evidence source links, signal descriptions, fit rules, and listed
+  skill repos.
+- Report-only `npm run discover:skill-repos` to surface candidate skill
+  repositories for human review; it never writes records.
 - Four practice cards sourced from `openai/codex`: expressing edits in an
   explicit, verifiable format (`GE-CQ-003`), deciding permission separately
   from the action (`GE-VF-003`), confining agent-executed commands in an OS

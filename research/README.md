@@ -5,6 +5,7 @@ Research is the provenance layer for Grounded Engineering.
 - `sources/` holds per-source raw observations, pinned references, locators, license/use notes, and retrieval metadata.
 - `audits/` holds category assessments that connect observed implementations to generalized principles and category-specific dispositions.
 - `schema.yaml` defines the machine-readable record contract.
+- `skill-repos/` holds reviewed pointers to third-party skill repositories, one record per file; `skill-repo-schema.yaml` defines their contract. See [`skill-repos/README.md`](skill-repos/README.md).
 - `examples/` contains small schema examples used by validation.
 
 The core decision path is observed implementation → generalized principle → category-specific disposition. The schema records the additional applicability, control, rationale, delivery, confidence, and validation metadata around that decision.
