@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildCatalog, serializeCatalog } from '../src/lib/catalog.mjs';
 import { loadPracticeCards } from '../src/lib/cards.mjs';
@@ -57,4 +60,34 @@ test('every practice source id resolves to an https URL in sources', () => {
   assert.deepEqual([...referenced].sort(), ids);
   for (const id of referenced) assert.match(urls.get(id) ?? '', /^https:\/\//, id);
   for (const s of catalog.sources) assert.deepEqual(Object.keys(s).sort(), ['id', 'url']);
+});
+
+test('only listed skill repos are projected, with exactly the display fields', () => {
+  const tmp = mkdtempSync(join(tmpdir(), 'ge-cat-'));
+  try {
+    for (const dir of ['research', 'practices', 'plugin']) cpSync(join(root, dir), join(tmp, dir), { recursive: true });
+    cpSync(join(root, 'package.json'), join(tmp, 'package.json'));
+    const dir = join(tmp, 'research', 'skill-repos');
+    mkdirSync(dir, { recursive: true });
+    const base = {
+      record_type: 'skill_repo', schema_version: '1.0.0', license: 'MIT', pinned_commit: 'c'.repeat(40),
+      reviewed_on: '2026-10-06', best_for: ['AI_ASSISTED'], tags: ['planning'],
+      summary: 'Planning and review skills for coding agents.', watch_out_for: 'Opinionated about session workflow.',
+      install: '/plugin install example@example', status_reason: null
+    };
+    const records = [
+      { ...base, id: 'GE-SR-001', name: 'listed-skills', repo: 'example/listed-skills', status: 'listed' },
+      { ...base, id: 'GE-SR-002', name: 'delisted-skills', repo: 'example/delisted-skills', status: 'delisted', status_reason: 'Author asked to be removed.' },
+      { ...base, id: 'GE-SR-003', name: 'pending-skills', repo: 'example/pending-skills', status: 'needs_review' }
+    ];
+    for (const r of records) {
+      writeFileSync(join(dir, `${r.id}-${r.name}.yaml`), Object.entries(r).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n') + '\n');
+    }
+    const { skill_repos: listed } = buildCatalog(tmp);
+    assert.equal(listed.length, 1);
+    assert.equal(listed[0].id, 'GE-SR-001');
+    assert.deepEqual(Object.keys(listed[0]).sort(), ['best_for', 'id', 'install', 'license', 'name', 'pinned_commit', 'repo', 'reviewed_on', 'summary', 'tags', 'watch_out_for']);
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
 });
