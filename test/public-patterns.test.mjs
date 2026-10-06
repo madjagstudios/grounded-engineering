@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -76,6 +76,29 @@ test('a slash-delimited line with bad flags is an error, not a raw pattern', () 
     assert.equal(patterns.length, 0);
     assert.match(errors[0], /:1: invalid pattern/);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('a line starting with a slash must be a complete /source/flags pattern', () => {
+  const root = fixture({ patterns: '/secret\n/secret/1\n/secret/ i\n', content: '' });
+  try {
+    const { patterns, errors } = loadLocalPublicPatterns(root);
+    assert.equal(patterns.length, 0);
+    assert.deepEqual(errors.map((e) => e.match(/:(\d+): /)[1]), ['1', '2', '3']);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('a local directory that cannot be read is reported, not treated as absent', { skip: process.getuid?.() === 0 }, () => {
+  const root = fixture({ patterns: '/secret/i\n', content: '' });
+  const dir = join(root, '.private');
+  try {
+    chmodSync(dir, 0o000);
+    const { patterns, errors } = loadLocalPublicPatterns(root);
+    assert.equal(patterns.length, 0);
+    assert.match(errors[0] ?? '', /public-content-patterns\.txt: cannot read/);
+  } finally {
+    chmodSync(dir, 0o755);
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test('an unreadable local file is reported, not thrown', () => {
