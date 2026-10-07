@@ -1,0 +1,42 @@
+import type { FsEntry } from 'claude-code'
+
+// What the core reads through. The engine follows `$` only inside the hook module that
+// receives it, never across an import, so a hook builds this from its own `$`:
+//   { fs: { read: (p) => $.fs.read(p), exists: (p) => $.fs.exists(p), list: (p) => $.fs.list(p) },
+//     plugin: { root: $.plugin.root } }
+export type Host = {
+  fs: { read(path: string): Promise<string>; exists(path: string): Promise<boolean>; list(path?: string): Promise<FsEntry[]> }
+  plugin: { root: string }
+}
+
+export type Source = { id: string; url: string }
+export type FitRule = { card: string; when: { all: string[]; any: string[]; none: string[] }; why: string }
+export type Practice = {
+  id: string; title: string; category: string; subcategory: string; pattern: string; rationale: string
+  agent_snippet: string | null; applicability: string[]; control_types: string[]; confidence: string
+  validation_status: string; source_ids: string[]; path: string; body: string
+}
+export type SkillRepo = {
+  id: string; name: string; repo: string; license: string; pinned_commit: string; reviewed_on: string
+  best_for: string[]; tags: string[]; summary: string; watch_out_for: string; install: string
+}
+export type Catalog = {
+  catalog_version: number; package_version: string; repository: string
+  signals: { name: string; type: string; description: string }[]
+  categories: string[]; practices: Practice[]; skill_repos: SkillRepo[]; fit_rules: FitRule[]; sources: Source[]
+}
+
+export async function loadCatalog(host: Host): Promise<Catalog> {
+  let text: string
+  try { text = String(await host.fs.read(`${host.plugin.root}/catalog.json`)) }
+  catch (error) { throw new Error(`catalog missing or invalid: ${String(error)}`) }
+  const catalog = JSON.parse(text) as Catalog
+  if (catalog.catalog_version !== 1 || !Array.isArray(catalog.practices)) {
+    throw new Error('catalog missing or invalid: unexpected catalog_version or shape')
+  }
+  return catalog
+}
+
+export const cardUrl = (catalog: Catalog, practice: Practice) =>
+  `${catalog.repository}/blob/v${catalog.package_version}/${practice.path}`
+export const repoUrl = (repo: SkillRepo) => `https://github.com/${repo.repo}`
