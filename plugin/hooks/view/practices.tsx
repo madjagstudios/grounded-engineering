@@ -17,7 +17,7 @@ export function Practices(p: PracticesProps) {
   const gaps = rankPractices(p.catalog, p.signals, p.adoption, Infinity).length
   const fits = rankPractices(p.catalog, p.signals, p.adoption)
   const adopted = new Set(p.adoption?.cards ?? [])
-  const summary = [p.signals.languages.join(', ') || 'no languages detected', p.signals.test_framework ?? 'no tests detected', `${gaps} gap${gaps === 1 ? '' : 's'}`].join(' · ')
+  const summary = [p.signals.languages.join(', ') || 'no languages detected', p.signals.test_framework ?? (p.signals.has_tests ? 'tests (framework unknown)' : 'no tests detected'), `${gaps} gap${gaps === 1 ? '' : 's'}`].join(' · ')
   const visible = p.catalog.practices.filter((x) => (p.category === 'All' || x.category === p.category) && matchesQuery([x.title, x.pattern, x.id], p.query))
   // A fit says why it fits this repo; the full list sums each practice up instead.
   const model = (x: Catalog['practices'][number], calloutLabel: 'Why here' | 'In short', callout: string) => ({

@@ -41,6 +41,16 @@ for (const surface of ['terminal', 'desktop'] as const) {
     await ui.unmount()
   })
 
+  test(`${surface}: a test folder with an unrecognized framework is not reported as no tests`, async ($, on) => {
+    fakeRepo(on, { 'CLAUDE.md': '# r' }, { tests: ['check.sh'] })
+    placePanes(on)
+    await $.command.run(typed('grounded'))
+    const ui = await $.ui.mount({ ...PANE, surface })
+    expect(await ui.find({ text: /tests \(framework unknown\)/ })).toBeDefined()
+    expect(await ui.find({ text: /no tests detected/ })).toBeUndefined()
+    await ui.unmount()
+  })
+
   test(`${surface}: skill repos screen explains a selected repo and links to GitHub`, async ($, on) => {
     fakeRepo(on, REPO, DIRS)
     placePanes(on)
