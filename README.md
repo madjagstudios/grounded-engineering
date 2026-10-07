@@ -78,17 +78,6 @@ current local source pins. The command intentionally does not require the
 unrelated card catalog to be clean, so a provenance repair can be prepared
 before a full repository validation run.
 
-## Use it in Claude Code
-
-Grounded Engineering ships a Claude Code plugin with a pane that shows which practices fit the repository you are in, and a short list of reviewed skill repositories.
-
-```
-/plugin marketplace add madjagstudios/grounded-engineering
-/plugin install grounded-engineering@grounded-engineering
-```
-
-Then run `/grounded` (practices) or `/grounded-skills` (skill repositories). The pane only reads files; changes go through Claude as a diff you approve. Requires a Claude Code version with mods (2.1.287 or later).
-
 ## Adopt a profile
 
 Every adoption flow is reviewable and local-first. `preview` and `create` are
