@@ -18,3 +18,18 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Validate marketplace
+        run: npx -y @anthropic-ai/claude-code@2.1.288 plugin validate .
+        timeout-minutes: 5
+        env:
+          HOME: ${{ runner.temp }}/claude-home
+      - name: Validate plugin
+        run: npx -y @anthropic-ai/claude-code@2.1.288 plugin validate plugin
+        timeout-minutes: 5
+        env:
+          HOME: ${{ runner.temp }}/claude-home
+      - name: Test plugin
+        run: npx -y @anthropic-ai/claude-code@2.1.288 plugin test plugin
+        timeout-minutes: 5
+        env:
+          HOME: ${{ runner.temp }}/claude-home

@@ -10,6 +10,10 @@ records the state of the catalog and tooling at that tag.
 ## [Unreleased]
 
 ### Added
+- Claude Code plugin (`plugin/`), installable from this repository as a
+  marketplace: a read-only pane with Practices and Skill repos screens, "Fits
+  this repo" suggestions from repository signals, and `adapt` and `explain`
+  skills that propose changes for approval.
 - Skill-repo records: reviewed, link-only pointers to third-party skill
   repositories under `research/skill-repos/`, with a schema
   (`research/skill-repo-schema.yaml`) and validation in `npm test`. A listed
