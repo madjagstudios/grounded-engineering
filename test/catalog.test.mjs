@@ -91,3 +91,13 @@ test('only listed skill repos are projected, with exactly the display fields', (
     rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test('each practice carries its card body without the title heading', () => {
+  const catalog = buildCatalog(root);
+  for (const p of catalog.practices) {
+    assert.equal(typeof p.body, 'string', p.id);
+    assert.ok(p.body.length > 40, p.id);
+    assert.ok(!p.body.startsWith('# '), p.id);
+    assert.equal(p.body, p.body.trim(), p.id);
+  }
+});

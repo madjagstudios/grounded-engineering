@@ -15,3 +15,7 @@ worktrees/
 
 # Local-only work notes
 docs/worknotes/
+
+# Engine-generated when Claude Code loads the plugin folder
+plugin/.claude-plugin/types/
+plugin/tsconfig.json

@@ -18,3 +18,23 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Prepare a Claude home
+        run: mkdir -p "$RUNNER_TEMP/claude-home"
+      # The Claude steps share one env block (the anchor below). runner.temp is not available in
+      # job-level env, and a job-level timeout would cover the whole job, not each step.
+      - name: Validate marketplace
+        run: npx -y @anthropic-ai/claude-code@2.1.288 plugin validate .
+        timeout-minutes: 5
+        env: &claude-env
+          HOME: ${{ runner.temp }}/claude-home
+          DISABLE_AUTOUPDATER: 1
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: 1
+      - name: Validate plugin
+        shell: bash
+        run: npx -y @anthropic-ai/claude-code@2.1.288 plugin validate plugin 2>&1 | node scripts/check-plugin-calls.mjs
+        timeout-minutes: 5
+        env: *claude-env
+      - name: Test plugin
+        run: npx -y @anthropic-ai/claude-code@2.1.288 plugin test plugin
+        timeout-minutes: 5
+        env: *claude-env

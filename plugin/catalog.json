@@ -114,6 +114,7 @@
         "ONBOARDING",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Put the purpose, routing, essential constraints, and the normal workflow in\nthe entrypoint. Use references or scripts for substantial details that apply\nonly to a mode, format, provider, or edge case.\n\nThe boundary is usefulness, not file size. A short self-contained skill is\nbetter than a router with nothing meaningful to route; a complex skill should\nnot make every invocation pay for unrelated detail.\n\n## Evidence trail\n\n- [CODEX-SKILL-DESIGN](../../research/sources/codex.md#codex-skill-design): focused skill anatomy and progressive disclosure.\n- [CLAUDE-SKILL-SURFACE](../../research/sources/claude-code.md#claude-skill-surface): skills as reusable, on-demand context.",
       "category": "Agent & Skill Design",
       "confidence": "high",
       "control_types": [
@@ -138,6 +139,7 @@
         "AI_ASSISTED",
         "ONBOARDING"
       ],
+      "body": "Treat the name and description as a user-facing activation contract. Say what\nthe skill helps accomplish and the kind of request that should activate it.\n\nAvoid exhaustive keyword lists and broad descriptions that attract unrelated\nwork. Add a boundary when a neighboring skill or ordinary repository work is\nlikely to look similar.\n\n## Evidence trail\n\n- [CODEX-SKILL-DESCRIPTION](../../research/sources/codex.md#codex-skill-description): early discovery surface and trigger boundary.\n- [CLAUDE-SKILL-DISCOVERY](../../research/sources/claude-code.md#claude-skill-discovery): skill invocation and automatic discovery.",
       "category": "Agent & Skill Design",
       "confidence": "high",
       "control_types": [
@@ -163,6 +165,7 @@
         "REPOSITORY_GOVERNANCE",
         "PUBLICATION"
       ],
+      "body": "Use a skill when the agent needs reusable knowledge or a reasoning-dependent\nworkflow. Use a subagent when a specialized or context-heavy task benefits\nfrom isolation. Use a hook, CI check, permission, or approval when the rule\nmust hold even if the agent misunderstands the instruction.\n\nThe boundary is the required guarantee. Do not make a hook carry a long\ndecision procedure, and do not describe a deterministic safety requirement as\nif a prompt alone could enforce it.\n\n## Evidence trail\n\n- [CLAUDE-SKILL-SURFACE](../../research/sources/claude-code.md#claude-skill-surface): extension surfaces and their distinct roles.\n- [CLAUDE-HOOKS-DETERMINISM](../../research/sources/claude-code.md#claude-hooks-determinism): skills versus lifecycle hooks.",
       "category": "Agent & Skill Design",
       "confidence": "high",
       "control_types": [
@@ -191,6 +194,7 @@
         "AI_ASSISTED",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Before delegating, define the result the worker must return and the minimum\ncapabilities needed to produce it. Restrict tools or permissions, cap an\nunbounded loop, and use an isolated worktree when edits should not touch the\nparent working copy.\n\nThe boundary is proportionality. Read-only research may need broad reading\nbut no writes; an implementation worker may need edits but not unrelated\nexternal actions. The parent remains responsible for reviewing the result.\n\n## Evidence trail\n\n- [CLAUDE-SUBAGENT-BOUNDARIES](../../research/sources/claude-code.md#claude-subagent-boundaries): subagent capability and isolation controls.\n- [CODEX-SKILL-DESIGN](../../research/sources/codex.md#codex-skill-design): preserve scope and do not imply additional permissions.",
       "category": "Agent & Skill Design",
       "confidence": "high",
       "control_types": [
@@ -217,6 +221,7 @@
         "ONBOARDING",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Run the package or frontmatter checks first, then decide whether realistic use\nwould add confidence. For a complex or consequential skill, use representative\ntasks to test activation, context loading, permissions, outputs, and failure\nboundaries.\n\nDo not confuse a clean parser result with proof that the capability makes good\ndecisions. Conversely, a tiny self-contained skill does not need a large test\nsuite merely because it is packaged as a skill.\n\n## Evidence trail\n\n- [CODEX-SKILL-VALIDATION](../../research/sources/codex.md#codex-skill-validation): structural validation versus useful behavior.\n- [CLAUDE-SKILL-SURFACE](../../research/sources/claude-code.md#claude-skill-surface): repeated triggers as a signal to revise an extension.",
       "category": "Agent & Skill Design",
       "confidence": "medium",
       "control_types": [
@@ -242,6 +247,7 @@
         "AI_ASSISTED",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Use this when agent-executed code or commands can reach the network. Route egress through an enforcing proxy and an explicit policy — allow, deny, or approve — so exfiltration and untrusted-fetch risk is a mediated decision rather than ambient. A task that genuinely needs the network — installing dependencies, calling a declared API — should get a scoped, explicit grant; the goal is an explicit decision, not a blanket block that pushes people to disable the control. The boundary: this contains egress only where an enforcing proxy is actually in the request path — without one there is nothing to gate — and telemetry recording that a request happened is not the same as a durable audit record.\n\n## Evidence trail\n\n- [CODEX-NETWORK-CAPABILITY](../../research/sources/codex.md#codex-network-capability): the policy decider and execution-scoped proxy that mediate agent network access when managed enforcement is active.",
       "category": "Agent & Skill Design",
       "confidence": "medium",
       "control_types": [
@@ -267,6 +273,7 @@
         "TRADITIONAL",
         "ONBOARDING"
       ],
+      "body": "Use this when a new helper might overlap existing code. Search symbols, scripts, tests, and nearby modules first; the boundary is crossed only when the search shows a real gap or a materially safer abstraction.\n\n## Evidence trail\n\n- [CODEX-AGENTS-GUIDE](../../research/sources/codex.md#codex-agents-guide): discovery and scoped context sections.\n- [CLAUDE-MEMORY-HIERARCHY](../../research/sources/claude-code.md#claude-memory-hierarchy): project and path-scoped instruction sections.",
       "category": "Code Quality",
       "confidence": "medium",
       "control_types": [
@@ -292,6 +299,7 @@
         "TRADITIONAL",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Use this when a task touches more than the requested behavior. Include refactoring required for correctness; defer optional cleanup, speculative abstractions, and style migrations so the change remains reviewable.\n\n## Evidence trail\n\n- [CODEX-SKILL-DESIGN](../../research/sources/codex.md#codex-skill-design): scoping work to the task and matching specificity to the risk.",
       "category": "Code Quality",
       "confidence": "medium",
       "control_types": [
@@ -315,6 +323,7 @@
         "AI_ASSISTED",
         "TRADITIONAL"
       ],
+      "body": "Use this when an agent or tool applies edits to files programmatically. Prefer a format that carries surrounding context and is validated against the target before it touches the filesystem, so a hunk that no longer matches is rejected rather than applied blindly. The boundary: parsing a well-formed patch is not proof it applies safely — the context still has to match the current file at apply time. And a full-file rewrite or a structured code transform can be safer than a context patch for large or generated files: match the format to the edit rather than forcing every change through one shape.\n\n## Evidence trail\n\n- [CODEX-PATCH-FORMAT](../../research/sources/codex.md#codex-patch-format): the explicit patch grammar, parsed separately from filesystem application.",
       "category": "Code Quality",
       "confidence": "medium",
       "control_types": [
@@ -340,6 +349,7 @@
         "ONBOARDING",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Use this as the first pass on an unfamiliar or changed repository. Learn its local contract—applicable instructions, status, structure, commands, recent changes, and affected paths—before choosing an implementation.\n\n## Evidence trail\n\n- [CODEX-AGENTS-GUIDE](../../research/sources/codex.md#codex-agents-guide): discovery order and nested instructions.\n- [CODEX-AGENTS-IMPLEMENTATION](../../research/sources/codex.md#codex-agents-implementation): root detection and candidate ordering.\n- [CLAUDE-MEMORY-HIERARCHY](../../research/sources/claude-code.md#claude-memory-hierarchy): instruction hierarchy and path rules.",
       "category": "Repository Context",
       "confidence": "high",
       "control_types": [
@@ -367,6 +377,7 @@
         "ONBOARDING",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Use this when several tools need the same repository guidance. Keep durable policy in one maintained source; adapters may change syntax or scope, but their relationship to that source should stay reviewable.\n\n## Evidence trail\n\n- [CODEX-AGENTS-GUIDE](../../research/sources/codex.md#codex-agents-guide): repository and nested guidance.\n- [CLAUDE-MEMORY-HIERARCHY](../../research/sources/claude-code.md#claude-memory-hierarchy): imports and scoped instructions.\n- [CLAUDE-ENFORCEMENT-BOUNDARY](../../research/sources/claude-code.md#claude-enforcement-boundary): guidance versus controls.",
       "category": "Repository Context",
       "confidence": "high",
       "control_types": [
@@ -394,6 +405,7 @@
         "TRADITIONAL",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Use this when deciding whether a small change needs a test. Cover the behavior and plausible failure modes; a file’s size or a numeric threshold is not itself a risk signal.\n\n## Evidence trail\n\n- [CODEX-AGENTS-GUIDE](../../research/sources/codex.md#codex-agents-guide): repository guidance and verification sections.\n- [CLAUDE-ENFORCEMENT-BOUNDARY](../../research/sources/claude-code.md#claude-enforcement-boundary): guidance versus enforcement sections.",
       "category": "Testing",
       "confidence": "medium",
       "control_types": [
@@ -420,6 +432,7 @@
         "TRADITIONAL",
         "ONBOARDING"
       ],
+      "body": "Use this when a change affects registration, configuration, imports, routing, or composition. Keep unit tests for local logic, then add the narrowest real-path check that exercises the boundary.\n\n## Evidence trail\n\n- [CODEX-AGENTS-IMPLEMENTATION](../../research/sources/codex.md#codex-agents-implementation): multiple roots and loaded-source provenance.\n- [CLAUDE-LOCAL-CONTEXT](../../research/sources/claude-code.md#claude-local-context): nested and imported context.",
       "category": "Testing",
       "confidence": "medium",
       "control_types": [
@@ -446,6 +459,7 @@
         "TRADITIONAL",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Use this when reporting completion. Find the repository’s declared gate, run the checks relevant to the change, and name any skipped lane; a convenient substitute is not equivalent evidence.\n\n## Evidence trail\n\n- [CODEX-AGENTS-GUIDE](../../research/sources/codex.md#codex-agents-guide): verification sections.\n- [CLAUDE-ENFORCEMENT-BOUNDARY](../../research/sources/claude-code.md#claude-enforcement-boundary): hooks and enforcement sections.",
       "category": "Verification",
       "confidence": "high",
       "control_types": [
@@ -474,6 +488,7 @@
         "ONBOARDING",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Use this when a result could be mistaken for a stronger result. Keep repository inspection, automated checks, deployment evidence, and live acceptance separate, and name the unverified lane.\n\n## Evidence trail\n\n- [CODEX-TRUST-BOUNDARY](../../research/sources/codex.md#codex-trust-boundary): authorization and implementation evidence.\n- [CLAUDE-ENFORCEMENT-BOUNDARY](../../research/sources/claude-code.md#claude-enforcement-boundary): guidance and enforcement.",
       "category": "Verification",
       "confidence": "high",
       "control_types": [
@@ -501,6 +516,7 @@
         "TRADITIONAL",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Use this when an agent performs actions with real consequences — writing files, running commands, escaping a sandbox. Compute a verdict (allow, ask, or reject) from explicit policy before acting, so authorization is auditable and risky or non-conforming actions are refused or escalated rather than performed. The boundary: keep the policy narrow and explicit; a decision function that grows to re-encode the whole action's logic has lost the separation it was meant to provide.\n\n## Evidence trail\n\n- [CODEX-SAFETY-POLICY](../../research/sources/codex.md#codex-safety-policy): the three-way safety verdict computed separately from applying the action.",
       "category": "Verification",
       "confidence": "medium",
       "control_types": [
@@ -525,6 +541,7 @@
         "AI_ASSISTED",
         "REPOSITORY_GOVERNANCE"
       ],
+      "body": "Use this when an agent runs shell commands or executes generated code. Confine execution with an operating-system sandbox scoped to least privilege, and treat recorded violations as signal, so a mistaken or malicious command is contained by the platform rather than by trust. The boundary: this holds only where a supported OS backend is available and enabled — platform selection can resolve to no sandbox, and that case must fail safe rather than silently run unconfined. And a sandbox widened until nothing is denied provides no isolation — tighten the policy and surface violations rather than relaxing it to make a task pass.\n\n## Evidence trail\n\n- [CODEX-SANDBOX-ISOLATION](../../research/sources/codex.md#codex-sandbox-isolation): the re-exported platform sandbox managers and violation recorders.",
       "category": "Verification",
       "confidence": "medium",
       "control_types": [

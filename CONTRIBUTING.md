@@ -41,6 +41,8 @@ npm test
 
 After changing cards, skill-repo records, fit rules, or the package version, run `npm run build:catalog` and commit the updated `plugin/catalog.json`; `npm test` fails when it is stale.
 
+When you change anything under `plugin/hooks`, also run `claude plugin test plugin`; CI runs it with `claude plugin validate`.
+
 Changes to the evidence model must also be reviewed for source fidelity, licensing, broken links, temporary markers, and accidental disclosure of private context.
 
 ## Review standard
