@@ -47,7 +47,7 @@ export function Shell(p: ShellProps) {
           : Skills({ ui: p.ui, catalog, signals: p.signals, selected: p.selected, query: p.query, tag: p.tag, sort: p.sort,
               onSelect: p.on.select, onTag: p.on.tag, onSort: p.on.sort, onExplain: p.on.explain })}
       <Box flexDirection="row" justifyContent="space-between" marginTop={1}>
-        <Text dimColor>Reviewed by people · sources pinned · offline</Text>
+        <Text dimColor>Sources pinned · offline</Text>
         <Link href={catalog.repository}>Star us</Link>
       </Box>
     </Box>

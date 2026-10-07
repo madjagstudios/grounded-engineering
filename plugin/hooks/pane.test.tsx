@@ -27,7 +27,6 @@ for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
     expect(await ui.find({ text: /Fits this repo/ })).toBeDefined()
     expect(await ui.find({ text: /4 gaps/ })).toBeDefined()
-    // A fit says why it fits here; the full list sums the practice up instead.
     expect((await ui.find({ key: 'fit-card-GE-AS-004' }))?.text).toContain('Why here:')
     expect((await ui.find({ key: 'card-GE-AS-004' }))?.text).toContain('In short:')
     expect((await ui.find({ key: 'card-GE-AS-004' }))?.text).not.toContain('Why here')
@@ -54,6 +53,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     // Link takes no key; only the selected card draws its links.
     const star = await ui.find({ type: 'Link', text: 'Star on GitHub' })
     expect(star?.props.href).toBe('https://github.com/example/beta-ts')
+    expect((await ui.findAll({ type: 'Link', text: /./ })).filter((l) => l.props.href === star?.props.href)).toHaveLength(1)
     await ui.press({ key: 'primary-GE-SR-002' })
     expect(submitted).toEqual(['grounded-engineering:explain GE-SR-002'])
     await ui.unmount()

@@ -35,7 +35,7 @@ export function Skills(p: SkillsProps) {
         description: r.summary, calloutLabel: 'Best for', callout: r.tags.join(', '), cautionLabel: 'Watch out', caution: r.watch_out_for,
         provenance: `Reviewed ${r.reviewed_on} · pinned at ${r.pinned_commit.slice(0, 7)}`,
         primary: { label: 'Explain install', onPress: () => p.onExplain(r.id) },
-        links: [{ label: 'Star on GitHub', href: repoUrl(r) }, { label: 'Open', href: repoUrl(r) }],
+        links: [{ label: 'Star on GitHub', href: repoUrl(r) }],
       } }))}
       <Text bold>Want more?</Text>
       {MORE.map((m) => <Link href={m.href}>{m.label}</Link>)}
