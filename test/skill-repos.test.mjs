@@ -41,22 +41,18 @@ test('a valid listed record loads', () => {
   assert.equal(records[0].repo, 'example/skills');
 });
 
-test('listed requires a real license', () => {
-  const { errors } = loadSkillRepos(fixture([record({ license: 'NOASSERTION' })]));
-  assert.ok(errors.some((e) => /license/.test(e)), errors.join('\n'));
-});
-
-test('listed rejects non-license values in any letter case', () => {
-  for (const license of ['Other', 'unknown', 'NONE', 'none', 'NoAssertion', 'not a license', 'MIT OR']) {
+test('listed rejects licenses that are not canonical SPDX expressions', () => {
+  for (const license of ['NOASSERTION', 'NONE', 'Other', 'unknown', 'not a license', 'MIT OR', 'FooBar-9', 'mit',
+    'MIT OR FooBar-9', 'MIT WITH Not-An-Exception', ' MIT', 'MIT or Apache-2.0']) {
     const { errors } = loadSkillRepos(fixture([record({ license })]));
-    assert.ok(errors.some((e) => /license/.test(e)), `${license}: ${errors.join('\n')}`);
+    assert.ok(errors.some((e) => /not a valid SPDX license expression/.test(e)), `${JSON.stringify(license)}: ${errors.join('\n')}`);
   }
 });
 
-test('listed rejects identifiers that are not on the SPDX list', () => {
-  for (const license of ['FooBar-9', 'mit', 'MIT OR FooBar-9', 'MIT WITH Not-An-Exception']) {
-    const { errors } = loadSkillRepos(fixture([record({ license })]));
-    assert.ok(errors.some((e) => /license/.test(e)), `${license}: ${errors.join('\n')}`);
+test('records that are not listed are not license-checked', () => {
+  for (const status of ['needs_review', 'delisted']) {
+    const { errors } = loadSkillRepos(fixture([record({ status, status_reason: 'Waiting on a license from the author.', license: 'FooBar-9' })]));
+    assert.deepEqual(errors, [], status);
   }
 });
 

@@ -5,18 +5,18 @@ const encodePath = (path) => path.split('/').map(encodeURIComponent).join('/');
 export function createGithubClient({ fetchImpl = globalThis.fetch, token, timeoutMs = 15000 } = {}) {
   const authToken = token ?? process.env.GITHUB_TOKEN; // nullish; '' stays '' (no auth)
   // GitHub meters search and core requests separately, so one running out must
-  // not block the other. Each bucket fails closed only for itself.
+  // not block the other.
   const state = { calls: 0, buckets: {} };
   const bucket = (name) => (state.buckets[name] ??= { remaining: null, reset: null });
   const bucketFor = (url) => (new URL(url).pathname.startsWith('/search/') ? 'search' : 'core');
   const headers = () => {
-    const h = { 'User-Agent': 'grounded-engineering-check-sources', Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+    const h = { 'User-Agent': 'grounded-engineering', Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
     if (authToken) h.Authorization = `Bearer ${authToken}`;
     return h;
   };
 
   async function request(url) {
-    // Fail closed: remaining:0 blocks until we know the window has passed.
+    // remaining:0 blocks until we know the window has passed.
     const limit = bucket(bucketFor(url));
     if (limit.remaining === 0 && (!limit.reset || Date.now() / 1000 < limit.reset)) {
       return { error: { reason: `rate_limited (reset ${limit.reset ?? 'unknown'})` } };
@@ -35,7 +35,8 @@ export function createGithubClient({ fetchImpl = globalThis.fetch, token, timeou
       if (!res || !res.headers || typeof res.headers.get !== 'function') return { error: { reason: 'malformed_response' } };
       const rem = res.headers.get('x-ratelimit-remaining');
       const rst = res.headers.get('x-ratelimit-reset');
-      const metered = bucket(res.headers.get('x-ratelimit-resource') ?? bucketFor(url));
+      const resource = res.headers.get('x-ratelimit-resource');
+      const metered = bucket(resource === 'search' || resource === 'core' ? resource : bucketFor(url));
       if (rem !== null) metered.remaining = Number(rem);
       if (rst !== null) metered.reset = Number(rst);
       if ((res.status === 403 || res.status === 429) && (metered.remaining === 0 || res.headers.get('retry-after'))) {

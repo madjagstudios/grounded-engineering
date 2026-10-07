@@ -18,7 +18,7 @@ test('resolveHead: repos → default_branch, then list-commits[0].sha; headers +
   ]);
   const c = createGithubClient({ fetchImpl: f, token: 'tok' });
   assert.deepEqual(await c.resolveHead('o', 'r'), { branch: 'main', sha: SHA });
-  assert.equal(f.calls[0].opts.headers['User-Agent'], 'grounded-engineering-check-sources');
+  assert.equal(f.calls[0].opts.headers['User-Agent'], 'grounded-engineering');
   assert.equal(f.calls[0].opts.headers.Authorization, 'Bearer tok');
   assert.equal(f.calls[0].opts.headers['X-GitHub-Api-Version'], '2022-11-28');
   assert.match(f.calls[1].url, /\/commits\?sha=main&per_page=1/);
@@ -132,7 +132,7 @@ test('an exhausted core quota does not block search', async () => {
   assert.deepEqual(await c.searchRepositories('x'), { items: [{ full_name: 'o/r' }] });
 });
 
-test('an exhausted quota still fails closed for its own bucket without a request', async () => {
+test('an exhausted bucket blocks its next call without a request', async () => {
   const later = String(Math.floor(Date.now() / 1000) + 600);
   const f = scripted([
     { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later, 'x-ratelimit-resource': 'search' } }) }
@@ -140,5 +140,30 @@ test('an exhausted quota still fails closed for its own bucket without a request
   const c = createGithubClient({ fetchImpl: f });
   await c.searchRepositories('x');
   assert.match((await c.searchRepositories('y')).error, /rate_limited/);
+  assert.equal(f.calls.length, 1);
+});
+
+test('a search 403 without a resource header still exhausts only the search bucket', async () => {
+  const later = String(Math.floor(Date.now() / 1000) + 600);
+  const f = scripted([
+    { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later } }) },
+    { res: res({ json: { truncated: false, tree: [] }, headers: okHeaders }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  await c.searchRepositories('x');
+  assert.deepEqual(await c.listTreePaths('o', 'r', 'main'), { paths: [], truncated: false });
+  assert.match((await c.searchRepositories('y')).error, /rate_limited/);
+  assert.equal(f.calls.length, 2);
+});
+
+test('an unexpected resource header falls back to the bucket of the request', async () => {
+  const later = String(Math.floor(Date.now() / 1000) + 600);
+  const f = scripted([
+    { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later, 'x-ratelimit-resource': '__proto__' } }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  await c.listTreePaths('o', 'r', 'main');
+  assert.equal(({}).remaining, undefined);
+  assert.match((await c.listTreePaths('o', 'r', 'main')).error, /rate_limited/);
   assert.equal(f.calls.length, 1);
 });
