@@ -56,7 +56,7 @@ export async function readSignals(host: Host): Promise<Signals> {
     has_claude_md: (await exists(fs, 'CLAUDE.md')) || (await exists(fs, '.claude/CLAUDE.md')),
     has_agents_md: await exists(fs, 'AGENTS.md'),
     has_skills: skillTexts.length > 0,
-    has_large_skill_md: skillTexts.some((t) => t.split('\n').length > 500),
+    has_large_skill_md: skillTexts.some((t) => t.replace(/\r?\n$/, '').split('\n').length > 500),
     has_subagents: agentTexts.length > 0,
     subagents_without_tool_limits: agentTexts.some((t) => !/^tools\s*:/m.test(frontmatter(t))),
     hooks_configured: !!settings?.hooks && Object.keys(settings.hooks).length > 0,
@@ -77,7 +77,17 @@ function frontmatter(text: string): string {
 export async function readAdoption(host: Host): Promise<Adoption | null> {
   const text = await readText(host.fs, '.grounded-engineering/manifest.yaml')
   if (text === null) return null
-  const profile = /^\s*profile:\s*([\w-]+)/m.exec(text)?.[1] ?? null
-  const cards = [...new Set([...text.matchAll(/\bGE-[A-Z]{2}-\d{3}\b/g)].map((m) => m[0]))].sort()
-  return { profile, cards }
+  const profile = /^pack_id:\s*([\w-]+)/m.exec(text)?.[1] ?? null
+  // Card ids are the `id:` of each entry under the top-level `cards:`; an id named in a
+  // card's free text (a decision, a revisit trigger) is not an adopted card.
+  const cards = new Set<string>()
+  let inCards = false
+  for (const line of text.split(/\r?\n/)) {
+    if (/^\S/.test(line)) inCards = /^cards:/.test(line)
+    else if (inCards) {
+      const id = /^\s*(?:-\s+)?id:\s*["']?(GE-[A-Z]{2}-\d{3})["']?\s*$/.exec(line)?.[1]
+      if (id) cards.add(id)
+    }
+  }
+  return { profile, cards: [...cards].sort() }
 }

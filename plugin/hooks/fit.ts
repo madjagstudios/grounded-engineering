@@ -18,15 +18,15 @@ export function rankPractices(catalog: Catalog, signals: Signals, adoption: Adop
     .slice(0, 3)
 }
 
-const TAG_SIGNALS: Record<string, (s: Signals) => boolean> = {
-  typescript: (s) => s.languages.includes('typescript'),
-  python: (s) => s.languages.includes('python'),
-  testing: (s) => s.has_tests,
-  devops: (s) => s.has_ci,
-}
+const TAG_SIGNALS = new Map<string, (s: Signals) => boolean>([
+  ['typescript', (s) => s.languages.includes('typescript')],
+  ['python', (s) => s.languages.includes('python')],
+  ['testing', (s) => s.has_tests],
+  ['devops', (s) => s.has_ci],
+])
 
 export function sortSkillRepos(repos: SkillRepo[], signals: Signals, mode: 'fit' | 'name'): SkillRepo[] {
-  const score = (r: SkillRepo) => r.tags.filter((t) => TAG_SIGNALS[t]?.(signals)).length
+  const score = (r: SkillRepo) => r.tags.filter((t) => TAG_SIGNALS.get(t)?.(signals)).length
   return [...repos].sort((a, b) => (mode === 'fit' ? score(b) - score(a) : 0) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
 }
 

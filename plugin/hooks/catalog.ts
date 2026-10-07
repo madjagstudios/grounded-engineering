@@ -27,14 +27,15 @@ export type Catalog = {
 }
 
 export async function loadCatalog(host: Host): Promise<Catalog> {
-  let text: string
-  try { text = String(await host.fs.read(`${host.plugin.root}/catalog.json`)) }
-  catch (error) { throw new Error(`catalog missing or invalid: ${String(error)}`) }
-  const catalog = JSON.parse(text) as Catalog
-  if (catalog.catalog_version !== 1 || !Array.isArray(catalog.practices)) {
-    throw new Error('catalog missing or invalid: unexpected catalog_version or shape')
+  try {
+    const catalog = JSON.parse(String(await host.fs.read(`${host.plugin.root}/catalog.json`))) as Catalog | null
+    if (catalog === null || typeof catalog !== 'object' || catalog.catalog_version !== 1 || !Array.isArray(catalog.practices)) {
+      throw new Error('unexpected catalog_version or shape')
+    }
+    return catalog
+  } catch (error) {
+    throw new Error(`catalog missing or invalid: ${String(error)}`)
   }
-  return catalog
 }
 
 export const cardUrl = (catalog: Catalog, practice: Practice) =>

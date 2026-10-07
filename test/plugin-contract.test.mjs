@@ -24,10 +24,38 @@ test('the mod reads exactly the signals the catalog declares', () => {
   assert.deepEqual(names, SIGNALS.map((s) => s.name));
 });
 
-test('the mod never writes files, runs processes, or uses the network', () => {
-  const forbidden = /\$\.(fs\.write|process|http|net|model|tool\.call)\b|\bfetch\s*\(/;
+const ALLOWED_MEMBERS = new Set(['fs.read', 'fs.exists', 'fs.list', 'plugin.root', 'ui.open', 'ui.resolve', 'command.register', 'command.run']);
+const FORBIDDEN_TOKENS = ['fetch(', 'XMLHttpRequest', 'WebSocket', 'child_process'];
+
+// Returns the violations found in one source text: any `$.` member outside the allowlist,
+// bracket access on `$`, destructuring of `$`, and the network and process tokens.
+export function findCapabilityViolations(text) {
+  const violations = [];
+  for (const m of text.matchAll(/\$\??\.([a-zA-Z_]+(?:\.[a-zA-Z_]+)?)/g)) {
+    if (!ALLOWED_MEMBERS.has(m[1])) violations.push(`$.${m[1]} is not an allowed capability`);
+  }
+  if (/\$\??\.?\[/.test(text)) violations.push('bracket access on $');
+  if (/=\s*\$(?![\w.[?$])/.test(text) || /\}\s*=\s*\$/.test(text)) violations.push('destructuring of $');
+  for (const token of FORBIDDEN_TOKENS) {
+    if (text.includes(token)) violations.push(`${token} is not allowed`);
+  }
+  return violations;
+}
+
+test('the capability checker flags what the mod must never do', () => {
+  assert.ok(findCapabilityViolations("await $.fs.write('a', 'b')").length > 0);
+  assert.ok(findCapabilityViolations('$.process.run({})').length > 0);
+  assert.ok(findCapabilityViolations('const { fs } = $').length > 0);
+  assert.ok(findCapabilityViolations('const x = $;').length > 0);
+  assert.ok(findCapabilityViolations("$['fs'].write('a', 'b')").length > 0);
+  assert.ok(findCapabilityViolations('const fs = $.fs').length > 0);
+  for (const token of FORBIDDEN_TOKENS) assert.ok(findCapabilityViolations(`x ${token}`).length > 0, token);
+  assert.deepEqual(findCapabilityViolations("const t = await $.fs.read(`${$.plugin.root}/c.json`); $?.ui.open({})"), []);
+});
+
+test('the mod uses only the capabilities it is allowed', () => {
   for (const path of sourceFiles(hooksDir)) {
-    assert.ok(!forbidden.test(readFileSync(path, 'utf8')), path);
+    assert.deepEqual(findCapabilityViolations(readFileSync(path, 'utf8')), [], path);
   }
 });
 
