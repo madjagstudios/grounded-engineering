@@ -1,8 +1,5 @@
-// The desktop pane. The app paints a Client on its own frame clock, so this draws at once;
-// the plugin's own redraws of a Pane are not painted there until the next input.
-// Every press is posted to the plugin (ui.message); its answer, and a sync each second,
-// bring the next model as props. A press the plugin has not yet acknowledged is applied
-// to that model here, so it shows at once.
+// The desktop pane: draws the shared screens from the model it is given and shows a press at
+// once; ./outbox says how presses reach the plugin.
 import { paneScreen, HANDLER_NAMES } from '../screens'
 import type { PaneModel } from '../model'
 import { PALETTE } from '../theme'
@@ -10,7 +7,6 @@ import { enqueue, nextPost, unseen, type PostState } from './outbox'
 import { applyLocal, LOCAL_NAMES, type Msg } from './apply'
 import { clientLook } from './look'
 
-// Characters of the desktop's proportional font that fit in one cell of the Client's width.
 const CHARS_PER_CELL = 1.25
 
 type Outbox = { outbox: Msg[]; local: Msg[]; seq: number }
@@ -25,7 +21,6 @@ export default function GroundedApp(model: PaneModel, surface: any) {
     // Draws before the first tick each start timers, since state is only set on that tick.
     // The box the state holds is the one in use; a timer whose box is not it stops itself
     // and its twin, so one poster and one sync timer remain.
-    // One poster: every post carries all presses the plugin has not yet received (nextPost).
     let sent: PostState = { syncDue: false, sentKey: '', sinceSend: 0 }
     const stopPoster = surface.every(60, () => {
       if (surface.state !== undefined && (surface.state as Local).box !== box) { stopPoster(); stopSync(); return }
@@ -47,16 +42,16 @@ export default function GroundedApp(model: PaneModel, surface: any) {
     box.outbox = unseen(box.outbox, model.seen)
   }
   const send = (name: string, args: unknown[]) => {
-    if (!box) return
-    box.seq += 1
-    const msg: Msg = { kind: 'act', id: `${Date.now()}-${box.seq}`, name, args }
-    const before = box.outbox
-    box.outbox = enqueue(before, msg)
+    const b = (surface.state as Local | undefined)?.box ?? box
+    if (!b) return
+    b.seq += 1
+    const msg: Msg = { kind: 'act', id: `${Date.now()}-${b.seq}`, name, args }
+    const before = b.outbox
+    b.outbox = enqueue(before, msg)
     // An edit that replaced an unsent one: the older will never be acknowledged, so it goes.
-    const replaced = new Set(before.filter((m) => !box.outbox.includes(m)).map((m) => m.id))
-    box.local = [...box.local.filter((m) => !replaced.has(m.id)), msg]
-    // Called from a press, not while drawing: safe to set state here.
-    surface.setState({ box, n: box.seq })
+    const replaced = new Set(before.filter((m) => !b.outbox.includes(m)).map((m) => m.id))
+    b.local = [...b.local.filter((m) => !replaced.has(m.id)), msg]
+    surface.setState({ box: b, n: b.seq })
   }
   const go: Record<string, (...args: unknown[]) => void> = {}
   for (const name of HANDLER_NAMES) go[name] = (...args: unknown[]) => send(name, args)

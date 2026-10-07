@@ -13,14 +13,13 @@ test('shorten keeps text that fits and cuts with an ellipsis when it does not', 
   expect(shorten('anything at all here', 0)).toBe('anything at all here')
 })
 
-test('room is the columns less the overhead, times the characters a cell holds, and never negative', async () => {
+test('room never goes negative and scales with the cell width', async () => {
   expect(room(60, 12, 1)).toBe(48)
   expect(room(60, 12, 1.25)).toBe(60)
   expect(room(10, 20, 1.25)).toBe(0)
   expect(room(0, 12, 1)).toBe(0)
 })
 
-// The desktop's cells hold about 1.25 characters of its proportional font; the terminal's hold 1.
 const DESKTOP = { outlinesTitles: true }
 const TERMINAL = {}
 const CHARS = 1.25
@@ -49,7 +48,7 @@ test('a desktop skill repo title gets the row less its outline, and its tags onl
   expect(repoTitleRoom(DESKTOP, 140, CHARS, 'typescript, testing')).toBe(142)
 })
 
-test('the terminal budget is unchanged: monospace, scale 1, the category column kept when wide', async () => {
+test('terminal title budgets', async () => {
   expect(rowTitleRoom(TERMINAL, 80, 1, 'Verification')).toBe(59)
   expect(rowTitleRoom(TERMINAL, 80, 1, 'Agent & Skill Design')).toBe(51)
   expect(rowTitleRoom(TERMINAL, 40, 1, 'Agent & Skill Design')).toBe(11)

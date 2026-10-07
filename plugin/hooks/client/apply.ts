@@ -37,7 +37,6 @@ const ARGS: Record<string, (c: Known | null, a: unknown[]) => boolean> = {
   toggleLane: (_, a) => a.length === 1 && oneOf(a[0], ['fits', 'all']),
   adapt: (c, a) => a.length === 1 && isString(a[0]) && !!c?.practices.some((x) => x.id === a[0]),
   explain: (c, a) => a.length === 1 && isString(a[0]) && !!c?.skill_repos.some((x) => x.id === a[0]),
-  // Any text: the plugin prints it only when linkLabel says the pane draws it.
   link: (_, a) => a.length === 1 && isString(a[0]),
 }
 export function validAct(catalog: Known | null, act: unknown): act is Msg {

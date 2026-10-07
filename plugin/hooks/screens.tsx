@@ -13,7 +13,6 @@ type Go = {
   category: (c: string) => void; tag: (t: string) => void; sort: (s: 'fit' | 'name') => void
   toggleSignals: () => void; toggleLane: (lane: 'fits' | 'all') => void
   adapt: (id: string) => void; explain: (id: string) => void
-  // Desktop only: prints a link the pane draws in the transcript, where it opens.
   link: (url: string) => void
 }
 
@@ -26,41 +25,32 @@ const MORE = [
 // Below this many columns the tabs take the whole header row and the title is left out.
 const NARROW = 60
 
-// On desktop every title is an outlined button that must stay on one line, so it is cut to
-// the room the row has. Only what really sits on the row is taken off the columns: the
-// pane's own padding (PANE), a row's status symbol and its gap (SYMBOL), the outline with its
-// label padding (OUTLINE), a tile's border and padding (TILE), and what sits beside the title
-// (a category, tags, a badge). Below WIDE columns the category and tags give way (the filters
-// above already say them) and a tile's badge moves under its title. The terminal's monospace
-// grid takes a fixed overhead instead (TERMINAL) and always keeps its category column.
-const PANE = 2
-const SYMBOL = 2
-const OUTLINE = 4
-const TILE = 4
-const TERMINAL = 9
+// On desktop, titles are cut to one line; below WIDE columns the category, tags and badge give way.
+const PANE = 2 // pane padding
+const SYMBOL = 2 // a row's status symbol and its gap
+const OUTLINE = 4 // the outline and the label padding
+const TILE = 4 // a tile's border and padding
+const TERMINAL = 9 // the terminal's fixed overhead per row
+const TERMINAL_TAGS = 8 // the terminal's room for a repo row's tags
 const WIDE = 70
 const outlined = (ui: any) => ui.outlinesTitles === true
 const tight = (ui: any, columns: number) => outlined(ui) && columns > 0 && columns < WIDE
 
-// The characters a practice row's title may take, beside its category when there is room for it.
 export function rowTitleRoom(ui: any, columns: number, scale: number, category: string): number {
   if (!outlined(ui)) return room(columns, TERMINAL + category.length, scale)
   return room(columns, PANE + SYMBOL + OUTLINE + (tight(ui, columns) ? 0 : category.length + 1), scale)
 }
 
-// A skill repo row's title, beside its tags when there is room for them.
 export function repoTitleRoom(ui: any, columns: number, scale: number, tags: string): number {
-  if (!outlined(ui)) return room(columns, TERMINAL + 8, scale)
+  if (!outlined(ui)) return room(columns, TERMINAL + TERMINAL_TAGS, scale)
   return room(columns, PANE + OUTLINE + (tight(ui, columns) ? 0 : tags.length + 1), scale)
 }
 
-// A tile's title, beside its badge when there is room for it (otherwise the badge sits under it).
 export function tileTitleRoom(ui: any, columns: number, scale: number, badgeText: string): number {
   return room(columns, PANE + TILE + OUTLINE + (tight(ui, columns) ? 0 : badgeText.length + 1), scale)
 }
 
-// The links the pane draws, each with what the transcript says before it; anything else is
-// not one of the pane's links.
+// The links the pane draws, each with what the transcript says before it.
 type LinkCatalog = { repository: string; package_version: string; practices: { id: string; path: string }[]; skill_repos: SkillRepo[] }
 export function linkLabel(c: LinkCatalog, url: string): string | null {
   const practice = c.practices.find((x) => cardUrl(c, x) === url)

@@ -306,17 +306,6 @@ test('desktop: search filters the All list at once', async ($, on) => {
   await ui.unmount()
 })
 
-test('desktop: a narrow Client cuts a long row title with an ellipsis', async ($, on) => {
-  const ui = await mountDesktop($, on)
-  await ui.resize({ columns: 33, rows: 40, in: APP })
-  await settle(ui)
-  const row = (await look(ui, { key: 'open-all-GE-VF-004' })) as any
-  expect(row.props.label).toMatch(/… $/)
-  // 33 columns leave 31 characters for the title, and the label adds a space each side.
-  expect(row.props.label.length).toBe(31 + 2)
-  await ui.unmount()
-})
-
 test('desktop: a title uses the room the row has at 33, 45 and 140 columns and never more', async ($, on) => {
   const ui = await mountDesktop($, on)
   // Title budget per width: rows (no category below 70 columns) and tiles (badge under the title below 70).
@@ -349,7 +338,7 @@ const LINK_WATCH = {
 }
 const toastsInto = (on: any, into: string[]) => on('ui.toast', async (_$: unknown, e: { text: string }) => { into.push(e.text); return { value: undefined } })
 
-test('desktop: an open fit draws no Link and no Markdown; its Evidence button prints the card link in the transcript', { plugins: [LINK_WATCH] }, async ($, on) => {
+test('desktop: an open fit draws no Link or Markdown; Evidence prints the card link', { plugins: [LINK_WATCH] }, async ($, on) => {
   const seen: string[] = []
   toastsInto(on, seen)
   const ui = await mountDesktop($, on)
@@ -448,7 +437,7 @@ test('the link command is left out of the slash menu, and the pane commands are 
   expect((await describing($, 'grounded-skills')).isHidden).toBe(false)
 })
 
-test('desktop: every opener is an outlined title sized to its label, with no ›, a selected fit title too', async ($, on) => {
+test('desktop: openers are outlined and sized to their label', async ($, on) => {
   const ui = await mountDesktop($, on)
   await ui.resize({ columns: 100, rows: 40, in: APP })
   await settle(ui)
@@ -578,8 +567,7 @@ test('desktop: every Client button carries its label as a prop, and actions sit 
   expect(parentOf('primary-fit-GE-AS-004')?.props.backgroundColor).toBeTruthy()
   expect(parentOf('tab-skills')?.props.borderStyle).toBe('round')
   expect(parentOf('tab-skills')?.props.backgroundColor).toBeUndefined()
-  // Every opener is outlined too; options and lane arrows stay plain text controls.
-  expect(parentOf('open-fit-GE-AS-004')?.props.borderStyle).toBe('round')
+  // Options and lane arrows stay plain text controls.
   expect(parentOf('opt-cat-All')?.props.borderStyle).toBeUndefined()
   expect(parentOf('lane-fits')?.props.borderStyle).toBeUndefined()
   await ui.unmount()
@@ -600,7 +588,7 @@ test('desktop: the skill repos tab switches at once and explains a repo once', a
   await ui.unmount()
 })
 
-test('desktop: a Client drawn again before its first tick still posts one sync a second, not one per draw', async ($, on) => {
+test('desktop: one sync a second, not one per draw', async ($, on) => {
   // Each sync the plugin answers reads its screen atom once, which is how a post is counted here.
   let reads = 0
   on('state.get', async (_$: unknown, e: any, next: any) => { if (e.key === 'screen') reads++; return next(e) })

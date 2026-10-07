@@ -89,7 +89,7 @@ test('every URL the plugin builds from the shipped catalog is https and in norma
 });
 
 // A Link opens the viewer's browser, so every href must come from a vetted https URL.
-const VETTED_HREF = /^(?:(['"`])https:\/\/[^'"`$\s]+\1$|(?:cardUrl|repoUrl)\(|(?:catalog\.repository|c\.repository|l\.href)$)/;
+const VETTED_HREF = /^(?:(['"`])https:\/\/[^'"`$\s]+\1$|(?:cardUrl|repoUrl)\(|(?:c\.repository|l\.href)$)/;
 
 test('every href in the pane is an https literal or a vetted URL', () => {
   let checked = 0;
@@ -98,7 +98,6 @@ test('every href in the pane is an https literal or a vetted URL', () => {
     const text = readFileSync(path, 'utf8');
     for (const m of text.matchAll(/\bhref(?:=\{([^}]*)\}|=("[^"]*"|'[^']*')|:\s*([^,}\]\n;]+))/g)) {
       const value = (m[1] ?? m[2] ?? m[3]).trim();
-      if (value === 'string') continue; // the CardModel type, not a value
       checked += 1;
       if (path.endsWith('screens.tsx')) inScreens += 1;
       assert.match(value, VETTED_HREF, `${path}: href ${value}`);

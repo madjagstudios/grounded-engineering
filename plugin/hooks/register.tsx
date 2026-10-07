@@ -29,8 +29,7 @@ const collapsedState = atom({ plugin: 'grounded-engineering', key: 'collapsed' }
 const signalsState = atom({ plugin: 'grounded-engineering', key: 'signals' } as const, null as GroundedSignals | null)
 const adoptionState = atom({ plugin: 'grounded-engineering', key: 'adoption' } as const, null as { profile: string | null; cards: string[] } | null)
 
-// The parsed catalog and the plugin root it was read from. A render reuses it instead of
-// parsing the file again. A hot reload starts this module fresh, which empties it.
+// The parsed catalog and the plugin root it was read from. A hot reload starts this module fresh, which empties it.
 let catalogCache: { root: string; catalog: Catalog } | null = null
 
 function hostOf($: any): Host {
@@ -55,7 +54,9 @@ async function catalogFor($: any): Promise<{ catalog: Catalog | null; error: str
 }
 
 // Module state for the desktop Client: ids of presses whose action has finished, and ids of
-// presses received (a press is posted again until it shows here).
+// presses received (a press is posted again until it shows here). The model carries only the
+// last 50 acked and 100 seen ids to keep the Client's props small; the module keeps a larger
+// margin (200 and 400) so trimming is rare.
 const acked: string[] = []
 const seen: string[] = []
 // Client presses run one after another, in the order they were made; see ui.message.
@@ -82,8 +83,7 @@ async function runSkill($: any, skill: 'adapt' | 'explain', id: string) {
     .catch(() => $.ui.toast(`Could not start /grounded-engineering:${skill} ${id}`))
 }
 
-// The transcript line for an address the pane draws, or null for any other: a Client's post
-// is data from code, and the command can be typed, so neither is trusted.
+// The transcript line for a link the pane draws, or null.
 async function linkLine($: any, url: unknown): Promise<string | null> {
   const { catalog } = await catalogFor($)
   if (!catalog || typeof url !== 'string') return null
@@ -91,8 +91,7 @@ async function linkLine($: any, url: unknown): Promise<string | null> {
   return label ? `${label}: ${url}` : null
 }
 
-// The desktop Client cannot draw a link, so a press prints it in the transcript. The command
-// is registered immediate, so it runs at once even mid-turn; this does not wait for it.
+// The command is registered immediate, so it runs at once even mid-turn.
 async function showLink($: any, url: unknown) {
   if (!(await linkLine($, url))) return
   void $.command.run({ command: LINK_COMMAND, args: url })
@@ -100,8 +99,7 @@ async function showLink($: any, url: unknown) {
 }
 
 // Every action the pane can take, each returning a promise that resolves once its state is
-// written. A skill or a link starts without waiting for it. The ui.message hook awaits these
-// for a Client's presses; the terminal does not.
+// written. The ui.message hook awaits these for a Client's presses.
 function actions($: any) {
   return {
     // Search belongs to the screen it was typed on, so a tab change clears it.
@@ -119,7 +117,6 @@ function actions($: any) {
   }
 }
 
-// The terminal draws the screens directly and does not wait on an action.
 function handlers($: any) {
   const a = actions($) as Record<string, (...args: any[]) => Promise<unknown>>
   const out: Record<string, (...args: any[]) => void> = {}
@@ -143,22 +140,18 @@ export const register: Register = on => {
     await $.command.register({ name: 'grounded', description: 'Open Grounded Engineering: practices that fit this repo' })
     await $.command.register({ name: 'grounded-skills', description: 'Open Grounded Engineering: reviewed skill repos' })
     await $.command.register({ name: LINK_COMMAND, description: 'Print a Grounded Engineering link', argumentHint: '[url]', immediate: true })
-    // A pane restored with the session can render before any command has run. This refresh
-    // is not awaited, so the session starts without waiting for it, and a render that runs
-    // before it finishes reads the repository itself.
+    // A pane restored with the session can render before any command has run. A render that
+    // runs before this finishes reads the repository itself.
     void refreshRepo($).catch(() => undefined)
     return next(e)
   })
 
   on('command.run', { command: 'grounded' }, async ($) => openOn($, 'practices', 'Grounded Engineering opened on Practices.'))
   on('command.run', { command: 'grounded-skills' }, async ($) => openOn($, 'skills', 'Grounded Engineering opened on Skill repos.'))
-  // Prints the address only when the pane draws it; anything else is not echoed.
   on('command.run', { command: LINK_COMMAND }, async ($, e) => ({ text: (await linkLine($, e.args.trim())) ?? 'Not a link the Grounded pane shows.' }))
   on('command.describe', { command: LINK_COMMAND }, async ($, e, next) => next({ ...e, isHidden: true }))
 
-  // The desktop Client posts every press it has not seen acknowledged; run each new one once, in order.
-  // A press is untrusted: one that is not a valid action is acknowledged, so the Client stops
-  // sending it, but not run; one id seen again, in this post or an earlier one, runs once.
+  // Runs each press the Client posts once, in order; one that is not a valid action is acknowledged, not run.
   on('ui.message', async ($, e, next) => {
     if (e.element !== 'grounded-app') return next(e)
     const d = e.data as { kind?: string; acts?: unknown[] } | null

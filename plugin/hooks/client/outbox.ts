@@ -28,7 +28,6 @@ export function nextPost(outbox: Msg[], s: PostState): { post: Post | null; s: P
   return { post: null, s: { ...s, sinceSend: s.sinceSend + 1 } }
 }
 
-// Drops the presses the plugin has received.
 export function unseen(outbox: Msg[], seen: string[] | undefined): Msg[] {
   const got = new Set(seen ?? [])
   return outbox.filter((m) => !got.has(m.id))
