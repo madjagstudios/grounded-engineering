@@ -29,6 +29,7 @@ export function Skills(p: SkillsProps) {
         </Box>
       </Box>
       {p.catalog.skill_repos.length === 0 && <Text>No skill repos are listed yet.</Text>}
+      {p.catalog.skill_repos.length > 0 && repos.length === 0 && <Text dimColor>No matches.</Text>}
       {repos.map((r) => Card({ ui: p.ui, isSelected: p.selected === r.id, onSelect: () => p.onSelect(r.id), model: {
         id: r.id, title: r.name, subtitle: `${r.repo.split('/')[0]} · ${r.license}`, badge: 'Reviewed', badgeColor: undefined,
         description: r.summary, calloutLabel: 'Best for', callout: r.tags.join(', '), cautionLabel: 'Watch out', caution: r.watch_out_for,

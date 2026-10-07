@@ -3,7 +3,8 @@ import type { Adoption, Signals } from './signals'
 
 type Bools = { [K in keyof Signals]: Signals[K] extends boolean ? K : never }[keyof Signals]
 
-export function rankPractices(catalog: Catalog, signals: Signals, adoption: Adoption | null): { practice: Practice; why: string }[] {
+// The pane lists the first `limit` fits; its gap count asks for them all (`Infinity`).
+export function rankPractices(catalog: Catalog, signals: Signals, adoption: Adoption | null, limit = 3): { practice: Practice; why: string }[] {
   const on = (name: string) => signals[name as Bools] === true
   const adopted = new Set(adoption?.cards ?? [])
   const byId = new Map(catalog.practices.map((p) => [p.id, p]))
@@ -15,7 +16,7 @@ export function rankPractices(catalog: Catalog, signals: Signals, adoption: Adop
   return [...picked]
     .map(([id, why]) => ({ practice: byId.get(id)!, why }))
     .sort((a, b) => Number(b.practice.validation_status === 'validated') - Number(a.practice.validation_status === 'validated') || (a.practice.id < b.practice.id ? -1 : 1))
-    .slice(0, 3)
+    .slice(0, limit)
 }
 
 const TAG_SIGNALS = new Map<string, (s: Signals) => boolean>([

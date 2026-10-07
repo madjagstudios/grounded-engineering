@@ -64,3 +64,10 @@ export function fakeRepo(on: On, files: Record<string, string>, dirs: Record<str
   on('fs.exists', async (_$, e) => ({ value: rel(e.path) in files || rel(e.path) in dirs }))
   on('fs.list', async (_$, e) => ({ value: entriesOf(dirs, rel(e.path)) }))
 }
+
+// An adoption manifest in the shape the CLI's buildManifest writes (the core tests' MANIFEST),
+// adopting the given cards under the given pack.
+export function cliManifest(packId: string, cardIds: string[]): string {
+  const cards = cardIds.map((id) => `  - id: ${id}\n    public_disposition: recommended\n    local_applicability: applies\n    source_refs:\n      - S1\n`).join('')
+  return `record_type: adoption_manifest\nmanifest_version: 1.0.0\nschema_version: 1.0.0\ngrounded_engineering_release: 0.5.0\npack_id: ${packId}\npack_version: 1.0.0\ncards:\n${cards}targets:\n  - path: AGENTS.md\n    kind: agents-md\n    precondition_sha256: absent\n    managed_block_sha256: ${'a'.repeat(64)}\nvalidation:\n  status: valid\n`
+}

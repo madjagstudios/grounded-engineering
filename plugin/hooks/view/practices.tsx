@@ -14,18 +14,20 @@ const STATUS = (s: string) => (s === 'validated' ? { badge: 'Validated', color: 
 
 export function Practices(p: PracticesProps) {
   const { Box, Text, Button, Select } = p.ui
+  const gaps = rankPractices(p.catalog, p.signals, p.adoption, Infinity).length
   const fits = rankPractices(p.catalog, p.signals, p.adoption)
   const adopted = new Set(p.adoption?.cards ?? [])
-  const summary = [p.signals.languages.join(', ') || 'no languages detected', p.signals.test_framework ?? 'no tests detected', `${fits.length} gap${fits.length === 1 ? '' : 's'}`].join(' · ')
+  const summary = [p.signals.languages.join(', ') || 'no languages detected', p.signals.test_framework ?? 'no tests detected', `${gaps} gap${gaps === 1 ? '' : 's'}`].join(' · ')
   const visible = p.catalog.practices.filter((x) => (p.category === 'All' || x.category === p.category) && matchesQuery([x.title, x.pattern, x.id], p.query))
   const model = (x: Catalog['practices'][number], why: string) => ({
-    id: x.id, title: x.title, badge: adopted.has(x.id) ? 'Already adopted' : STATUS(x.validation_status).badge,
-    badgeColor: adopted.has(x.id) ? undefined : STATUS(x.validation_status).color, description: x.pattern,
+    id: x.id, title: x.title, badge: STATUS(x.validation_status).badge, badgeColor: STATUS(x.validation_status).color, description: x.pattern,
     calloutLabel: 'Why here', callout: why, cautionLabel: 'Trade-off', caution: x.rationale,
     provenance: `${x.category} · sources ${x.source_ids.join(', ')} · ${x.id}`,
-    primary: adopted.has(x.id) ? { label: 'Already adopted', onPress: () => {} } : { label: 'Adapt to this repo', onPress: () => p.onAdapt(x.id) },
+    primary: adopted.has(x.id) ? undefined : { label: 'Adapt to this repo', onPress: () => p.onAdapt(x.id) },
     links: [{ label: 'Evidence', href: cardUrl(p.catalog, x) }],
   })
+  // The selection names one copy of a card (`fit-<id>` or `<id>`), so only that copy expands.
+  const pick = (prefix: '' | 'fit-', id: string) => ({ keyPrefix: prefix, isSelected: p.selected === `${prefix}${id}`, onSelect: () => p.onSelect(`${prefix}${id}`) })
   return (
     <Box flexDirection="column">
       <Box flexDirection="row" justifyContent="space-between">
@@ -36,12 +38,13 @@ export function Practices(p: PracticesProps) {
       {p.adoption && <Text dimColor>{`Adopted: ${p.adoption.profile ?? 'custom'} · ${p.adoption.cards.length} of ${p.catalog.practices.length}`}</Text>}
       <Text bold>Fits this repo</Text>
       {fits.length === 0 && <Text>Your repo already covers the basics.</Text>}
-      {fits.map((f) => Card({ ui: p.ui, model: model(f.practice, f.why), isSelected: p.selected === f.practice.id, onSelect: () => p.onSelect(f.practice.id), keyPrefix: 'fit-' }))}
+      {fits.map((f) => Card({ ui: p.ui, model: model(f.practice, f.why), ...pick('fit-', f.practice.id) }))}
       <Box flexDirection="row" justifyContent="space-between" marginTop={1}>
         <Text bold>All practices</Text>
         <Select key="category" value={p.category} options={[{ value: 'All', label: 'All' }, ...p.catalog.categories.map((c) => ({ value: c, label: c }))]} onSelect={p.onCategory} />
       </Box>
-      {visible.map((x) => Card({ ui: p.ui, model: model(x, x.agent_snippet ?? x.pattern), isSelected: p.selected === x.id, onSelect: () => p.onSelect(x.id) }))}
+      {visible.length === 0 && <Text dimColor>No matches.</Text>}
+      {visible.map((x) => Card({ ui: p.ui, model: model(x, x.agent_snippet ?? x.pattern), ...pick('', x.id) }))}
       <Text dimColor>Want the whole pack, kept in sync? npx grounded-engineering adopt preview --profile ai-assisted</Text>
     </Box>
   )

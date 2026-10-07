@@ -148,11 +148,24 @@ test('a missing, malformed, null or wrongly versioned catalog throws the plain e
   }
 })
 
+test('a catalog whose repository is not an https URL throws the plain error', async () => {
+  for (const repository of [undefined, 42, '', 'http://github.com/x/y', 'javascript:alert(1)', 'https://user@github.com/x', 'github.com/x/y']) {
+    const text = JSON.stringify({ ...FIXTURE_CATALOG, repository })
+    await expect(loadCatalog(fakeHost({ '/plugin/catalog.json': text }))).rejects.toThrow('catalog missing or invalid')
+  }
+})
+
 const base = { has_claude_md: true, has_agents_md: false, has_skills: false, has_large_skill_md: false, has_subagents: true, subagents_without_tool_limits: true, hooks_configured: false, sandbox_enabled: false, has_tests: true, has_ci: false, grounded_adopted: false, languages: ['typescript'], test_framework: 'vitest' }
 
 test('fits rank validated first, then by id, and show at most three of four that fire', async () => {
   const fits = rankPractices(FIXTURE_CATALOG, base, null).map((f) => f.practice.id)
   expect(fits).toEqual(['GE-AS-004', 'GE-VF-004', 'GE-TS-001'])
+})
+
+test('the uncapped ranking counts every firing card, so the summary can say 4 where the list shows 3', async () => {
+  expect(rankPractices(FIXTURE_CATALOG, base, null, Infinity).map((f) => f.practice.id)).toEqual(['GE-AS-004', 'GE-VF-004', 'GE-TS-001', 'GE-VF-001'])
+  expect(rankPractices(FIXTURE_CATALOG, base, null)).toHaveLength(3)
+  expect(rankPractices(FIXTURE_CATALOG, base, null, 2)).toHaveLength(2)
 })
 
 test('adopted cards and non-firing rules are excluded', async () => {

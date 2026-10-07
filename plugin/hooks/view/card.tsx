@@ -2,8 +2,12 @@ export type Ui = { Box: any; Text: any; Button: any; Link: any }
 export type CardModel = {
   id: string; title: string; subtitle?: string; badge: string; badgeColor: 'green' | 'yellow' | undefined
   description: string; calloutLabel: string; callout: string; cautionLabel: string; caution: string
-  provenance: string; primary: { label: string; onPress: () => void }; links: { label: string; href: string }[]
+  provenance: string; primary?: { label: string; onPress: () => void }; links: { label: string; href: string }[]
 }
+
+// A card has at most one primary action, and it is always the one that asks Claude. A card
+// with none is one the repo already adopted through the CLI, and says so in its place.
+export const ADOPTED_NOTE = 'Already adopted through the CLI'
 
 // A drawing keys each Button once, so a card drawn twice on one screen (a fit that is also in
 // the full list) takes a prefix for one of its copies.
@@ -23,7 +27,9 @@ export function Card({ ui, model, isSelected, onSelect, keyPrefix = '' }: { ui: 
       {isSelected && <Text dimColor>{model.provenance}</Text>}
       {isSelected && (
         <Box flexDirection="row" gap={1} marginTop={1}>
-          <Button key={k('primary')} variant="primary" onPress={model.primary.onPress}>{model.primary.label}</Button>
+          {model.primary
+            ? <Button key={k('primary')} variant="primary" onPress={model.primary.onPress}>{model.primary.label}</Button>
+            : <Text dimColor>{ADOPTED_NOTE}</Text>}
           {model.links.map((l) => <Link href={l.href}>{l.label}</Link>)}
         </Box>
       )}

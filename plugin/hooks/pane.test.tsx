@@ -1,5 +1,5 @@
 import { test, expect } from 'claude-code/testing'
-import { fakeRepo } from './test-support'
+import { cliManifest, fakeRepo } from './test-support'
 
 const REPO = { 'CLAUDE.md': '# r', 'package.json': JSON.stringify({ devDependencies: { vitest: '1' } }), '.claude/agents/a.md': '---\nname: a\n---\n' }
 const DIRS = { '.claude/agents': ['a.md'] }
@@ -26,8 +26,13 @@ for (const surface of ['terminal', 'desktop'] as const) {
     await $.command.run(typed('grounded'))
     const ui = await $.ui.mount({ ...PANE, surface })
     expect(await ui.find({ text: /Fits this repo/ })).toBeDefined()
-    expect(await ui.find({ key: 'fit-select-GE-AS-004' })).toBeDefined()
+    expect(await ui.find({ text: /4 gaps/ })).toBeDefined()
+    expect(await ui.findAll({ type: 'Button', text: /./ }).then((all) => all.filter((b) => b.key?.startsWith('fit-select-')).length)).toBe(3)
+    expect(await ui.find({ key: 'fit-primary-GE-AS-004' })).toBeUndefined()
     await ui.press({ key: 'fit-select-GE-AS-004' })
+    // One selection expands one card: the Fits copy, not its All-practices copy.
+    expect(await ui.find({ key: 'fit-primary-GE-AS-004' })).toBeDefined()
+    expect(await ui.find({ key: 'primary-GE-AS-004' })).toBeUndefined()
     await ui.press({ key: 'fit-primary-GE-AS-004' })
     expect(submitted).toEqual(['grounded-engineering:adapt GE-AS-004'])
     await ui.unmount()
@@ -40,6 +45,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     captureSkills(on, submitted)
     await $.command.run(typed('grounded-skills'))
     const ui = await $.ui.mount({ ...PANE, surface })
+    expect(await ui.find({ key: 'primary-GE-SR-002' })).toBeUndefined()
     await ui.press({ key: 'select-GE-SR-002' })
     // Link takes no key; only the selected card draws its links.
     const star = await ui.find({ type: 'Link', text: 'Star on GitHub' })
@@ -57,6 +63,55 @@ for (const surface of ['terminal', 'desktop'] as const) {
     await ui.input({ key: 'search', text: 'sandbox', kind: 'change' })
     expect(await ui.find({ key: 'select-GE-VF-001' })).toBeUndefined()
     expect(await ui.find({ key: 'select-GE-VF-004' })).toBeDefined()
+    expect(await ui.find({ text: 'No matches.' })).toBeUndefined()
+    await ui.input({ key: 'search', text: 'no practice says this', kind: 'change' })
+    expect(await ui.find({ text: 'No matches.' })).toBeDefined()
+    await ui.unmount()
+  })
+
+  test(`${surface}: the tab buttons switch screens, and search belongs to the screen it was typed on`, async ($, on) => {
+    fakeRepo(on, REPO, DIRS)
+    placePanes(on)
+    await $.command.run(typed('grounded'))
+    const ui = await $.ui.mount({ ...PANE, surface })
+    await ui.input({ key: 'search', text: 'sandbox', kind: 'change' })
+    expect(await ui.find({ text: 'Hand-picked skill repos' })).toBeUndefined()
+    await ui.press({ key: 'tab-skills' })
+    expect(await ui.find({ text: 'Hand-picked skill repos' })).toBeDefined()
+    expect(await ui.find({ text: /Fits this repo/ })).toBeUndefined()
+    expect((await ui.find({ key: 'search' }))?.props.value).toBe('')
+    expect(await ui.find({ key: 'select-GE-SR-001' })).toBeDefined()
+    await ui.input({ key: 'search', text: 'no repo says this', kind: 'change' })
+    expect(await ui.find({ text: 'No matches.' })).toBeDefined()
+    await ui.unmount()
+  })
+
+  test(`${surface}: a command opening the pane clears an earlier search`, async ($, on) => {
+    fakeRepo(on, REPO, DIRS)
+    placePanes(on)
+    await $.command.run(typed('grounded'))
+    const ui = await $.ui.mount({ ...PANE, surface })
+    await ui.input({ key: 'search', text: 'sandbox', kind: 'change' })
+    expect(await ui.find({ key: 'select-GE-VF-001' })).toBeUndefined()
+    await $.command.run(typed('grounded'))
+    expect((await ui.find({ key: 'search' }))?.props.value).toBe('')
+    expect(await ui.find({ key: 'select-GE-VF-001' })).toBeDefined()
+    await ui.unmount()
+  })
+
+  test(`${surface}: a card adopted through the CLI keeps its trust badge and offers no primary action`, async ($, on) => {
+    fakeRepo(on, { ...REPO, '.grounded-engineering/manifest.yaml': cliManifest('ai-assisted', ['GE-AS-004']) }, DIRS)
+    placePanes(on)
+    await $.command.run(typed('grounded'))
+    const ui = await $.ui.mount({ ...PANE, surface })
+    expect(await ui.find({ text: 'Adopted: ai-assisted · 1 of 4' })).toBeDefined()
+    expect(await ui.find({ key: 'fit-select-GE-AS-004' })).toBeUndefined()
+    await ui.press({ key: 'select-GE-AS-004' })
+    const card = await ui.find({ key: 'card-GE-AS-004' })
+    expect(card?.text).toContain('Validated')
+    expect(card?.text).toContain('Already adopted through the CLI')
+    expect(await ui.find({ key: 'primary-GE-AS-004' })).toBeUndefined()
+    expect(await ui.find({ type: 'Link', text: 'Evidence' })).toBeDefined()
     await ui.unmount()
   })
 

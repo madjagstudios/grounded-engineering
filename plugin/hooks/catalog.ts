@@ -32,6 +32,10 @@ export async function loadCatalog(host: Host): Promise<Catalog> {
     if (catalog === null || typeof catalog !== 'object' || catalog.catalog_version !== 1 || !Array.isArray(catalog.practices)) {
       throw new Error('unexpected catalog_version or shape')
     }
+    // Every Link the pane draws is built on this, and one bad href refuses the whole pane.
+    if (typeof catalog.repository !== 'string' || !/^https:\/\/[^\s@]+$/.test(catalog.repository)) {
+      throw new Error('repository is not an https URL')
+    }
     return catalog
   } catch (error) {
     throw new Error(`catalog missing or invalid: ${String(error)}`)

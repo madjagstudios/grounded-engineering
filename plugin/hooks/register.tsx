@@ -25,6 +25,7 @@ async function openOn($: any, screen: 'practices' | 'skills', text: string) {
   const host: Host = { fs: { read: (p) => $.fs.read(p).then(String), exists: (p) => $.fs.exists(p), list: (p) => $.fs.list(p) }, plugin: { root: $.plugin.root } }
   await update($, screenState, () => screen)
   await update($, selectedState, () => null)
+  await update($, queryState, () => '')
   await $.ui.open({ id: PANE, title: 'Grounded' })
   const [signals, adoption] = await Promise.all([readSignals(host), readAdoption(host)])
   await update($, signalsState, () => signals)
@@ -54,9 +55,10 @@ export const register: Register = on => {
     // Decision D4: the plugin's skills run as commands, only from a Button's onPress.
     const runSkill = (skill: 'adapt' | 'explain', id: string) => void $.command.run({ command: `grounded-engineering:${skill}`, args: id })
     return Shell({
-      ui, bodyColumns: (e.props as any)?.bodyColumns, catalog, error, screen, selected, query, category, tag, sort, showSignals, signals, adoption,
+      ui, bodyColumns: e.props.bodyColumns, catalog, error, screen, selected, query, category, tag, sort, showSignals, signals, adoption,
       on: {
-        tab: (id) => { void update($, screenState, () => id); void update($, selectedState, () => null) },
+        // Search belongs to the screen it was typed on, so a tab change clears it.
+        tab: (id) => { void update($, screenState, () => id); void update($, selectedState, () => null); void update($, queryState, () => '') },
         search: (q) => void update($, queryState, () => q),
         select: (id) => void update($, selectedState, (cur) => (cur === id ? null : id)),
         category: (c) => void update($, categoryState, () => c),
