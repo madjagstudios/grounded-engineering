@@ -1,10 +1,10 @@
-import type { Catalog, Practice, SkillRepo } from './catalog'
+import type { FitRule, SkillRepo } from './catalog'
 import { SIGNAL_NAMES, type Adoption, type Signals } from './signals'
 
 type Bools = { [K in keyof Signals]: Signals[K] extends boolean ? K : never }[keyof Signals]
 
 // The pane lists the first `limit` fits; its gap count asks for them all (`Infinity`).
-export function rankPractices(catalog: Catalog, signals: Signals, adoption: Adoption | null, limit = 3): { practice: Practice; why: string }[] {
+export function rankPractices<P extends { id: string; validation_status: string }>(catalog: { practices: P[]; fit_rules: FitRule[] }, signals: Signals, adoption: Adoption | null, limit = 3): { practice: P; why: string }[] {
   const on = (name: string) => signals[name as Bools] === true
   const adopted = new Set(adoption?.cards ?? [])
   const byId = new Map(catalog.practices.map((p) => [p.id, p]))
