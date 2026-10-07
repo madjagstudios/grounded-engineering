@@ -1,0 +1,15 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-016
+name: Ponytail
+repo: DietrichGebert/ponytail
+license: MIT
+pinned_commit: '552acd5efd0aeae2583a12efe39373d2f076f25e'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED]
+tags: [review]
+summary: One always-on prompt that pushes the agent to write less code, reusing what exists and preferring the standard library and platform features. Adds commands to review a diff for over-engineering and to track deferred shortcuts.
+watch_out_for: Hooks run at session start and on every prompt, keep a flag file under ~/.claude, and once nudge the agent to edit settings.json for a status line. The README's savings figures come from the author's own benchmark.
+install: "/plugin marketplace add DietrichGebert/ponytail, then /plugin install ponytail@ponytail"

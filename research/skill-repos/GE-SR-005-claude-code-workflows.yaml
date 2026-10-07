@@ -1,0 +1,15 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-005
+name: claude-code-workflows
+repo: wshobson/agents
+license: MIT
+pinned_commit: '46891e7e60da0e52baf1050b7b6391b64e84c6d9'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED, TRADITIONAL]
+tags: [testing, review, python, devops]
+summary: A marketplace of 94 plugins, each bundling subagents, skills and commands for one area such as Python, code review or security scanning, so you install only the area you need.
+watch_out_for: It is very large and partly outside engineering (marketing, HR, trading), so install plugin by plugin. The protect-mcp and review-agent-governance plugins run an npx package from hooks on every tool call.
+install: /plugin marketplace add wshobson/agents, then /plugin install python-development@claude-code-workflows

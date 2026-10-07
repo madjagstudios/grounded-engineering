@@ -1,0 +1,15 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-011
+name: TerraShark
+repo: LukasNiessen/terrashark
+license: MIT
+pinned_commit: '21f2c18b912818b6a8e2b7bdbf25a275ecb894b1'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED]
+tags: [devops, security]
+summary: A single Terraform and OpenTofu skill that walks through a failure-mode workflow (state identity churn, secret exposure, blast radius, CI drift, compliance gates) and loads reference notes on demand.
+watch_out_for: One skill plus reference docs and no scripts, so it guides the agent rather than checking anything. It follows HashiCorp's recommended practices and prefers pinned registry modules, which may not match your house style.
+install: /plugin marketplace add LukasNiessen/terrashark, then /plugin install terrashark

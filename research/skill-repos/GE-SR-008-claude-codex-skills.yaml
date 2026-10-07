@@ -1,0 +1,15 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-008
+name: Claude-Codex Skills
+repo: levnikolaevich/claude-code-skills
+license: MIT
+pinned_commit: '0ce87969906ac3c00947298ee2127d9e7cd466d8'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED, TRADITIONAL]
+tags: [planning, review, testing, devops]
+summary: Thirty-one standalone skills in eight plugins for planning, scoped implementation, audits and delivery, each written as a checklist that demands evidence before the agent reports a task as done.
+watch_out_for: Each skill is long and formal, so context cost is real. The delivery plugin has skills that commit, push, release and deploy; they ask for explicit authorization, but read them before installing.
+install: /plugin marketplace add levnikolaevich/claude-code-skills, then /plugin install implementation-suite@levnikolaevich-skills-marketplace

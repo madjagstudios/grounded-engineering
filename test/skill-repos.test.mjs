@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { cpSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,6 +23,7 @@ function fixture(records) {
   const root = mkdtempSync(join(tmpdir(), 'ge-sr-'));
   cpSync(join(repoRoot, 'research'), join(root, 'research'), { recursive: true });
   const dir = join(root, 'research', 'skill-repos');
+  rmSync(dir, { recursive: true, force: true }); // only this test's records, not the real shelf
   mkdirSync(dir, { recursive: true });
   mkdirSync(join(root, 'practices'), { recursive: true });
   for (const r of records) writeFileSync(join(dir, `${r.id}-${r.name}.yaml`), yaml(r));

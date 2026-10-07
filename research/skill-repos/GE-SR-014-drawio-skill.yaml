@@ -1,0 +1,15 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-014
+name: drawio-skill
+repo: Agents365-ai/drawio-skill
+license: MIT
+pinned_commit: '88fd9236bc532aac4c25cb008a8bd59bc650b904'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED, TRADITIONAL, PUBLICATION]
+tags: [docs, design, devops]
+summary: One skill that turns a prompt, Terraform, Kubernetes, SQL or OpenAPI input into an editable draw.io diagram, with checks and incremental sync that keeps manual layout.
+watch_out_for: It bundles about 45 Python scripts, and image export needs the draw.io desktop CLI. Icons come from CDNs or remote URLs, and diagrams built from live infrastructure snapshots can carry sensitive values.
+install: "npx skills add Agents365-ai/drawio-skill -g, or git clone the repo to ~/.claude/skills/drawio-skill (also needs the draw.io desktop CLI for exports)"

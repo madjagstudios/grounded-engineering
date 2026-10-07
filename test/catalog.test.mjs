@@ -68,6 +68,7 @@ test('only listed skill repos are projected, with exactly the display fields', (
     for (const dir of ['research', 'practices', 'plugin']) cpSync(join(root, dir), join(tmp, dir), { recursive: true });
     cpSync(join(root, 'package.json'), join(tmp, 'package.json'));
     const dir = join(tmp, 'research', 'skill-repos');
+    rmSync(dir, { recursive: true, force: true }); // only this test's records, not the real shelf
     mkdirSync(dir, { recursive: true });
     const base = {
       record_type: 'skill_repo', schema_version: '1.0.0', license: 'MIT', pinned_commit: 'c'.repeat(40),

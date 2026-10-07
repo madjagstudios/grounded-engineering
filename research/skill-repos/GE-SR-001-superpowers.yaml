@@ -1,0 +1,15 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-001
+name: Superpowers
+repo: obra/superpowers
+license: MIT
+pinned_commit: '8ca22dba9a94f28898bbce59f2537ff4d87c747d'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED]
+tags: [planning, testing, review, debugging]
+summary: A development method for coding agents. Brainstorm a design, write a plan, run it through subagents with TDD and review gates, then finish the branch. Debugging and verification skills are included.
+watch_out_for: Its workflows are mandatory by design, and a session-start hook injects the using-superpowers skill into every session. The optional brainstorming visual companion pings the authors' site with your version unless you opt out.
+install: "/plugin install superpowers@claude-plugins-official, or /plugin marketplace add obra/superpowers-marketplace then /plugin install superpowers@superpowers-marketplace"

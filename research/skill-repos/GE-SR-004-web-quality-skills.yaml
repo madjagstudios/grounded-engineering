@@ -1,0 +1,15 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-004
+name: Web Quality Skills
+repo: addyosmani/web-quality-skills
+license: MIT
+pinned_commit: 'afa8da942115f2961fdbfa80807ea0b232ff6c00'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED, TRADITIONAL]
+tags: [frontend, review]
+summary: "Six skills for web projects: a combined audit, performance, Core Web Vitals, accessibility, SEO and best practices. They prefer measuring with Lighthouse and DevTools traces before changing code."
+watch_out_for: Web front-end only. It works best with Chrome DevTools MCP; without it the skills fall back to Lighthouse CLI or static inspection, and findings from source alone are treated as hypotheses.
+install: "/plugin marketplace add addyosmani/web-quality-skills, then /plugin install web-quality-skills@addy-web-quality-skills"

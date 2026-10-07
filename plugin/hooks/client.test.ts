@@ -206,15 +206,18 @@ test('linkLabel names only the links the pane draws, and rejects near-misses', a
   }
 })
 
-test('the model built from a catalog larger than the shipped one stays under 60,000 characters', async () => {
+test('the model built from a catalog larger than the shipped one stays under 80,000 characters', async () => {
   // The kit cannot read the shipped catalog, so this one is built larger: more practices, each
-  // with longer text than any shipped card, a fit rule for each, and many described signals.
+  // with longer text than any shipped card, a fit rule for each, many described signals, and a full shelf.
   const practices = Array.from({ length: 24 }, (_, i) => ({ ...FIXTURE_CATALOG.practices[i % 4]!, id: `GE-XX-${String(i).padStart(3, '0')}`, pattern: 'p'.repeat(400), rationale: 'r'.repeat(300), agent_snippet: 's'.repeat(300) }))
   const fit_rules = practices.map((p) => ({ card: p.id, when: { all: ['has_tests'], any: [], none: ['has_ci'] }, why: 'w'.repeat(120) }))
   const signals = Array.from({ length: 13 }, (_, i) => ({ name: `signal_${i}`, type: 'boolean', description: 'd'.repeat(120) }))
-  const model = paneModelOf({ ...FIXTURE_CATALOG, practices, fit_rules, signals })
+  // A full shelf: 25 repos, every text field at its schema maximum.
+  const skill_repos = Array.from({ length: 25 }, (_, i) => ({ ...FIXTURE_CATALOG.skill_repos[i % 2]!, id: `GE-SR-${String(i).padStart(3, '0')}`, name: 'n'.repeat(60), summary: 's'.repeat(240), watch_out_for: 'w'.repeat(240), install: 'i'.repeat(200) }))
+  const model = paneModelOf({ ...FIXTURE_CATALOG, practices, fit_rules, signals, skill_repos })
   expect(model.catalog?.practices.length).toBe(24)
-  expect(JSON.stringify(model).length).toBeLessThan(60000)
+  expect(model.catalog?.skill_repos.length).toBe(25)
+  expect(JSON.stringify(model).length).toBeLessThan(80000) // the engine caps Client props at 100,000
 })
 
 // The model the plugin hands the Client, with the module state at its fullest.

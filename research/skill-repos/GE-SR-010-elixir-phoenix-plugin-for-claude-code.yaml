@@ -1,0 +1,15 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-010
+name: Elixir Phoenix Plugin for Claude Code
+repo: oliver-kriska/claude-elixir-phoenix
+license: MIT
+pinned_commit: '9767a82d24ddddad553e85f88efc2869a7fd7d88'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED]
+tags: [planning, review, testing, debugging]
+summary: A plugin for Elixir, Phoenix, LiveView, Ecto and Oban projects. It adds plan, work, verify and review commands, specialist reviewer agents, and Iron Law rules for common LiveView and Ecto mistakes.
+watch_out_for: "Opinionated and hook-heavy: hooks run on edits, prompts and Bash commands, and some deny commands such as mix ecto.reset or force pushes. They only act in repos with a mix.exs, and full features need Claude Code."
+install: /plugin marketplace add oliver-kriska/claude-elixir-phoenix, then /plugin install elixir-phoenix

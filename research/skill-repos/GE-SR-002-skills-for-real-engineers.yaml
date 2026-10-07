@@ -1,0 +1,15 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-002
+name: Skills For Real Engineers
+repo: mattpocock/skills
+license: MIT
+pinned_commit: 'f3fc5632f401156837ee3872f14fe33ccf1024ea'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED, TRADITIONAL]
+tags: [planning, testing, review, debugging]
+summary: Skills for the day-to-day loop of working with an agent. A grilling interview before work, specs and tickets, TDD at agreed seams, bug diagnosis, two-axis code review and a shared domain glossary.
+watch_out_for: Run /setup-matt-pocock-skills once per repo before the engineering skills; it asks about your issue tracker and edits your CLAUDE.md or AGENTS.md. Plugin updates can lag the repo by days or weeks.
+install: "/plugin install mattpocock-skills (official marketplace), then run /setup-matt-pocock-skills in each repo"
