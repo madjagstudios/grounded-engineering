@@ -1,5 +1,5 @@
 import type { Catalog, Practice, SkillRepo } from './catalog'
-import type { Adoption, Signals } from './signals'
+import { SIGNAL_NAMES, type Adoption, type Signals } from './signals'
 
 type Bools = { [K in keyof Signals]: Signals[K] extends boolean ? K : never }[keyof Signals]
 
@@ -9,7 +9,10 @@ export function rankPractices(catalog: Catalog, signals: Signals, adoption: Adop
   const adopted = new Set(adoption?.cards ?? [])
   const byId = new Map(catalog.practices.map((p) => [p.id, p]))
   const picked = new Map<string, string>()
+  const known = new Set<string>(SIGNAL_NAMES)
   for (const rule of catalog.fit_rules) {
+    // A rule naming a signal this mod does not read cannot be judged, so it never fires.
+    if (![...rule.when.all, ...rule.when.any, ...rule.when.none].every((name) => known.has(name))) continue
     const fires = rule.when.all.every(on) && (rule.when.any.length === 0 || rule.when.any.some(on)) && !rule.when.none.some(on)
     if (fires && !picked.has(rule.card) && !adopted.has(rule.card) && byId.has(rule.card)) picked.set(rule.card, rule.why)
   }

@@ -29,13 +29,17 @@ export type Catalog = {
 export async function loadCatalog(host: Host): Promise<Catalog> {
   try {
     const catalog = JSON.parse(String(await host.fs.read(`${host.plugin.root}/catalog.json`))) as Catalog | null
-    if (catalog === null || typeof catalog !== 'object' || catalog.catalog_version !== 1 || !Array.isArray(catalog.practices)) {
+    if (catalog === null || typeof catalog !== 'object' || catalog.catalog_version !== 1) {
       throw new Error('unexpected catalog_version or shape')
+    }
+    for (const field of ['practices', 'fit_rules', 'skill_repos', 'categories', 'signals', 'sources'] as const) {
+      if (!Array.isArray(catalog[field])) throw new Error(`${field} is not a list`)
     }
     // Every Link the pane draws is built on this, and one bad href refuses the whole pane.
     if (typeof catalog.repository !== 'string' || !/^https:\/\/[^\s@]+$/.test(catalog.repository)) {
       throw new Error('repository is not an https URL')
     }
+    if (new URL(catalog.repository).href !== catalog.repository) throw new Error('repository is not in normal URL form')
     return catalog
   } catch (error) {
     throw new Error(`catalog missing or invalid: ${String(error)}`)

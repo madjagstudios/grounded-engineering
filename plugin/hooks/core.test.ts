@@ -155,6 +155,22 @@ test('a catalog whose repository is not an https URL throws the plain error', as
   }
 })
 
+for (const field of ['fit_rules', 'skill_repos', 'categories', 'signals', 'sources'] as const) {
+  test(`a catalog whose ${field} is not an array throws the plain error`, async () => {
+    for (const value of [undefined, null, {}, 'x']) {
+      const text = JSON.stringify({ ...FIXTURE_CATALOG, [field]: value })
+      await expect(loadCatalog(fakeHost({ '/plugin/catalog.json': text }))).rejects.toThrow('catalog missing or invalid')
+    }
+  })
+}
+
+test('a catalog whose repository is not in normal URL form throws the plain error', async () => {
+  for (const repository of ['https://GitHub.com/x/y', 'https://github.com:443/x/y', 'https://github.com/a/../b', 'https://github.com/x y', 'https://github.com']) {
+    const text = JSON.stringify({ ...FIXTURE_CATALOG, repository })
+    await expect(loadCatalog(fakeHost({ '/plugin/catalog.json': text }))).rejects.toThrow('catalog missing or invalid')
+  }
+})
+
 const base = { has_claude_md: true, has_agents_md: false, has_skills: false, has_large_skill_md: false, has_subagents: true, subagents_without_tool_limits: true, hooks_configured: false, sandbox_enabled: false, has_tests: true, has_ci: false, grounded_adopted: false, languages: ['typescript'], test_framework: 'vitest' }
 
 test('fits rank validated first, then by id, and show at most three of four that fire', async () => {
@@ -201,6 +217,15 @@ test('a later rule supplies the why when the earlier one does not fire', async (
 test('a rule naming a card that is not in the catalog is ignored', async () => {
   const catalog = withRules([{ card: 'GE-XX-999', when: { all: [], any: [], none: [] }, why: 'ghost' }])
   expect(rankPractices(catalog, base, null)).toEqual([])
+})
+
+test('a rule naming a signal the mod does not read is skipped, wherever it names it', async () => {
+  const when = { all: ['has_tests'], any: [], none: [] }
+  for (const extra of [{ all: ['has_tests', 'has_typo'] }, { any: ['has_typo', 'has_tests'] }, { none: ['has_typo'] }]) {
+    const catalog = withRules([{ card: 'GE-VF-001', when: { ...when, ...extra }, why: 'unknown' }])
+    expect(rankPractices(catalog, base, null)).toEqual([])
+  }
+  expect(rankPractices(withRules([{ card: 'GE-VF-001', when, why: 'known' }]), base, null).map((f) => f.why)).toEqual(['known'])
 })
 
 test('skill repos sort by fit, then name', async () => {
