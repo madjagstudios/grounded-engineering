@@ -16,6 +16,7 @@ declare module 'claude-code' {
       tag: string
       sort: 'fit' | 'name'
       showSignals: boolean
+      collapsed: { fits: boolean; all: boolean }
       signals: GroundedSignals | null
       adoption: { profile: string | null; cards: string[] } | null
     }

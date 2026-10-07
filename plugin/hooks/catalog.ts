@@ -43,6 +43,6 @@ export async function loadCatalog(host: Host): Promise<Catalog> {
   }
 }
 
-export const cardUrl = (catalog: Catalog, practice: Practice) =>
+export const cardUrl = (catalog: { repository: string; package_version: string }, practice: { path: string }) =>
   `${catalog.repository}/blob/v${catalog.package_version}/${practice.path}`
 export const repoUrl = (repo: SkillRepo) => `https://github.com/${repo.repo}`

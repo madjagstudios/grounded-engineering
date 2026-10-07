@@ -1,0 +1,64 @@
+// The desktop pane: draws the shared screens from the model it is given and shows a press at
+// once; ./outbox says how presses reach the plugin.
+import { paneScreen, HANDLER_NAMES } from '../screens'
+import type { PaneModel } from '../model'
+import { PALETTE } from '../theme'
+import { ackOf, enqueue, nextPost, starting, unfinished, unseen, type PostState } from './outbox'
+import { applyLocal, LOCAL_NAMES, type Msg } from './apply'
+import { clientLook } from './look'
+
+const CHARS_PER_CELL = 1.25
+
+type Outbox = { cid: string; outbox: Msg[]; local: Msg[]; seq: number }
+type Local = { box: Outbox; n: number }
+
+export default function GroundedApp(model: PaneModel, surface: any) {
+  let created: Outbox | null = null
+  if (surface.state === undefined) {
+    // First call: start the timers. State is set from a timer or a press, never while drawing.
+    const box: Outbox = { cid: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, outbox: [], local: [], seq: 0 }
+    created = box
+    // Every draw before the first tick starts its own timers. Only the box the state holds is in
+    // use; a timer holding another box stops itself and its twin.
+    let sent: PostState = { syncDue: false, sentKey: '', sinceSend: 0 }
+    const stopPoster = surface.every(60, () => {
+      if (surface.state !== undefined && (surface.state as Local).box !== box) { stopPoster(); stopSync(); return }
+      if (surface.state === undefined) surface.setState({ box, n: 0 })
+      const r = nextPost(box.outbox, sent)
+      sent = r.s
+      if (r.post) surface.post(r.post)
+    })
+    // Once a second a sync is due, which brings what changed outside the pane.
+    const stopSync = surface.every(1000, () => {
+      sent = { ...sent, syncDue: true }
+    })
+  }
+  const local = surface.state as Local | undefined
+  const box = local?.box ?? created
+  if (box) {
+    const ack = ackOf(model.acks, box.cid)
+    box.outbox = unseen(box.outbox, ack)
+    box.local = unfinished(box.local, ack)
+  }
+  const send = (name: string, args: unknown[]) => {
+    const b = (surface.state as Local | undefined)?.box ?? box
+    if (!b) return
+    b.seq += 1
+    const msg: Msg = { cid: b.cid, seq: b.seq, name, args }
+    b.outbox = enqueue(b.outbox, msg)
+    b.local = [...b.local, msg]
+    surface.setState({ box: b, n: b.seq }) // a distinct state per press, so the Client redraws
+  }
+  const go: Record<string, (...args: unknown[]) => void> = {}
+  for (const name of HANDLER_NAMES) go[name] = (...args: unknown[]) => send(name, args)
+  const waiting = box?.local ?? []
+  const shown = waiting.filter((m) => LOCAL_NAMES.has(m.name)).reduce(applyLocal, model)
+  const { Box, Text } = surface.elements
+  const columns = surface.columns ?? 0
+  return (
+    <Box flexDirection="column" gap={1}>
+      {starting(waiting) ? <Text color={PALETTE.dim}>Starting…</Text> : null}
+      {paneScreen(clientLook(surface.elements, PALETTE, go), shown, go as any, PALETTE, columns, CHARS_PER_CELL)}
+    </Box>
+  )
+}
