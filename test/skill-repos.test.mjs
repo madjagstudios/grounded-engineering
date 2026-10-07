@@ -53,8 +53,16 @@ test('listed rejects non-license values in any letter case', () => {
   }
 });
 
-test('listed accepts SPDX-shaped licenses', () => {
-  for (const license of ['Apache-2.0', 'MIT OR Apache-2.0', 'GPL-2.0-or-later WITH Classpath-exception-2.0', 'LGPL-3.0+']) {
+test('listed rejects identifiers that are not on the SPDX list', () => {
+  for (const license of ['FooBar-9', 'mit', 'MIT OR FooBar-9', 'MIT WITH Not-An-Exception']) {
+    const { errors } = loadSkillRepos(fixture([record({ license })]));
+    assert.ok(errors.some((e) => /license/.test(e)), `${license}: ${errors.join('\n')}`);
+  }
+});
+
+test('listed accepts valid SPDX expressions', () => {
+  for (const license of ['Apache-2.0', 'MIT OR Apache-2.0', '(MIT OR Apache-2.0)', 'LicenseRef-Custom',
+    'GPL-2.0-or-later WITH Classpath-exception-2.0', 'LGPL-3.0+', '(MIT AND BSD-3-Clause) OR Apache-2.0']) {
     const { errors } = loadSkillRepos(fixture([record({ license })]));
     assert.deepEqual(errors, [], license);
   }

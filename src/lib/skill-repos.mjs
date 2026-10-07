@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, join, relative } from 'node:path';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { parse } from 'yaml';
+import parseSpdx from 'spdx-expression-parse';
 
 export function loadSkillRepos(root) {
   const dir = join(root, 'research', 'skill-repos');
@@ -22,6 +23,12 @@ export function loadSkillRepos(root) {
     if (!validate(record)) {
       for (const e of validate.errors ?? []) errors.push(`${shown}${e.instancePath || ''}: ${e.message}`);
       continue;
+    }
+    // The schema only requires a string; the SPDX license and exception lists
+    // decide whether a listed record's license is real.
+    if (record.status === 'listed') {
+      try { parseSpdx(record.license); }
+      catch { errors.push(`${shown}/license: not a valid SPDX license expression: ${record.license}`); }
     }
     if (!basename(name).startsWith(`${record.id}-`)) errors.push(`${shown}: file name must start with ${record.id}-`);
     if (ids.has(record.id)) errors.push(`${shown}: duplicate id ${record.id} (also ${ids.get(record.id)})`);

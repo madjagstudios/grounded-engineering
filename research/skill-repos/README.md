@@ -7,7 +7,8 @@ traffic go to the authors.
 - File name: `GE-SR-NNN-<name>.yaml`; schema: [`../skill-repo-schema.yaml`](../skill-repo-schema.yaml).
 - `summary` and `watch_out_for` are our own words, at most two sentences each.
 - `pinned_commit` is the 40-character commit reviewed; quote it if it is all digits.
-- `listed` requires a real SPDX license. Star counts are never recorded.
+- `listed` requires a valid SPDX license expression, such as `MIT` or
+  `(MIT OR Apache-2.0)`. Star counts are never recorded.
 - Candidates come from `npm run discover:skill-repos`, which only prints. A
   person reads the repository and writes the record.
 - Run discovery with `GITHUB_TOKEN` set; anonymous GitHub requests are limited
