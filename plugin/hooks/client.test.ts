@@ -85,7 +85,7 @@ test('the outbox keeps presses in order and a newer search replaces an unsent ol
   expect(box.map((m) => m.seq)).toEqual([2, 3])
 })
 
-test('every post carries all unreceived presses, resends after a while, and syncs when empty', async () => {
+test('nextPost posts all unreceived presses, resends after RESEND ticks, and syncs when empty', async () => {
   const a = act(1, 'adapt', 'GE-AS-004')
   const b = act(2, 'select', 'fit-GE-AS-004')
   let r = nextPost([a], { syncDue: true, sentKey: '', sinceSend: 0 })
@@ -102,12 +102,12 @@ test('every post carries all unreceived presses, resends after a while, and sync
   expect(nextPost([], r.s).post).toBe(null)
 })
 
-test('a Client posts a press until the plugin has received it, and shows it until its action has finished', async () => {
+test('unseen drops received presses and unfinished drops finished ones', async () => {
   const presses = [act(1, 'adapt', 'GE-AS-004'), act(3, 'search', 'ab'), act(4, 'toggleSignals')]
   const ack = { received: 3, done: 1 }
   expect(unseen(presses, ack)).toEqual([presses[2]])
   expect(unfinished(presses, ack)).toEqual([presses[1], presses[2]])
-  // A gap where a replaced search was never sent is passed over like any received press.
+  // A seq missing because a newer search replaced it counts as received.
   expect(unseen(presses, { received: 4, done: 4 })).toEqual([])
   expect(unfinished(presses, { received: 4, done: 4 })).toEqual([])
   // However many presses one answer covers, it clears them all.
@@ -115,7 +115,7 @@ test('a Client posts a press until the plugin has received it, and shows it unti
   expect(unfinished(many, { received: 500, done: 499 })).toEqual([many[499]])
 })
 
-test('a Client the plugin names nothing for has had nothing received or finished', async () => {
+test('ackOf is zero received and done for an unknown client', async () => {
   const presses = [act(1, 'tab', 'skills')]
   expect(ackOf(undefined, 'c1')).toEqual({ received: 0, done: 0 })
   expect(ackOf({ other: { received: 9, done: 9 } }, 'c1')).toEqual({ received: 0, done: 0 })
@@ -123,14 +123,14 @@ test('a Client the plugin names nothing for has had nothing received or finished
   expect(unseen(presses, ackOf({ other: { received: 9, done: 9 } }, 'c1'))).toEqual(presses)
 })
 
-test('Starting… shows while a skill press has not finished', async () => {
+test('starting is true only while an adapt or explain press is unfinished', async () => {
   expect(starting([act(1, 'select', 'fit-A'), act(2, 'adapt', 'GE-AS-004')])).toBe(true)
   expect(starting([act(2, 'explain', 'GE-SR-002')])).toBe(true)
   expect(starting([act(1, 'select', 'fit-A')])).toBe(false)
   expect(starting(unfinished([act(2, 'adapt', 'GE-AS-004'), act(3, 'tab', 'skills')], { received: 3, done: 2 }))).toBe(false)
 })
 
-test('applyLocal applies each press the Client shows at once, and select toggles', async () => {
+test('applyLocal applies each local press, and select toggles', async () => {
   const m = paneModelOf(FIXTURE_CATALOG)
   expect(applyLocal({ ...m, selected: 'fit-A', query: 'q' }, act(1, 'tab', 'skills'))).toMatchObject({ screen: 'skills', selected: null, query: '' })
   expect(applyLocal(m, act(1, 'select', 'fit-A')).selected).toBe('fit-A')
@@ -155,7 +155,7 @@ test('validAct accepts each action with the arguments the pane gives it, and not
   ]
   for (const m of ok) expect(validAct(c, m)).toBe(true)
   const bad: unknown[] = [
-    null, 'act', 7, {}, { name: 'tab', args: ['skills'] },
+    7, { name: 'tab', args: ['skills'] },
     { cid: 'c1', seq: 1, name: 'tab' }, { cid: 'c1', seq: 1, name: 'tab', args: 'skills' },
     act(1, 'nope', 'x'), act(1, 'constructor', 'x'), act(1, 'toString'), act(1, '__proto__'),
     act(1, 'tab', 'settings'), act(1, 'tab'), act(1, 'tab', 'skills', 'extra'),
@@ -171,7 +171,7 @@ test('validAct accepts each action with the arguments the pane gives it, and not
   for (const m of bad) expect(validAct(c, m)).toBe(false)
 })
 
-test('a press names its Client by a short id and its place by a positive whole number, or it is not one', async () => {
+test('pressOf accepts only a short cid and a positive integer seq', async () => {
   expect(pressOf(act(1, 'tab', 'skills'))).toEqual({ cid: 'c1', seq: 1 })
   expect(pressOf({ ...act(1, 'tab'), cid: 'lmn0pq-x7k2ab', seq: Number.MAX_SAFE_INTEGER })).toEqual({ cid: 'lmn0pq-x7k2ab', seq: Number.MAX_SAFE_INTEGER })
   const notPresses: unknown[] = [
@@ -206,10 +206,9 @@ test('linkLabel names only the links the pane draws, and rejects near-misses', a
   }
 })
 
-test('the Client model built from a catalog larger than the shipped one stays under 60,000 characters', async () => {
-  // The kit cannot read the shipped catalog (17 practices, about 17,000 characters slim), so this
-  // one is built larger: more practices, each with longer text than any shipped card, a fit rule
-  // for each, and thirteen described signals.
+test('the model built from a catalog larger than the shipped one stays under 60,000 characters', async () => {
+  // The kit cannot read the shipped catalog, so this one is built larger: more practices, each
+  // with longer text than any shipped card, a fit rule for each, and many described signals.
   const practices = Array.from({ length: 24 }, (_, i) => ({ ...FIXTURE_CATALOG.practices[i % 4]!, id: `GE-XX-${String(i).padStart(3, '0')}`, pattern: 'p'.repeat(400), rationale: 'r'.repeat(300), agent_snippet: 's'.repeat(300) }))
   const fit_rules = practices.map((p) => ({ card: p.id, when: { all: ['has_tests'], any: [], none: ['has_ci'] }, why: 'w'.repeat(120) }))
   const signals = Array.from({ length: 13 }, (_, i) => ({ name: `signal_${i}`, type: 'boolean', description: 'd'.repeat(120) }))

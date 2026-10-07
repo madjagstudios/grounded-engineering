@@ -261,7 +261,7 @@ test('desktop: a collapsed fit says what the practice is, and an opened one does
   await ui.unmount()
 })
 
-test('desktop: opening a fit shows the tile at once, before the plugin hears the press, and a sync confirms it', async ($, on) => {
+test('desktop: opening a fit shows at once and a later sync confirms it', async ($, on) => {
   const submitted: string[] = []
   captureSkills(on, submitted)
   const ui = await mountDesktop($, on)
@@ -390,7 +390,7 @@ test('desktop: the same press posted twice in one batch runs once', async ($, on
   await ui.unmount()
 })
 
-test('desktop: a press with arguments the pane never sends is acknowledged but not run, and the pane still draws', async ($, on) => {
+test('desktop: invalid presses are acknowledged, not run', async ($, on) => {
   const submitted: string[] = []
   captureSkills(on, submitted)
   const ui = await mountDesktop($, on)
@@ -400,7 +400,7 @@ test('desktop: a press with arguments the pane never sends is acknowledged but n
     { cid: 'test', seq: 3, name: 'adapt', args: ['GE-NOPE-001'] },
     { cid: 'test', seq: 4, name: 'toggleLane', args: ['__proto__'] },
     { cid: 'test', seq: 5, name: 'select', args: [{ a: 1 }] },
-    // Not numbered or not named as a Client numbers and names its presses: ignored.
+    // Malformed seq or cid: ignored, not acknowledged.
     { cid: 'test', seq: 6.5, name: 'tab', args: ['skills'] },
     { cid: 'x'.repeat(41), seq: 7, name: 'tab', args: ['skills'] },
     { seq: 8, name: 'tab', args: ['skills'] },
@@ -438,7 +438,8 @@ const slowWrites = (on: any, key: string) => {
 const detailsLabel = async (ui: any) => ((await look(ui, { key: 'details' })) as any).props.label as string
 const searchValue = async (ui: any) => ((await look(ui, { key: 'search' })) as any).props.value as string
 
-test('desktop: 51 Details presses answered late leave the pane showing what the plugin holds', async ($, on) => {
+// Counts past 50 and 100: an earlier version kept only the last 50 finished and 100 received ids.
+test('desktop: many Details presses answered late all clear together', async ($, on) => {
   const slow = slowWrites(on, 'showSignals')
   const ui = await mountDesktop($, on)
   slow.hold()
@@ -454,7 +455,7 @@ test('desktop: 51 Details presses answered late leave the pane showing what the 
   await ui.unmount()
 })
 
-test('desktop: a slow search followed by 51 presses and more typing shows the query the plugin holds', async ($, on) => {
+test('desktop: a slow search followed by many presses keeps the full query', async ($, on) => {
   const slow = slowWrites(on, 'query')
   const ui = await mountDesktop($, on)
   slow.hold()
@@ -471,7 +472,7 @@ test('desktop: a slow search followed by 51 presses and more typing shows the qu
   await ui.unmount()
 })
 
-test('desktop: more than 100 presses before the plugin receives them run once each, and Starting… clears', async ($, on) => {
+test('desktop: many presses posted before the plugin receives any each run once and "Starting…" clears', async ($, on) => {
   const submitted: string[] = []
   captureSkills(on, submitted)
   const counted = countPosts(on)

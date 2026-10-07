@@ -18,9 +18,8 @@ export default function GroundedApp(model: PaneModel, surface: any) {
     // First call: start the timers. State is set from a timer or a press, never while drawing.
     const box: Outbox = { cid: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`, outbox: [], local: [], seq: 0 }
     created = box
-    // Draws before the first tick each start timers, since state is only set on that tick.
-    // The box the state holds is the one in use; a timer whose box is not it stops itself
-    // and its twin, so one poster and one sync timer remain.
+    // Every draw before the first tick starts its own timers. Only the box the state holds is in
+    // use; a timer holding another box stops itself and its twin.
     let sent: PostState = { syncDue: false, sentKey: '', sinceSend: 0 }
     const stopPoster = surface.every(60, () => {
       if (surface.state !== undefined && (surface.state as Local).box !== box) { stopPoster(); stopSync(); return }
@@ -48,7 +47,7 @@ export default function GroundedApp(model: PaneModel, surface: any) {
     const msg: Msg = { cid: b.cid, seq: b.seq, name, args }
     b.outbox = enqueue(b.outbox, msg)
     b.local = [...b.local, msg]
-    surface.setState({ box: b, n: b.seq })
+    surface.setState({ box: b, n: b.seq }) // a distinct state per press, so the Client redraws
   }
   const go: Record<string, (...args: unknown[]) => void> = {}
   for (const name of HANDLER_NAMES) go[name] = (...args: unknown[]) => send(name, args)

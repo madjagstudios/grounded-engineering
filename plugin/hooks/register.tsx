@@ -53,14 +53,11 @@ async function catalogFor($: any): Promise<{ catalog: Catalog | null; error: str
   } catch (err) { return { catalog: null, error: (err as Error).message } }
 }
 
-// What the plugin has done with each desktop Client's presses, by Client id. Posts carry a
-// Client's presses in order, so the highest number received and finished says it all. Kept for
-// the 16 Clients that posted last; one dropped and posting again starts from nothing, and its
-// presses received but not yet acknowledged to it would run again, so the bound sits far above
-// the Clients one session draws (a Client drawn again gets a new id).
+// Acks for the 16 most recently posting clients. Evicting a live client would rerun its
+// unacknowledged presses; a redrawn Client gets a new cid, so 16 is far more than a session uses.
 const CLIENTS = 16
 const acks = new Map<string, Ack>()
-function ackOf(cid: string): Ack {
+function touchAck(cid: string): Ack {
   const ack = acks.get(cid) ?? { received: 0, done: 0 }
   acks.delete(cid)
   acks.set(cid, ack)
@@ -170,7 +167,7 @@ export const register: Register = on => {
     for (const a of posted) {
       const press = pressOf(a)
       if (!press) continue
-      const ack = ackOf(press.cid)
+      const ack = touchAck(press.cid)
       if (press.seq <= ack.received) continue
       ack.received = press.seq
       const act = validAct(catalog, a) ? a : null

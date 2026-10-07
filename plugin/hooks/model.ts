@@ -8,8 +8,8 @@ export type SlimCatalog = {
   practices: SlimPractice[]; skill_repos: SkillRepo[]; fit_rules: FitRule[]
 }
 export type Screen = 'practices' | 'skills'
-// What the plugin has done with one Client's presses: the highest seq received, and the highest
-// whose action has finished.
+// Per client: the highest `seq` received, and the highest whose action has finished. Posts carry
+// a client's presses in `seq` order, so these two numbers are enough.
 export type Ack = { received: number; done: number }
 export type Acks = Record<string, Ack>
 export type PaneModel = {
