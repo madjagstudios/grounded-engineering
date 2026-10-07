@@ -13,7 +13,10 @@ records the state of the catalog and tooling at that tag.
 - Claude Code plugin (`plugin/`), installable from this repository as a
   marketplace: a read-only pane with Practices and Skill repos screens, "Fits
   this repo" suggestions from repository signals, and `adapt` and `explain`
-  skills that propose changes for approval.
+  skills that propose changes for approval. In the terminal the pane answers
+  the keys `1` and `2` (screens), `d` (details) and `a` (the open card's main
+  action), and its two lanes collapse. In the desktop app a link appears as a
+  clickable line in the transcript, shown with a `/grounded-link …` line.
 - Skill-repo records: reviewed, link-only pointers to third-party skill
   repositories under `research/skill-repos/`, with a schema
   (`research/skill-repo-schema.yaml`) and validation in `npm test`. A listed

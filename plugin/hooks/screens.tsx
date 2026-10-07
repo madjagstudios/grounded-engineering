@@ -8,7 +8,7 @@ import type { PaneModel, Screen, SlimCatalog, SlimPractice } from './model'
 
 export const HANDLER_NAMES = ['tab', 'select', 'search', 'category', 'tag', 'sort', 'toggleSignals', 'toggleLane', 'adapt', 'explain', 'link'] as const
 
-export type Go = {
+type Go = {
   tab: (s: Screen) => void; select: (key: string) => void; search: (q: string) => void
   category: (c: string) => void; tag: (t: string) => void; sort: (s: 'fit' | 'name') => void
   toggleSignals: () => void; toggleLane: (lane: 'fits' | 'all') => void
@@ -17,9 +17,10 @@ export type Go = {
   link: (url: string) => void
 }
 
-export const MORE = [
-  { label: 'awesome-claude-skills ›', href: 'https://github.com/ComposioHQ/awesome-claude-skills' },
-  { label: 'awesome-claude-code-mods ›', href: 'https://github.com/karanb192/awesome-claude-code-mods' },
+// The other lists the skills screen points to; the terminal draws each label with a ›.
+const MORE = [
+  { label: 'awesome-claude-skills', href: 'https://github.com/ComposioHQ/awesome-claude-skills' },
+  { label: 'awesome-claude-code-mods', href: 'https://github.com/karanb192/awesome-claude-code-mods' },
 ]
 
 // Below this many columns the tabs take the whole header row and the title is left out.
@@ -30,8 +31,8 @@ const NARROW = 60
 // pane's own padding (PANE), a row's status symbol and its gap (SYMBOL), the outline with its
 // label padding (OUTLINE), a tile's border and padding (TILE), and what sits beside the title
 // (a category, tags, a badge). Below WIDE columns the category and tags give way (the filters
-// above already say them) and a tile's badge moves under its title. The terminal keeps its
-// older fixed overhead: a monospace grid, its category column kept.
+// above already say them) and a tile's badge moves under its title. The terminal's monospace
+// grid takes a fixed overhead instead (TERMINAL) and always keeps its category column.
 const PANE = 2
 const SYMBOL = 2
 const OUTLINE = 4
@@ -68,7 +69,7 @@ export function linkLabel(c: LinkCatalog, url: string): string | null {
   if (repo) return `${repo.name} on GitHub`
   if (url === c.repository) return 'Grounded Engineering on GitHub'
   const more = MORE.find((l) => l.href === url)
-  return more ? more.label.replace(/ ›$/, '') : null
+  return more ? more.label : null
 }
 
 const isValidated = (x: { validation_status: string }) => x.validation_status === 'validated'
@@ -256,7 +257,7 @@ function skillsScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
           </Box>
         )}
       <Text bold>Want more?</Text>
-      {MORE.map((l) => <Link href={l.href}>{l.label}</Link>)}
+      {MORE.map((l) => <Link href={l.href}>{`${l.label} ›`}</Link>)}
       <Text color={p.dim}>Authors can ask to be removed.</Text>
     </Box>
   )

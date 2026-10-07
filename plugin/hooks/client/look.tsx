@@ -13,7 +13,7 @@ function hashOf(text: string): string {
   return (h >>> 0).toString(36)
 }
 
-export function clientLook(el: any, p: Palette, columns = 0, go: { link?: (url: string) => void } = {}) {
+export function clientLook(el: any, p: Palette, go: { link?: (url: string) => void } = {}) {
   const { Box, Button } = el
   const outline = (button: unknown, primary = false) => (
     <Box flexDirection="row" flexShrink={0}>
@@ -40,9 +40,9 @@ export function clientLook(el: any, p: Palette, columns = 0, go: { link?: (url: 
         </Box>
       )
     }
-    // Text stays a plain control where its symbol or place says so: a picked dot, a lane
-    // arrow, the details toggle.
-    if (/^(opt-|lane-|details)/.test(key) || /^[▾▸●○]/u.test(label)) {
+    // Text stays a plain control where its place says so: an option with its picked dot, a
+    // lane header with its arrow, the details toggle.
+    if (/^(opt-|lane-|details)/.test(key)) {
       return <Box flexDirection="row" minWidth={0}><Button {...rest} plain label={label} /></Box>
     }
     delete rest.plain
@@ -63,7 +63,6 @@ export function clientLook(el: any, p: Palette, columns = 0, go: { link?: (url: 
     const key = n === 1 ? base : `${base}-${n}`
     return outline(<Button key={key} label={` ${text} ↗ `} onPress={() => go.link?.(String(href))} />)
   }
-  // columns: how wide the Client is, for screens that cut a label to one line;
   // outlinesTitles: titles are drawn outlined here, so the screens budget for the outline.
-  return { ...el, Button: LookButton, Link: LookLink, columns, outlinesTitles: true }
+  return { ...el, Button: LookButton, Link: LookLink, outlinesTitles: true }
 }

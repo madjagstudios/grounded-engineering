@@ -22,16 +22,20 @@ export default function GroundedApp(model: PaneModel, surface: any) {
     // First call: start the timers. State is set from a timer or a press, never while drawing.
     const box: Outbox = { outbox: [], local: [], seq: 0 }
     created = box
+    // Draws before the first tick each start timers, since state is only set on that tick.
+    // The box the state holds is the one in use; a timer whose box is not it stops itself
+    // and its twin, so one poster and one sync timer remain.
     // One poster: every post carries all presses the plugin has not yet received (nextPost).
     let sent: PostState = { syncDue: false, sentKey: '', sinceSend: 0 }
-    surface.every(60, () => {
+    const stopPoster = surface.every(60, () => {
+      if (surface.state !== undefined && (surface.state as Local).box !== box) { stopPoster(); stopSync(); return }
       if (surface.state === undefined) surface.setState({ box, n: 0 })
       const r = nextPost(box.outbox, sent)
       sent = r.s
       if (r.post) surface.post(r.post)
     })
     // Once a second a sync is due, which brings what changed outside the pane.
-    surface.every(1000, () => {
+    const stopSync = surface.every(1000, () => {
       sent = { ...sent, syncDue: true }
     })
   }
@@ -52,7 +56,7 @@ export default function GroundedApp(model: PaneModel, surface: any) {
     const replaced = new Set(before.filter((m) => !box.outbox.includes(m)).map((m) => m.id))
     box.local = [...box.local.filter((m) => !replaced.has(m.id)), msg]
     // Called from a press, not while drawing: safe to set state here.
-    surface.setState({ box, n: (local?.n ?? 0) + 1 })
+    surface.setState({ box, n: box.seq })
   }
   const go: Record<string, (...args: unknown[]) => void> = {}
   for (const name of HANDLER_NAMES) go[name] = (...args: unknown[]) => send(name, args)
@@ -64,7 +68,7 @@ export default function GroundedApp(model: PaneModel, surface: any) {
   return (
     <Box flexDirection="column" gap={1}>
       {starting ? <Text color={PALETTE.dim}>Starting…</Text> : null}
-      {paneScreen(clientLook(surface.elements, PALETTE, columns, go), shown, go as any, PALETTE, columns, CHARS_PER_CELL)}
+      {paneScreen(clientLook(surface.elements, PALETTE, go), shown, go as any, PALETTE, columns, CHARS_PER_CELL)}
     </Box>
   )
 }

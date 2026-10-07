@@ -1,7 +1,7 @@
 // Colours for the pane. Every value is a theme key, not a hex colour: the drawing surface
 // resolves keys for the app's light or dark mode, which a plugin cannot read.
 export type Tone = 'ok' | 'warn' | 'neutral' | 'accent' | 'failed'
-export type Swatch = { bg: string; edge: string; text: string }
+type Swatch = { bg: string; edge: string; text: string }
 export type Palette = Record<Tone, Swatch> & { dim: string }
 
 export const PALETTE: Palette = {

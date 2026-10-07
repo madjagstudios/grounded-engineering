@@ -110,7 +110,11 @@ test('terminal: a card adopted through the CLI offers no primary action', async 
   await ui.press({ key: 'open-all-GE-AS-004' })
   const card = await ui.find({ key: 'tile-all-GE-AS-004' })
   expect(card?.text).toContain('Adopted through the CLI')
-  expect(await keysOf(ui, 'primary-')).toEqual([])
+  // A card the CLI did not adopt says nothing of the kind, and keeps its primary action.
+  await ui.press({ key: 'open-all-GE-VF-001' })
+  const other = await ui.find({ key: 'tile-all-GE-VF-001' })
+  expect(other?.text).not.toContain('Adopted through the CLI')
+  expect(await keysOf(ui, 'primary-')).toEqual(['primary-all-GE-VF-001'])
   expect(await ui.find({ type: 'Link', text: /Evidence/ })).toBeDefined()
   await ui.unmount()
 })
@@ -380,6 +384,49 @@ test('desktop: a link the pane does not draw, posted to the plugin, runs no comm
   await ui.unmount()
 })
 
+test('desktop: the same press posted twice in one batch runs once', async ($, on) => {
+  const submitted: string[] = []
+  captureSkills(on, submitted)
+  const ui = await mountDesktop($, on)
+  const press = { kind: 'act', id: 'twice-1', name: 'adapt', args: ['GE-AS-004'] }
+  await ui.post({ kind: 'acts', acts: [press, press] }, { in: APP })
+  await settle(ui)
+  expect(submitted).toEqual(['grounded-engineering:adapt GE-AS-004'])
+  // Posted again later, as a resend is, it is still not run again; the select after it
+  // redraws the pane with the press acknowledged.
+  await ui.post({ kind: 'acts', acts: [press, { kind: 'act', id: 'after-1', name: 'select', args: ['fit-GE-AS-004'] }] }, { in: APP })
+  await settle(ui)
+  expect(submitted).toEqual(['grounded-engineering:adapt GE-AS-004'])
+  expect((await handed(ui)).acked).toContain('twice-1')
+  await ui.unmount()
+})
+
+test('desktop: a press with arguments the pane never sends is acknowledged but not run, and the pane still draws', async ($, on) => {
+  const submitted: string[] = []
+  captureSkills(on, submitted)
+  const ui = await mountDesktop($, on)
+  await ui.post({ kind: 'acts', acts: [
+    { kind: 'act', id: 'bad-1', name: 'search', args: [42] },
+    { kind: 'act', id: 'bad-2', name: 'tab', args: ['settings'] },
+    { kind: 'act', id: 'bad-3', name: 'adapt', args: ['GE-NOPE-001'] },
+    { kind: 'act', id: 'bad-4', name: 'toggleLane', args: ['__proto__'] },
+    { kind: 'act', id: 'bad-5', name: 'select', args: [{ a: 1 }] },
+    // The select after them shows the batch ran to its end.
+    { kind: 'act', id: 'good-1', name: 'select', args: ['fit-GE-AS-004'] },
+  ] }, { in: APP })
+  await settle(ui)
+  const model = await handed(ui)
+  expect(model.query).toBe('')
+  expect(model.screen).toBe('practices')
+  expect(model.selected).toBe('fit-GE-AS-004')
+  expect(model.collapsed).toEqual({ fits: false, all: false })
+  expect(model.acked).toEqual(expect.arrayContaining(['bad-1', 'bad-2', 'bad-3', 'bad-4', 'bad-5', 'good-1']))
+  expect(submitted).toEqual([])
+  expect(await look(ui, { text: /Fits this repo/ })).toBeDefined()
+  expect(await look(ui, { key: 'primary-fit-GE-AS-004' })).toBeDefined()
+  await ui.unmount()
+})
+
 test('the link command prints only links the pane draws, and never echoes another', async ($, on) => {
   fakeRepo(on, REPO, DIRS)
   const url = cardUrl(FIXTURE_CATALOG, FIXTURE_CATALOG.practices[0]!)
@@ -550,5 +597,20 @@ test('desktop: the skill repos tab switches at once and explains a repo once', a
   await settle(ui)
   expect(submitted).toEqual(['grounded-engineering:explain GE-SR-002'])
   expect((await handed(ui)).screen).toBe('skills')
+  await ui.unmount()
+})
+
+test('desktop: a Client drawn again before its first tick still posts one sync a second, not one per draw', async ($, on) => {
+  // Each sync the plugin answers reads its screen atom once, which is how a post is counted here.
+  let reads = 0
+  on('state.get', async (_$: unknown, e: any, next: any) => { if (e.key === 'screen') reads++; return next(e) })
+  const ui = await mountDesktop($, on)
+  const base = reads
+  // Two more draws before the 60 ms tick that first sets the Client's state, the second at a
+  // different time, so a second set of timers would post in a frame of its own.
+  for (let i = 0; i < 2; i++) { await ui.advance(25); await ui.resize({ columns: 90 - i, rows: 40, in: APP }) }
+  for (let i = 0; i < 45; i++) await ui.advance(100)
+  // 4.55 seconds: syncs at 1, 2, 3 and 4 seconds.
+  expect(reads - base).toBe(4)
   await ui.unmount()
 })

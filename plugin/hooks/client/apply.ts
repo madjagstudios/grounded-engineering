@@ -19,3 +19,31 @@ export function applyLocal(m: PaneModel, msg: Msg): PaneModel {
     default: return m
   }
 }
+
+// A posted press is data from code, so it runs only when its name is one of the pane's actions
+// and its arguments are what the pane gives that action: the right count, the right types,
+// and for a skill the id of a card or repo in the catalog.
+type Known = { practices: { id: string }[]; skill_repos: { id: string }[] }
+const isString = (v: unknown): v is string => typeof v === 'string'
+const oneOf = (v: unknown, options: readonly string[]): boolean => isString(v) && options.includes(v)
+const ARGS: Record<string, (c: Known | null, a: unknown[]) => boolean> = {
+  tab: (_, a) => a.length === 1 && oneOf(a[0], ['practices', 'skills']),
+  select: (_, a) => a.length === 1 && isString(a[0]),
+  search: (_, a) => a.length === 1 && isString(a[0]),
+  category: (_, a) => a.length === 1 && isString(a[0]),
+  tag: (_, a) => a.length === 1 && isString(a[0]),
+  sort: (_, a) => a.length === 1 && oneOf(a[0], ['fit', 'name']),
+  toggleSignals: (_, a) => a.length === 0,
+  toggleLane: (_, a) => a.length === 1 && oneOf(a[0], ['fits', 'all']),
+  adapt: (c, a) => a.length === 1 && isString(a[0]) && !!c?.practices.some((x) => x.id === a[0]),
+  explain: (c, a) => a.length === 1 && isString(a[0]) && !!c?.skill_repos.some((x) => x.id === a[0]),
+  // Any text: the plugin prints it only when linkLabel says the pane draws it.
+  link: (_, a) => a.length === 1 && isString(a[0]),
+}
+export function validAct(catalog: Known | null, act: unknown): act is Msg {
+  if (!act || typeof act !== 'object') return false
+  const { id, name, args } = act as Record<string, unknown>
+  if (!isString(id) || id === '' || !isString(name) || !Array.isArray(args)) return false
+  const check = Object.prototype.hasOwnProperty.call(ARGS, name) ? ARGS[name] : undefined
+  return !!check && check(catalog, args)
+}

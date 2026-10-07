@@ -12,6 +12,7 @@ import type { GroundedScreen, GroundedSignals } from '../types'
 import { PALETTE } from './theme'
 import { slimCatalog, type PaneModel } from './model'
 import { paneScreen, linkLabel } from './screens'
+import { validAct } from './client/apply'
 
 const PANE = 'grounded'
 // Prints one of the pane's links in the transcript, where the desktop opens it; hidden from the menu.
@@ -90,15 +91,17 @@ async function linkLine($: any, url: unknown): Promise<string | null> {
   return label ? `${label}: ${url}` : null
 }
 
-// The desktop Client cannot draw a link, so a press prints it in the transcript; not awaited,
-// since the command waits for the session to be idle.
+// The desktop Client cannot draw a link, so a press prints it in the transcript. The command
+// is registered immediate, so it runs at once even mid-turn; this does not wait for it.
 async function showLink($: any, url: unknown) {
   if (!(await linkLine($, url))) return
   void $.command.run({ command: LINK_COMMAND, args: url })
     .catch(() => $.ui.toast('Could not show the link'))
 }
 
-// Every action the pane can take, each returning its promise; the desktop Client awaits them.
+// Every action the pane can take, each returning a promise that resolves once its state is
+// written. A skill or a link starts without waiting for it. The ui.message hook awaits these
+// for a Client's presses; the terminal does not.
 function actions($: any) {
   return {
     // Search belongs to the screen it was typed on, so a tab change clears it.
@@ -154,21 +157,26 @@ export const register: Register = on => {
   on('command.describe', { command: LINK_COMMAND }, async ($, e, next) => next({ ...e, isHidden: true }))
 
   // The desktop Client posts every press it has not seen acknowledged; run each new one once, in order.
+  // A press is untrusted: one that is not a valid action is acknowledged, so the Client stops
+  // sending it, but not run; one id seen again, in this post or an earlier one, runs once.
   on('ui.message', async ($, e, next) => {
     if (e.element !== 'grounded-app') return next(e)
-    type Act = { kind: 'act'; id: string; name: string; args?: unknown[] }
-    const d = e.data as { kind?: string; acts?: Act[] } | null
-    const fresh = (d?.kind === 'acts' && Array.isArray(d.acts) ? d.acts : []).filter((a) => a && a.id && !seen.includes(a.id))
+    const d = e.data as { kind?: string; acts?: unknown[] } | null
+    const posted = d?.kind === 'acts' && Array.isArray(d.acts) ? d.acts : []
+    const { catalog } = posted.length ? await catalogFor($) : { catalog: null }
     const table = actions($) as Record<string, (...args: any[]) => Promise<unknown>>
-    for (const a of fresh) {
-      seen.push(a.id)
+    let ran = false
+    for (const a of posted) {
+      const id = (a as { id?: unknown } | null)?.id
+      if (typeof id !== 'string' || id === '' || seen.includes(id)) continue
+      seen.push(id)
       if (seen.length > 400) seen.splice(0, 200)
-      // The post is data from code: only the pane's own action names run.
-      const fn = typeof a.name === 'string' && Object.prototype.hasOwnProperty.call(table, a.name) ? table[a.name] : undefined
-      clientWork = clientWork.then(() => (fn ? fn(...(a.args ?? [])) : undefined)).catch(() => undefined)
-        .then(() => { acked.push(a.id); if (acked.length > 200) acked.splice(0, 100) })
+      const act = validAct(catalog, a) ? a : null
+      ran = true
+      clientWork = clientWork.then(() => (act ? table[act.name]!(...act.args) : undefined)).catch(() => undefined)
+        .then(() => { acked.push(id); if (acked.length > 200) acked.splice(0, 100) })
     }
-    if (fresh.length) await clientWork
+    if (ran) await clientWork
     return { props: await paneModel($) }
   })
 

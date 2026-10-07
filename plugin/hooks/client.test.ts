@@ -1,9 +1,10 @@
 import { test, expect } from 'claude-code/testing'
 import { shorten, room } from './tiles'
 import { slimCatalog, type PaneModel } from './model'
-import { HANDLER_NAMES, rowTitleRoom, tileTitleRoom, repoTitleRoom } from './screens'
+import { HANDLER_NAMES, rowTitleRoom, tileTitleRoom, repoTitleRoom, linkLabel } from './screens'
+import { cardUrl } from './catalog'
 import { enqueue, nextPost, unseen, RESEND } from './client/outbox'
-import { applyLocal, LOCAL_NAMES, type Msg } from './client/apply'
+import { applyLocal, validAct, LOCAL_NAMES, type Msg } from './client/apply'
 import { FIXTURE_CATALOG } from './test-support'
 
 test('shorten keeps text that fits and cuts with an ellipsis when it does not', async () => {
@@ -122,6 +123,52 @@ test('applyLocal applies each press the Client shows at once, and select toggles
   expect(applyLocal(m, act('1', 'toggleLane', 'fits')).collapsed).toEqual({ fits: true, all: false })
   expect(applyLocal(m, act('1', 'adapt', 'GE-AS-004'))).toBe(m)
   expect([...LOCAL_NAMES].every((n) => (HANDLER_NAMES as readonly string[]).includes(n))).toBe(true)
+})
+
+test('validAct accepts each action with the arguments the pane gives it, and nothing else', async () => {
+  const c = FIXTURE_CATALOG
+  const ok = [
+    act('1', 'tab', 'practices'), act('1', 'tab', 'skills'), act('1', 'select', 'fit-GE-AS-004'), act('1', 'search', ''), act('1', 'search', 'sandbox'),
+    act('1', 'category', 'All'), act('1', 'category', 'Verification'), act('1', 'tag', 'All'), act('1', 'tag', 'testing'),
+    act('1', 'sort', 'fit'), act('1', 'sort', 'name'), act('1', 'toggleSignals'), act('1', 'toggleLane', 'fits'), act('1', 'toggleLane', 'all'),
+    act('1', 'adapt', 'GE-AS-004'), act('1', 'explain', 'GE-SR-002'), act('1', 'link', 'https://example.net/anything'),
+  ]
+  for (const m of ok) expect(validAct(c, m)).toBe(true)
+  const bad: unknown[] = [
+    null, 'act', 7, {}, { kind: 'act', name: 'tab', args: ['skills'] },
+    act('', 'tab', 'skills'), { ...act('1', 'tab', 'skills'), id: 5 },
+    { kind: 'act', id: '1', name: 'tab' }, { kind: 'act', id: '1', name: 'tab', args: 'skills' },
+    act('1', 'nope', 'x'), act('1', 'constructor', 'x'), act('1', 'toString'), act('1', '__proto__'),
+    act('1', 'tab', 'settings'), act('1', 'tab'), act('1', 'tab', 'skills', 'extra'),
+    act('1', 'select', 7), act('1', 'select', null), act('1', 'select'),
+    act('1', 'search', 7), act('1', 'search', null), act('1', 'search', { toString: 1 }), act('1', 'search'),
+    act('1', 'category', 3), act('1', 'tag', ['x']),
+    act('1', 'sort', 'size'), act('1', 'toggleLane', 'both'), act('1', 'toggleLane', '__proto__'),
+    act('1', 'toggleSignals', true),
+    act('1', 'adapt', 'GE-NOPE-001'), act('1', 'adapt', 'GE-SR-002'), act('1', 'adapt', 4), act('1', 'adapt'),
+    act('1', 'explain', 'GE-AS-004'), act('1', 'explain', 'x'), act('1', 'explain', null),
+    act('1', 'link', 7), act('1', 'link', undefined), act('1', 'link'),
+  ]
+  for (const m of bad) expect(validAct(c, m)).toBe(false)
+})
+
+test('validAct refuses adapt and explain when there is no catalog to check the id against', async () => {
+  expect(validAct(null, act('1', 'adapt', 'GE-AS-004'))).toBe(false)
+  expect(validAct(null, act('1', 'explain', 'GE-SR-002'))).toBe(false)
+  expect(validAct(null, act('1', 'tab', 'skills'))).toBe(true)
+})
+
+test('linkLabel names only the links the pane draws, and rejects near-misses', async () => {
+  const c = FIXTURE_CATALOG
+  const card = cardUrl(c, c.practices[0]!)
+  expect(linkLabel(c, card)).toBe('Evidence for GE-AS-004')
+  expect(linkLabel(c, 'https://github.com/example/alpha-skills')).toBe('alpha-skills on GitHub')
+  expect(linkLabel(c, c.repository)).toBe('Grounded Engineering on GitHub')
+  expect(linkLabel(c, 'https://github.com/ComposioHQ/awesome-claude-skills')).toBe('awesome-claude-skills')
+  expect(linkLabel(c, 'https://github.com/karanb192/awesome-claude-code-mods')).toBe('awesome-claude-code-mods')
+  for (const near of [`${card}#x`, `${card}/extra`, `${card} `, `${c.repository}/`, `${c.repository}?x=1`, 'https://github.com/ComposioHQ/awesome-claude-skills/', 'https://github.com/ComposioHQ/awesome-claude-skills#x', 'https://example.net/forged', '']) {
+    expect(linkLabel(c, near)).toBe(null)
+  }
 })
 
 test('the Client model built from a catalog larger than the shipped one stays under 60,000 characters', async () => {
