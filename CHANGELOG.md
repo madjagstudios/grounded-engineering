@@ -34,6 +34,12 @@ records the state of the catalog and tooling at that tag.
   cards above; its `pack_version` is `1.1.0`. The `baseline` pack and the CLI
   release are unchanged.
 
+### Security
+- Updated the transitive `fast-uri` dependency (via `ajv`) to 3.1.8 for
+  GHSA-qw65-cvwx-89v3, GHSA-58mr-gqgx-xq4g, and GHSA-hrr3-gc8f-f4qj. The
+  validator only resolves this repository's own schema identifiers, so
+  untrusted input did not reach the affected code.
+
 ## [0.5.0] - 2026-08-28
 
 ### Added
