@@ -3,7 +3,8 @@ import type { Palette, Tone } from './theme'
 
 type Ui = any
 
-// A proportional font fits about 1.25 characters per cell; the terminal fits one.
+// scale: characters per cell. Both surfaces pass 1: the desktop's proportional font fits
+// a little more, but a title there must never wrap, so it is budgeted as the terminal's.
 export function room(columns: number, suffix: number, scale: number): number {
   if (!columns) return 0
   return Math.floor((columns - 6 - (suffix + 3)) * scale)

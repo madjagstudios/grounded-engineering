@@ -11,9 +11,11 @@ import { readAdoption, readSignals } from './signals'
 import type { GroundedScreen, GroundedSignals } from '../types'
 import { PALETTE } from './theme'
 import { slimCatalog, type PaneModel } from './model'
-import { paneScreen } from './screens'
+import { paneScreen, linkLabel } from './screens'
 
 const PANE = 'grounded'
+// Prints one of the pane's links in the transcript, where the desktop opens it; hidden from the menu.
+const LINK_COMMAND = 'grounded-link'
 
 const screenState = atom({ plugin: 'grounded-engineering', key: 'screen' } as const, 'practices' as GroundedScreen)
 const selectedState = atom({ plugin: 'grounded-engineering', key: 'selected' } as const, null as string | null)
@@ -79,6 +81,23 @@ async function runSkill($: any, skill: 'adapt' | 'explain', id: string) {
     .catch(() => $.ui.toast(`Could not start /grounded-engineering:${skill} ${id}`))
 }
 
+// The transcript line for an address the pane draws, or null for any other: a Client's post
+// is data from code, and the command can be typed, so neither is trusted.
+async function linkLine($: any, url: unknown): Promise<string | null> {
+  const { catalog } = await catalogFor($)
+  if (!catalog || typeof url !== 'string') return null
+  const label = linkLabel(catalog, url)
+  return label ? `${label}: ${url}` : null
+}
+
+// The desktop Client cannot draw a link, so a press prints it in the transcript; not awaited,
+// since the command waits for the session to be idle.
+async function showLink($: any, url: unknown) {
+  if (!(await linkLine($, url))) return
+  void $.command.run({ command: LINK_COMMAND, args: url })
+    .catch(() => $.ui.toast('Could not show the link'))
+}
+
 // Every action the pane can take, each returning its promise; the desktop Client awaits them.
 function actions($: any) {
   return {
@@ -93,6 +112,7 @@ function actions($: any) {
     toggleLane: (lane: 'fits' | 'all') => update($, collapsedState, (cur) => ({ ...cur, [lane]: !cur[lane] })),
     adapt: (id: string) => runSkill($, 'adapt', id),
     explain: (id: string) => runSkill($, 'explain', id),
+    link: (url: string) => showLink($, url),
   }
 }
 
@@ -119,6 +139,7 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'grounded', description: 'Open Grounded Engineering: practices that fit this repo' })
     await $.command.register({ name: 'grounded-skills', description: 'Open Grounded Engineering: reviewed skill repos' })
+    await $.command.register({ name: LINK_COMMAND, description: 'Print a Grounded Engineering link', argumentHint: '[url]', immediate: true })
     // A pane restored with the session can render before any command has run. This refresh
     // is not awaited, so the session starts without waiting for it, and a render that runs
     // before it finishes reads the repository itself.
@@ -128,6 +149,9 @@ export const register: Register = on => {
 
   on('command.run', { command: 'grounded' }, async ($) => openOn($, 'practices', 'Grounded Engineering opened on Practices.'))
   on('command.run', { command: 'grounded-skills' }, async ($) => openOn($, 'skills', 'Grounded Engineering opened on Skill repos.'))
+  // Prints the address only when the pane draws it; anything else is not echoed.
+  on('command.run', { command: LINK_COMMAND }, async ($, e) => ({ text: (await linkLine($, e.args.trim())) ?? 'Not a link the Grounded pane shows.' }))
+  on('command.describe', { command: LINK_COMMAND }, async ($, e, next) => next({ ...e, isHidden: true }))
 
   // The desktop Client posts every press it has not seen acknowledged; run each new one once, in order.
   on('ui.message', async ($, e, next) => {

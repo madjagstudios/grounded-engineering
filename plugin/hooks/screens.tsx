@@ -2,26 +2,51 @@
 // The terminal draws them directly; on desktop the Client module draws the same screens.
 import type { Palette } from './theme'
 import { tile, laneHeader, badge, chip, option, field, shorten, room } from './tiles'
-import { cardUrl, repoUrl } from './catalog'
+import { cardUrl, repoUrl, type SkillRepo } from './catalog'
 import { rankPractices, sortSkillRepos, matchesQuery } from './fit'
 import type { PaneModel, Screen, SlimCatalog, SlimPractice } from './model'
 
-export const HANDLER_NAMES = ['tab', 'select', 'search', 'category', 'tag', 'sort', 'toggleSignals', 'toggleLane', 'adapt', 'explain'] as const
+export const HANDLER_NAMES = ['tab', 'select', 'search', 'category', 'tag', 'sort', 'toggleSignals', 'toggleLane', 'adapt', 'explain', 'link'] as const
 
 export type Go = {
   tab: (s: Screen) => void; select: (key: string) => void; search: (q: string) => void
   category: (c: string) => void; tag: (t: string) => void; sort: (s: 'fit' | 'name') => void
   toggleSignals: () => void; toggleLane: (lane: 'fits' | 'all') => void
   adapt: (id: string) => void; explain: (id: string) => void
+  // Desktop only: prints a link the pane draws in the transcript, where it opens.
+  link: (url: string) => void
 }
 
-const MORE = [
+export const MORE = [
   { label: 'awesome-claude-skills ›', href: 'https://github.com/ComposioHQ/awesome-claude-skills' },
   { label: 'awesome-claude-code-mods ›', href: 'https://github.com/karanb192/awesome-claude-code-mods' },
 ]
 
 // Below this many columns the tabs take the whole header row and the title is left out.
 const NARROW = 60
+
+// On desktop every title is an outlined button (a border and a padding cell each side) that
+// must stay on one line: it is cut to fit, and below WIDE columns what sits beside a row's
+// title (its category, its tags; the filters above already say them) or a tile's title (its
+// badge, which moves under it) gives way. A tile's own border and padding take TILE cells.
+const OUTLINE = 4
+const TILE = 4
+const WIDE = 70
+const outlined = (ui: any) => ui.outlinesTitles === true
+const tight = (ui: any, columns: number) => outlined(ui) && columns > 0 && columns < WIDE
+
+// The links the pane draws, each with what the transcript says before it; anything else is
+// not one of the pane's links.
+type LinkCatalog = { repository: string; package_version: string; practices: { id: string; path: string }[]; skill_repos: SkillRepo[] }
+export function linkLabel(c: LinkCatalog, url: string): string | null {
+  const practice = c.practices.find((x) => cardUrl(c, x) === url)
+  if (practice) return `Evidence for ${practice.id}`
+  const repo = c.skill_repos.find((r) => repoUrl(r) === url)
+  if (repo) return `${repo.name} on GitHub`
+  if (url === c.repository) return 'Grounded Engineering on GitHub'
+  const more = MORE.find((l) => l.href === url)
+  return more ? more.label.replace(/ ›$/, '') : null
+}
 
 const isValidated = (x: { validation_status: string }) => x.validation_status === 'validated'
 
@@ -80,18 +105,18 @@ function practicesScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palet
       {laneHeader(ui, p, 'warn', 'fits', '✋ Fits this repo', fits.length, !m.collapsed.fits, () => go.toggleLane('fits'))}
       {m.collapsed.fits ? null : fits.length === 0
         ? <Text color={p.dim}>Your repo already covers the basics.</Text>
-        : <Box flexDirection="column" gap={1}>{fits.map((f) => practiceTile(ui, m, c, go, p, f.practice, `fit-${f.practice.id}`, 'Why here', f.why, adopted.has(f.practice.id)))}</Box>}
+        : <Box flexDirection="column" gap={1}>{fits.map((f) => practiceTile(ui, m, c, go, p, f.practice, `fit-${f.practice.id}`, 'Why here', f.why, adopted.has(f.practice.id), columns, scale))}</Box>}
       {laneHeader(ui, p, 'neutral', 'all', 'All practices', visible.length, !m.collapsed.all, () => go.toggleLane('all'))}
       {m.collapsed.all ? null : (
         <Box flexDirection="column" gap={1}>
-          <Box flexDirection="row" gap={2} flexWrap="wrap">
+          <Box flexDirection="row" columnGap={2} rowGap={0} flexWrap="wrap">
             {option(ui, p, 'opt-cat-All', 'All', m.category === 'All', () => go.category('All'))}
             {c.categories.map((cat) => option(ui, p, `opt-cat-${cat}`, cat, m.category === cat, () => go.category(cat)))}
           </Box>
           {visible.length === 0 ? <Text color={p.dim}>No matches.</Text> : (
             <Box flexDirection="column">
               {visible.map((x) => m.selected === `all-${x.id}`
-                ? practiceTile(ui, m, c, go, p, x, `all-${x.id}`, 'In short', x.agent_snippet ?? x.pattern, adopted.has(x.id))
+                ? practiceTile(ui, m, c, go, p, x, `all-${x.id}`, 'In short', x.agent_snippet ?? x.pattern, adopted.has(x.id), columns, scale)
                 : practiceRow(ui, go, p, x, columns, scale))}
             </Box>
           )}
@@ -104,28 +129,42 @@ function practicesScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palet
 function practiceRow(ui: any, go: Go, p: Palette, x: SlimPractice, columns: number, scale: number) {
   const { Box, Text, Button } = ui
   const tone = isValidated(x) ? 'ok' : 'warn'
+  const beside = !tight(ui, columns)
+  // On desktop the budget also leaves room for the symbol and the title's outline.
+  const budget = outlined(ui) ? room(columns, (beside ? x.category.length + 1 : 0) + 2 + OUTLINE, scale) : room(columns, x.category.length, scale)
   return (
     <Box key={`row-${x.id}`} flexDirection="row" gap={1}>
       <Box flexShrink={0}><Text color={p[tone].text}>{isValidated(x) ? '✓' : '●'}</Text></Box>
       <Box flexGrow={1} flexShrink={1} minWidth={0}>
-        <Button key={`open-all-${x.id}`} plain label={shorten(x.title, room(columns, x.category.length, scale))} onPress={() => go.select(`all-${x.id}`)} />
+        <Button key={`open-all-${x.id}`} plain label={shorten(x.title, budget)} onPress={() => go.select(`all-${x.id}`)} />
       </Box>
-      <Box flexShrink={0}><Text color={p.dim} wrap="truncate-end">{x.category}</Text></Box>
+      {beside ? <Box flexShrink={0}><Text color={p.dim} wrap="truncate-end">{x.category}</Text></Box> : null}
     </Box>
   )
 }
 
-function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette, x: SlimPractice, key: string, calloutLabel: string, callout: string, isAdopted: boolean) {
+// A tile's title and its badge: side by side, or on desktop below WIDE columns one under the other.
+function tileTitle(ui: any, key: string, label: string, onPress: () => void, badgeText: string, badgeNode: unknown, columns: number, scale: number) {
+  const { Box, Button } = ui
+  const under = tight(ui, columns)
+  const text = outlined(ui) ? shorten(label, room(columns, TILE + OUTLINE + (under ? 0 : badgeText.length + 1), scale)) : label
+  const title = (
+    <Box flexGrow={1} flexShrink={1} minWidth={0}>
+      <Button key={key} plain label={text} onPress={onPress} />
+    </Box>
+  )
+  return under
+    ? <Box flexDirection="column">{title}{badgeNode}</Box>
+    : <Box flexDirection="row" gap={1}>{title}{badgeNode}</Box>
+}
+
+function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette, x: SlimPractice, key: string, calloutLabel: string, callout: string, isAdopted: boolean, columns: number, scale: number) {
   const { Box, Text, Button, Link } = ui
   const isOpen = m.selected === key
   const tone = isValidated(x) ? 'ok' : 'warn'
+  const badgeText = isValidated(x) ? '✓ Validated' : '● Needs review'
   return tile(ui, p, isOpen ? 'accent' : 'neutral', `tile-${key}`, [
-    <Box flexDirection="row" gap={1}>
-      <Box flexGrow={1} flexShrink={1} minWidth={0}>
-        <Button key={`open-${key}`} plain label={x.title} onPress={() => go.select(key)} />
-      </Box>
-      {badge(ui, p, tone, isValidated(x) ? '✓ Validated' : '● Needs review')}
-    </Box>,
+    tileTitle(ui, `open-${key}`, x.title, () => go.select(key), badgeText, badge(ui, p, tone, badgeText), columns, scale),
     isAdopted ? <Text color={p.dim}>Adopted through the CLI</Text> : null,
     <Text><Text bold>{`${calloutLabel}: `}</Text>{callout}</Text>,
     isOpen ? <Text color={p.dim}>{x.pattern}</Text> : null,
@@ -138,6 +177,21 @@ function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
       </Box>
     ) : null,
   ])
+}
+
+function repoRow(ui: any, go: Go, p: Palette, r: SkillRepo, columns: number, scale: number) {
+  const { Box, Text, Button } = ui
+  const tags = r.tags.join(', ')
+  const beside = !tight(ui, columns)
+  const budget = outlined(ui) ? room(columns, (beside ? tags.length + 1 : 0) + OUTLINE, scale) : room(columns, 8, scale)
+  return (
+    <Box key={`row-repo-${r.id}`} flexDirection="row" gap={1}>
+      <Box flexGrow={1} flexShrink={1} minWidth={0}>
+        <Button key={`open-repo-${r.id}`} plain label={shorten(r.name, budget)} onPress={() => go.select(`repo-${r.id}`)} />
+      </Box>
+      {beside ? <Box flexShrink={0}><Text color={p.dim} wrap="truncate-end">{tags}</Text></Box> : null}
+    </Box>
+  )
 }
 
 function skillsScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette, columns: number, scale: number) {
@@ -156,7 +210,7 @@ function skillsScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
         </Box>
       </Box>
       {tags.length ? (
-        <Box flexDirection="row" gap={2} flexWrap="wrap">
+        <Box flexDirection="row" columnGap={2} rowGap={0} flexWrap="wrap">
           {option(ui, p, 'opt-tag-All', 'All', m.tag === 'All', () => go.tag('All'))}
           {tags.map((t) => option(ui, p, `opt-tag-${t}`, t, m.tag === t, () => go.tag(t)))}
         </Box>
@@ -166,12 +220,7 @@ function skillsScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
         : (
           <Box flexDirection="column" gap={1}>
             {repos.map((r) => m.selected === `repo-${r.id}` ? tile(ui, p, 'accent', `tile-repo-${r.id}`, [
-              <Box flexDirection="row" gap={1}>
-                <Box flexGrow={1} flexShrink={1} minWidth={0}>
-                  <Button key={`open-repo-${r.id}`} plain label={`${r.name}  ${r.repo.split('/')[0]} · ${r.license}`} onPress={() => go.select(`repo-${r.id}`)} />
-                </Box>
-                {badge(ui, p, 'neutral', 'Reviewed')}
-              </Box>,
+              tileTitle(ui, `open-repo-${r.id}`, `${r.name}  ${r.repo.split('/')[0]} · ${r.license}`, () => go.select(`repo-${r.id}`), 'Reviewed', badge(ui, p, 'neutral', 'Reviewed'), columns, scale),
               <Text>{r.summary}</Text>,
               <Text color={p.dim}><Text color={p.warn.text}>! </Text>{`Watch out: ${r.watch_out_for}`}</Text>,
               <Text color={p.dim} wrap="truncate-end">{`Reviewed ${r.reviewed_on} · pinned at ${r.pinned_commit.slice(0, 7)}`}</Text>,
@@ -179,14 +228,7 @@ function skillsScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
                 <Button key={`primary-repo-${r.id}`} variant="primary" hotkey="a" label="Explain install" onPress={() => go.explain(r.id)} />
                 <Link href={repoUrl(r)}>☆ Star on GitHub</Link>
               </Box>,
-            ]) : (
-              <Box key={`row-repo-${r.id}`} flexDirection="row" gap={1}>
-                <Box flexGrow={1} flexShrink={1} minWidth={0}>
-                  <Button key={`open-repo-${r.id}`} plain label={shorten(r.name, room(columns, 8, scale))} onPress={() => go.select(`repo-${r.id}`)} />
-                </Box>
-                <Box flexShrink={0}><Text color={p.dim} wrap="truncate-end">{r.tags.join(', ')}</Text></Box>
-              </Box>
-            ))}
+            ]) : repoRow(ui, go, p, r, columns, scale))}
           </Box>
         )}
       <Text bold>Want more?</Text>

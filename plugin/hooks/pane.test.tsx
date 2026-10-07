@@ -1,6 +1,7 @@
 import { test, expect } from 'claude-code/testing'
 import { cliManifest, fakeRepo, FIXTURE_CATALOG } from './test-support'
 import { cardUrl } from './catalog'
+import { PALETTE } from './theme'
 
 const REPO = { 'CLAUDE.md': '# r', 'package.json': JSON.stringify({ devDependencies: { vitest: '1' } }), '.claude/agents/a.md': '---\nname: a\n---\n' }
 const DIRS = { '.claude/agents': ['a.md'] }
@@ -280,36 +281,152 @@ test('desktop: a narrow Client cuts a long row title with an ellipsis', async ($
   await ui.resize({ columns: 50, rows: 40, in: APP })
   await settle(ui)
   const row = (await look(ui, { key: 'open-all-GE-VF-004' })) as any
-  expect(row.props.label).toMatch(/… ›$/)
+  expect(row.props.label).toMatch(/… $/)
   expect(row.props.label.length).toBeLessThan(48)
   await ui.unmount()
 })
 
-test('desktop: the Client draws no Link; the Evidence link is a Markdown link to the card', async ($, on) => {
+// Watches the link command from above the plugin, and says what it saw in a toast the test hears.
+const LINK_WATCH = {
+  name: 'link-watch', tier: 'prepend' as const,
+  register: (on: any) => {
+    on('command.run', { command: 'grounded-link' }, async ($: any, e: any, next: any) => {
+      const r = await next(e)
+      await $.ui.toast(`grounded-link ${e.args} => ${r?.text ?? ''}`)
+      return r
+    })
+  },
+}
+const toastsInto = (on: any, into: string[]) => on('ui.toast', async (_$: unknown, e: { text: string }) => { into.push(e.text); return { value: undefined } })
+
+test('desktop: an open fit draws no Link and no Markdown; its Evidence button prints the card link in the transcript', { plugins: [LINK_WATCH] }, async ($, on) => {
+  const seen: string[] = []
+  toastsInto(on, seen)
   const ui = await mountDesktop($, on)
   await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
   await settle(ui)
   const types = new Set<string>()
-  const markdown: any[] = []
-  walk(await drawnAll(ui), (n) => { types.add(n.type); if (n.type === 'Markdown') markdown.push(n.props) })
+  walk(await drawnAll(ui), (n) => types.add(n.type))
   expect(types.has('Link')).toBe(false)
+  expect(types.has('Markdown')).toBe(false)
+  const evidence = (await look(ui, { type: 'Button', text: /Evidence/ })) as any
+  expect(evidence.props.label).toBe(' Evidence ↗ ')
+  expect(evidence.props.key).toMatch(/^link-[0-9a-z]+$/)
+  await ui.press({ key: evidence.props.key, in: APP })
+  await settle(ui)
   const url = cardUrl(FIXTURE_CATALOG, FIXTURE_CATALOG.practices[0]!)
-  const evidence = markdown.find((m) => String(m.text).includes(url))
-  expect(evidence?.text).toBe(`[Evidence ›](${url})`)
-  // The surface opens the link itself: nothing answers a press on it, so it needs no key.
-  expect(evidence?.onLinkPress).toBeUndefined()
-  expect(evidence?.key).toBeUndefined()
+  expect(seen).toEqual([`grounded-link ${url} => Evidence for GE-AS-004: ${url}`])
   await ui.unmount()
 })
 
-test('desktop: every opener ends with a ›, a selected fit title too', async ($, on) => {
+test('desktop: a link the pane does not draw, posted to the plugin, runs no command', { plugins: [LINK_WATCH] }, async ($, on) => {
+  const seen: string[] = []
+  toastsInto(on, seen)
   const ui = await mountDesktop($, on)
-  const label = async (key: string) => ((await look(ui, { key })) as any).props.label as string
-  expect(await label('open-fit-GE-AS-004')).toBe('Bound delegated work ›')
-  await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
-  expect(await label('open-fit-GE-AS-004')).toBe('Bound delegated work ›')
-  expect(await label('open-fit-GE-VF-004')).toMatch(/ ›$/)
+  // The select after it shows the batch was run.
+  await ui.post({ kind: 'acts', acts: [
+    { kind: 'act', id: 'forged-1', name: 'link', args: ['https://example.net/forged'] },
+    { kind: 'act', id: 'forged-2', name: 'select', args: ['fit-GE-AS-004'] },
+  ] }, { in: APP })
+  await settle(ui)
+  expect(await look(ui, { key: 'primary-fit-GE-AS-004' })).toBeDefined()
+  expect(seen).toEqual([])
   await ui.unmount()
+})
+
+test('the link command prints only links the pane draws, and never echoes another', async ($, on) => {
+  fakeRepo(on, REPO, DIRS)
+  const url = cardUrl(FIXTURE_CATALOG, FIXTURE_CATALOG.practices[0]!)
+  expect((await $.command.run({ ...typed('grounded-link'), args: url })).text).toBe(`Evidence for GE-AS-004: ${url}`)
+  expect((await $.command.run({ ...typed('grounded-link'), args: 'https://github.com/example/beta-ts' })).text).toBe('beta-ts on GitHub: https://github.com/example/beta-ts')
+  const forged = await $.command.run({ ...typed('grounded-link'), args: 'https://example.net/forged' })
+  expect(forged.text ?? '').not.toContain('example.net')
+})
+
+test('desktop: every opener is an outlined title sized to its label, with no ›, a selected fit title too', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  await ui.resize({ columns: 100, rows: 40, in: APP })
+  await settle(ui)
+  const label = async (key: string) => ((await look(ui, { key })) as any).props.label as string
+  expect(await label('open-fit-GE-AS-004')).toBe(' Bound delegated work ')
+  await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
+  expect(await label('open-fit-GE-AS-004')).toBe(' Bound delegated work ')
+  expect(await label('open-all-GE-VF-001')).toBe(' Use the real verification gate ')
+  const buttons: { node: any; parent: any }[] = []
+  walk(await drawnAll(ui), (n, parent) => { if (n.type === 'Button') buttons.push({ node: n, parent }) })
+  const openers = buttons.filter((b) => String(b.node.props.key).startsWith('open-'))
+  expect(openers.length).toBeGreaterThan(5)
+  for (const { node, parent } of openers) {
+    expect(node.props.label).not.toMatch(/›/)
+    expect(parent.props.borderStyle).toBe('round')
+    expect(parent.props.borderColor).toBe(PALETTE.neutral.edge)
+    expect(parent.props.minWidth).toBe(0)
+    expect(parent.props.flexGrow).toBeUndefined()
+  }
+  await ui.unmount()
+})
+
+test('desktop: at 40 columns every opener title fits on one line beside its outline and symbol', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  await ui.resize({ columns: 40, rows: 40, in: APP })
+  await settle(ui)
+  await ui.press({ key: 'open-fit-GE-VF-004', in: APP })
+  const check = async () => {
+    const openers = (await lookAll(ui, { type: 'Button', text: /./ })).filter((b: any) => String(b.key).startsWith('open-'))
+    expect(openers.length).toBeGreaterThan(1)
+    for (const b of openers) expect((b as any).props.label.length).toBeLessThanOrEqual(30)
+  }
+  await check()
+  await ui.press({ key: 'tab-skills', in: APP })
+  await ui.press({ key: 'open-repo-GE-SR-002', in: APP })
+  await check()
+  await ui.unmount()
+})
+
+test('desktop: a narrow Client drops the category beside each row and a wide one keeps it', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  await ui.resize({ columns: 50, rows: 40, in: APP })
+  await settle(ui)
+  expect(await look(ui, { type: 'Text', text: 'Agent & Skill Design' })).toBeUndefined()
+  expect(await look(ui, { key: 'opt-cat-Agent & Skill Design' })).toBeDefined()
+  await ui.resize({ columns: 100, rows: 40, in: APP })
+  await settle(ui)
+  expect(await look(ui, { type: 'Text', text: 'Agent & Skill Design' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('terminal: each row keeps its category beside it', async ($, on) => {
+  const ui = await mountPane($, on, REPO, { bodyColumns: 40 })
+  expect(await ui.find({ type: 'Text', text: 'Agent & Skill Design' })).toBeDefined()
+  await ui.unmount()
+})
+
+// Wrapped options sit on consecutive lines: the row has no vertical gap.
+const optionRowOf = (tree: any, key: string): any => {
+  const find = (node: any, trail: any[]): any => {
+    if (!node || typeof node !== 'object') return undefined
+    if (node.type === 'Button' && node.props.key === key) return [...trail].reverse().find((n) => n.props?.flexWrap)
+    for (const c of [].concat(node.children ?? [])) { const r = find(c, [...trail, node]); if (r) return r }
+    return undefined
+  }
+  return find(tree, [])
+}
+test('wrapped option rows have no blank line between them, on both surfaces', async ($, on) => {
+  const term = await mountPane($, on)
+  for (const row of [optionRowOf(await term.drawn(), 'opt-cat-All')]) {
+    expect(row.props.flexWrap).toBe('wrap')
+    expect(row.props.rowGap).toBe(0)
+    expect(row.props.gap).toBeUndefined()
+  }
+  await term.press({ key: 'tab-skills' })
+  expect(optionRowOf(await term.drawn(), 'opt-tag-All').props.rowGap).toBe(0)
+  await term.press({ key: 'tab-practices' })
+  await term.unmount()
+  const desk = await $.ui.mount({ ...PANE, surface: 'desktop' })
+  const row = optionRowOf(await desk.drawn({ in: APP }), 'opt-cat-All')
+  expect(row.props.rowGap).toBe(0)
+  expect(row.props.gap).toBeUndefined()
+  await desk.unmount()
 })
 
 test('desktop: the Details button never shrinks, so it cannot wrap onto two lines', async ($, on) => {
@@ -356,10 +473,8 @@ test('desktop: every Client button carries its label as a prop, and actions sit 
   expect(parentOf('primary-fit-GE-AS-004')?.props.backgroundColor).toBeTruthy()
   expect(parentOf('tab-skills')?.props.borderStyle).toBe('round')
   expect(parentOf('tab-skills')?.props.backgroundColor).toBeUndefined()
-  // Titles, options and lane arrows stay plain text controls; every opener gains a ›.
-  expect(parentOf('open-fit-GE-AS-004')?.props.borderStyle).toBeUndefined()
-  expect(buttons.find((b) => b.node.props.key === 'open-fit-GE-AS-004')?.node.props.label).toBe('Bound delegated work ›')
-  expect(buttons.find((b) => b.node.props.key === 'open-all-GE-VF-001')?.node.props.label).toMatch(/ ›$/)
+  // Every opener is outlined too; options and lane arrows stay plain text controls.
+  expect(parentOf('open-fit-GE-AS-004')?.props.borderStyle).toBe('round')
   expect(parentOf('opt-cat-All')?.props.borderStyle).toBeUndefined()
   expect(parentOf('lane-fits')?.props.borderStyle).toBeUndefined()
   await ui.unmount()

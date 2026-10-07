@@ -61,7 +61,7 @@ export default function GroundedApp(model: PaneModel, surface: any) {
   return (
     <Box flexDirection="column" gap={1}>
       {starting ? <Text color={PALETTE.dim}>Starting…</Text> : null}
-      {paneScreen(clientLook(surface.elements, PALETTE, columns), shown, go as any, PALETTE, columns, 1.25)}
+      {paneScreen(clientLook(surface.elements, PALETTE, columns, go), shown, go as any, PALETTE, columns, 1)}
     </Box>
   )
 }
