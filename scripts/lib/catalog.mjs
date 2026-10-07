@@ -32,7 +32,8 @@ export function buildCatalog(root) {
     pattern: c.pattern, rationale: c.rationale, agent_snippet: c.agent_snippet ?? null,
     applicability: c.applicability, control_types: c.control_types, confidence: c.confidence,
     validation_status: c.validation?.status ?? 'not_validated',
-    source_ids: c.source_ids, path: relative(root, c.filePath).split(sep).join('/')
+    source_ids: c.source_ids, path: relative(root, c.filePath).split(sep).join('/'),
+    body: c.body.replace(/^\s*# [^\n]*\n+/, '').trim()
   }));
 
   return {

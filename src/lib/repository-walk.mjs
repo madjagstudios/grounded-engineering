@@ -1,5 +1,5 @@
 import { readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 
 const ignoredDirectories = new Set([
   '.git',
@@ -23,6 +23,8 @@ export function walkRepository(directory) {
     // Symlinked directories are intentionally not traversed, preventing cycles and escaping the repository root.
     if (entry.isSymbolicLink()) continue;
     if (entry.isDirectory() && ignoredDirectories.has(entry.name)) continue;
+    // Claude Code writes plugin/.claude-plugin/types/ when it loads the plugin; it is gitignored, so skip it.
+    if (entry.isDirectory() && entry.name === 'types' && basename(directory) === '.claude-plugin') continue;
 
     const path = join(directory, entry.name);
     if (entry.isDirectory()) {

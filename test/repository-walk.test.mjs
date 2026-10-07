@@ -44,3 +44,17 @@ test('skips local-only repository state while preserving normal source traversal
 
   assert.deepEqual(names, ['src/kept.mjs']);
 });
+
+test('skips engine-generated plugin types but keeps other types directories', (context) => {
+  const fixtureRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-walk-'));
+  context.after(() => rmSync(fixtureRoot, { recursive: true, force: true }));
+
+  mkdirSync(join(fixtureRoot, 'plugin', '.claude-plugin', 'types'), { recursive: true });
+  mkdirSync(join(fixtureRoot, 'plugin', 'types'), { recursive: true });
+  writeFileSync(join(fixtureRoot, 'plugin', '.claude-plugin', 'types', 'x.d.ts'), 'export {};\n');
+  writeFileSync(join(fixtureRoot, 'plugin', 'types', 'index.d.ts'), 'export {};\n');
+
+  const names = walkRepository(fixtureRoot).map((file) => file.slice(fixtureRoot.length + 1));
+
+  assert.deepEqual(names, ['plugin/types/index.d.ts']);
+});
