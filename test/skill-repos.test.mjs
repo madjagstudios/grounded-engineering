@@ -43,7 +43,9 @@ test('a valid listed record loads', () => {
 
 test('listed rejects licenses that are not canonical SPDX expressions', () => {
   for (const license of ['NOASSERTION', 'NONE', 'Other', 'unknown', 'not a license', 'MIT OR', 'FooBar-9', 'mit',
-    'MIT OR FooBar-9', 'MIT WITH Not-An-Exception', ' MIT', 'MIT or Apache-2.0']) {
+    'MIT OR FooBar-9', 'MIT WITH Not-An-Exception', ' MIT', 'MIT or Apache-2.0', 'MIT Or Apache-2.0',
+    'MIT AnD Apache-2.0', 'GPL-2.0-only With Classpath-exception-2.0', '(MIT)or(Apache-2.0)', 'MIT ORApache-2.0',
+    'GPL-2.0-only WITHClasspath-exception-2.0', 'MIT  OR Apache-2.0', '( MIT OR Apache-2.0 )']) {
     const { errors } = loadSkillRepos(fixture([record({ license })]));
     assert.ok(errors.some((e) => /not a valid SPDX license expression/.test(e)), `${JSON.stringify(license)}: ${errors.join('\n')}`);
   }
@@ -58,7 +60,8 @@ test('records that are not listed are not license-checked', () => {
 
 test('listed accepts valid SPDX expressions', () => {
   for (const license of ['Apache-2.0', 'MIT OR Apache-2.0', '(MIT OR Apache-2.0)', 'LicenseRef-Custom',
-    'GPL-2.0-or-later WITH Classpath-exception-2.0', 'LGPL-3.0+', '(MIT AND BSD-3-Clause) OR Apache-2.0']) {
+    'GPL-2.0-or-later WITH Classpath-exception-2.0', 'LGPL-3.0+', '(MIT AND BSD-3-Clause) OR Apache-2.0',
+    'DocumentRef-spdx:LicenseRef-Custom', 'MIT OR (Apache-2.0 AND BSD-2-Clause)']) {
     const { errors } = loadSkillRepos(fixture([record({ license })]));
     assert.deepEqual(errors, [], license);
   }
