@@ -27,6 +27,10 @@ for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
     expect(await ui.find({ text: /Fits this repo/ })).toBeDefined()
     expect(await ui.find({ text: /4 gaps/ })).toBeDefined()
+    // A fit says why it fits here; the full list sums the practice up instead.
+    expect((await ui.find({ key: 'fit-card-GE-AS-004' }))?.text).toContain('Why here:')
+    expect((await ui.find({ key: 'card-GE-AS-004' }))?.text).toContain('In short:')
+    expect((await ui.find({ key: 'card-GE-AS-004' }))?.text).not.toContain('Why here')
     expect(await ui.findAll({ type: 'Button', text: /./ }).then((all) => all.filter((b) => b.key?.startsWith('fit-select-')).length)).toBe(3)
     expect(await ui.find({ key: 'fit-primary-GE-AS-004' })).toBeUndefined()
     await ui.press({ key: 'fit-select-GE-AS-004' })
@@ -106,6 +110,11 @@ for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
     expect(await ui.find({ text: 'Adopted: ai-assisted · 1 of 4' })).toBeDefined()
     expect(await ui.find({ key: 'fit-select-GE-AS-004' })).toBeUndefined()
+    // Collapsed, the card already says it was adopted, beside its trust badge.
+    const collapsed = await ui.find({ key: 'card-GE-AS-004' })
+    expect(collapsed?.text).toContain('Adopted through the CLI')
+    expect(collapsed?.text).toContain('Validated')
+    expect((await ui.find({ key: 'card-GE-VF-001' }))?.text).not.toContain('Adopted through the CLI')
     await ui.press({ key: 'select-GE-AS-004' })
     const card = await ui.find({ key: 'card-GE-AS-004' })
     expect(card?.text).toContain('Validated')
