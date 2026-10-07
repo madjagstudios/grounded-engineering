@@ -3,11 +3,12 @@ import type { Palette, Tone } from './theme'
 
 type Ui = any
 
-// scale: characters per cell. Both surfaces pass 1: the desktop's proportional font fits
-// a little more, but a title there must never wrap, so it is budgeted as the terminal's.
-export function room(columns: number, suffix: number, scale: number): number {
+// How many characters fit in the columns left after `overhead` cells of other things on the
+// row. scale is characters per cell: 1 on the terminal's monospace grid, about 1.25 on the
+// desktop, whose proportional font fits a little more. Zero columns means the width is unknown.
+export function room(columns: number, overhead: number, scale: number): number {
   if (!columns) return 0
-  return Math.floor((columns - 6 - (suffix + 3)) * scale)
+  return Math.max(0, Math.floor((columns - overhead) * scale))
 }
 
 // One line, cut with an ellipsis when it would not fit; room 10 or less means do not cut.

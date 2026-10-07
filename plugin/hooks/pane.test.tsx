@@ -41,6 +41,21 @@ test('terminal: the Fits lane lists the top fits and counts the gaps', async ($,
   await ui.unmount()
 })
 
+test('terminal: a collapsed fit says what the practice is before it opens, ahead of why it fits', async ($, on) => {
+  const ui = await mountPane($, on)
+  const text = (await ui.find({ key: 'tile-fit-GE-AS-004' }))?.text ?? ''
+  expect(text).toContain('In short: Give delegated work only the tools it needs.')
+  expect(text.indexOf('In short:')).toBeLessThan(text.indexOf('Why here:'))
+  // A practice with no agent snippet says its pattern instead.
+  expect((await ui.find({ key: 'tile-fit-GE-VF-004' }))?.text).toContain('In short: Run commands in a sandbox.')
+  // Opened, the tile shows the pattern and trade-off already, so the summary is not said twice.
+  await ui.press({ key: 'open-fit-GE-VF-004' })
+  const opened = (await ui.find({ key: 'tile-fit-GE-VF-004' }))?.text ?? ''
+  expect(opened).not.toContain('In short:')
+  expect(opened.split('Run commands in a sandbox.').length - 1).toBe(1)
+  await ui.unmount()
+})
+
 test('terminal: opening a fit shows its primary action, which adapts the card', async ($, on) => {
   const submitted: string[] = []
   captureSkills(on, submitted)
@@ -231,6 +246,17 @@ test('desktop: the pane is one Client that draws the shared screens', async ($, 
   await ui.unmount()
 })
 
+test('desktop: a collapsed fit says what the practice is, and an opened one does not say it twice', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  const tileText = async (key: string) => ((await look(ui, { key })) as any)?.text as string
+  const shut = await tileText('tile-fit-GE-AS-004')
+  expect(shut).toContain('In short: Give delegated work only the tools it needs.')
+  expect(shut.indexOf('In short:')).toBeLessThan(shut.indexOf('Why here:'))
+  await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
+  expect(await tileText('tile-fit-GE-AS-004')).not.toContain('In short:')
+  await ui.unmount()
+})
+
 test('desktop: opening a fit shows the tile at once, before the plugin hears the press, and a sync confirms it', async ($, on) => {
   const submitted: string[] = []
   captureSkills(on, submitted)
@@ -278,11 +304,31 @@ test('desktop: search filters the All list at once', async ($, on) => {
 
 test('desktop: a narrow Client cuts a long row title with an ellipsis', async ($, on) => {
   const ui = await mountDesktop($, on)
-  await ui.resize({ columns: 50, rows: 40, in: APP })
+  await ui.resize({ columns: 33, rows: 40, in: APP })
   await settle(ui)
   const row = (await look(ui, { key: 'open-all-GE-VF-004' })) as any
   expect(row.props.label).toMatch(/… $/)
-  expect(row.props.label.length).toBeLessThan(48)
+  // 33 columns leave 31 characters for the title, and the label adds a space each side.
+  expect(row.props.label.length).toBe(31 + 2)
+  await ui.unmount()
+})
+
+test('desktop: a title uses the room the row has at 33, 45 and 140 columns and never more', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  // Title budget per width: rows (no category below 70 columns) and tiles (badge under the title below 70).
+  const budgets: [number, number][] = [[33, 31], [45, 46], [140, 138]]
+  const cutAt: Record<number, boolean> = { 33: true, 45: true, 140: false }
+  for (const [columns, budget] of budgets) {
+    await ui.resize({ columns, rows: 40, in: APP })
+    await settle(ui)
+    const label = async (key: string) => (((await look(ui, { key })) as any).props.label as string).trim()
+    // 30 characters: uncut from 33 columns up. 48 characters: cut until the row is wide.
+    expect(await label('open-all-GE-VF-001')).toBe('Use the real verification gate')
+    const long = await label('open-all-GE-VF-004')
+    if (cutAt[columns]) { expect(long).toMatch(/…$/); expect(long.length).toBeLessThanOrEqual(budget) } else expect(long).toBe('Confine agent-executed commands in an OS sandbox')
+    const all = (await lookAll(ui, { type: 'Button', text: /./ })).filter((b: any) => String(b.key).startsWith('open-all-'))
+    for (const b of all) expect(String((b as any).props.label).trim().length).toBeLessThanOrEqual(Math.max(budget, 30))
+  }
   await ui.unmount()
 })
 
@@ -343,6 +389,18 @@ test('the link command prints only links the pane draws, and never echoes anothe
   expect(forged.text ?? '').not.toContain('example.net')
 })
 
+// How the engine asks for a command's menu entry; the plugin's hook answers for its own command only.
+const describing = ($: any, command: string) => $.command.describe({
+  command, description: 'a command', isHidden: false, immediate: true, provider: { plugin: 'grounded-engineering', tier: 'append' },
+})
+test('the link command is left out of the slash menu, and the pane commands are not', async ($, on) => {
+  // Beneath the plugin the engine's own listing answers as the command declared itself.
+  on('command.describe', async (_$: unknown, e: any) => ({ description: e.description, isHidden: e.isHidden }))
+  expect((await describing($, 'grounded-link')).isHidden).toBe(true)
+  expect((await describing($, 'grounded')).isHidden).toBe(false)
+  expect((await describing($, 'grounded-skills')).isHidden).toBe(false)
+})
+
 test('desktop: every opener is an outlined title sized to its label, with no ›, a selected fit title too', async ($, on) => {
   const ui = await mountDesktop($, on)
   await ui.resize({ columns: 100, rows: 40, in: APP })
@@ -374,7 +432,7 @@ test('desktop: at 40 columns every opener title fits on one line beside its outl
   const check = async () => {
     const openers = (await lookAll(ui, { type: 'Button', text: /./ })).filter((b: any) => String(b.key).startsWith('open-'))
     expect(openers.length).toBeGreaterThan(1)
-    for (const b of openers) expect((b as any).props.label.length).toBeLessThanOrEqual(30)
+    for (const b of openers) expect((b as any).props.label.length).toBeLessThanOrEqual(42)
   }
   await check()
   await ui.press({ key: 'tab-skills', in: APP })

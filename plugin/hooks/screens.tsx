@@ -25,15 +25,38 @@ export const MORE = [
 // Below this many columns the tabs take the whole header row and the title is left out.
 const NARROW = 60
 
-// On desktop every title is an outlined button (a border and a padding cell each side) that
-// must stay on one line: it is cut to fit, and below WIDE columns what sits beside a row's
-// title (its category, its tags; the filters above already say them) or a tile's title (its
-// badge, which moves under it) gives way. A tile's own border and padding take TILE cells.
+// On desktop every title is an outlined button that must stay on one line, so it is cut to
+// the room the row has. Only what really sits on the row is taken off the columns: the
+// pane's own padding (PANE), a row's status symbol and its gap (SYMBOL), the outline with its
+// label padding (OUTLINE), a tile's border and padding (TILE), and what sits beside the title
+// (a category, tags, a badge). Below WIDE columns the category and tags give way (the filters
+// above already say them) and a tile's badge moves under its title. The terminal keeps its
+// older fixed overhead: a monospace grid, its category column kept.
+const PANE = 2
+const SYMBOL = 2
 const OUTLINE = 4
 const TILE = 4
+const TERMINAL = 9
 const WIDE = 70
 const outlined = (ui: any) => ui.outlinesTitles === true
 const tight = (ui: any, columns: number) => outlined(ui) && columns > 0 && columns < WIDE
+
+// The characters a practice row's title may take, beside its category when there is room for it.
+export function rowTitleRoom(ui: any, columns: number, scale: number, category: string): number {
+  if (!outlined(ui)) return room(columns, TERMINAL + category.length, scale)
+  return room(columns, PANE + SYMBOL + OUTLINE + (tight(ui, columns) ? 0 : category.length + 1), scale)
+}
+
+// A skill repo row's title, beside its tags when there is room for them.
+export function repoTitleRoom(ui: any, columns: number, scale: number, tags: string): number {
+  if (!outlined(ui)) return room(columns, TERMINAL + 8, scale)
+  return room(columns, PANE + OUTLINE + (tight(ui, columns) ? 0 : tags.length + 1), scale)
+}
+
+// A tile's title, beside its badge when there is room for it (otherwise the badge sits under it).
+export function tileTitleRoom(ui: any, columns: number, scale: number, badgeText: string): number {
+  return room(columns, PANE + TILE + OUTLINE + (tight(ui, columns) ? 0 : badgeText.length + 1), scale)
+}
 
 // The links the pane draws, each with what the transcript says before it; anything else is
 // not one of the pane's links.
@@ -105,7 +128,7 @@ function practicesScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palet
       {laneHeader(ui, p, 'warn', 'fits', '✋ Fits this repo', fits.length, !m.collapsed.fits, () => go.toggleLane('fits'))}
       {m.collapsed.fits ? null : fits.length === 0
         ? <Text color={p.dim}>Your repo already covers the basics.</Text>
-        : <Box flexDirection="column" gap={1}>{fits.map((f) => practiceTile(ui, m, c, go, p, f.practice, `fit-${f.practice.id}`, 'Why here', f.why, adopted.has(f.practice.id), columns, scale))}</Box>}
+        : <Box flexDirection="column" gap={1}>{fits.map((f) => practiceTile(ui, m, c, go, p, f.practice, `fit-${f.practice.id}`, 'Why here', f.why, adopted.has(f.practice.id), columns, scale, f.practice.agent_snippet ?? f.practice.pattern))}</Box>}
       {laneHeader(ui, p, 'neutral', 'all', 'All practices', visible.length, !m.collapsed.all, () => go.toggleLane('all'))}
       {m.collapsed.all ? null : (
         <Box flexDirection="column" gap={1}>
@@ -130,8 +153,7 @@ function practiceRow(ui: any, go: Go, p: Palette, x: SlimPractice, columns: numb
   const { Box, Text, Button } = ui
   const tone = isValidated(x) ? 'ok' : 'warn'
   const beside = !tight(ui, columns)
-  // On desktop the budget also leaves room for the symbol and the title's outline.
-  const budget = outlined(ui) ? room(columns, (beside ? x.category.length + 1 : 0) + 2 + OUTLINE, scale) : room(columns, x.category.length, scale)
+  const budget = rowTitleRoom(ui, columns, scale, x.category)
   return (
     <Box key={`row-${x.id}`} flexDirection="row" gap={1}>
       <Box flexShrink={0}><Text color={p[tone].text}>{isValidated(x) ? '✓' : '●'}</Text></Box>
@@ -147,7 +169,7 @@ function practiceRow(ui: any, go: Go, p: Palette, x: SlimPractice, columns: numb
 function tileTitle(ui: any, key: string, label: string, onPress: () => void, badgeText: string, badgeNode: unknown, columns: number, scale: number) {
   const { Box, Button } = ui
   const under = tight(ui, columns)
-  const text = outlined(ui) ? shorten(label, room(columns, TILE + OUTLINE + (under ? 0 : badgeText.length + 1), scale)) : label
+  const text = outlined(ui) ? shorten(label, tileTitleRoom(ui, columns, scale, badgeText)) : label
   const title = (
     <Box flexGrow={1} flexShrink={1} minWidth={0}>
       <Button key={key} plain label={text} onPress={onPress} />
@@ -158,7 +180,7 @@ function tileTitle(ui: any, key: string, label: string, onPress: () => void, bad
     : <Box flexDirection="row" gap={1}>{title}{badgeNode}</Box>
 }
 
-function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette, x: SlimPractice, key: string, calloutLabel: string, callout: string, isAdopted: boolean, columns: number, scale: number) {
+function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette, x: SlimPractice, key: string, calloutLabel: string, callout: string, isAdopted: boolean, columns: number, scale: number, summary: string | null = null) {
   const { Box, Text, Button, Link } = ui
   const isOpen = m.selected === key
   const tone = isValidated(x) ? 'ok' : 'warn'
@@ -166,6 +188,8 @@ function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
   return tile(ui, p, isOpen ? 'accent' : 'neutral', `tile-${key}`, [
     tileTitle(ui, `open-${key}`, x.title, () => go.select(key), badgeText, badge(ui, p, tone, badgeText), columns, scale),
     isAdopted ? <Text color={p.dim}>Adopted through the CLI</Text> : null,
+    // What the practice is, before it opens; the opened tile shows its pattern and trade-off instead.
+    summary && !isOpen ? <Text color={p.dim}>{`In short: ${summary}`}</Text> : null,
     <Text><Text bold>{`${calloutLabel}: `}</Text>{callout}</Text>,
     isOpen ? <Text color={p.dim}>{x.pattern}</Text> : null,
     isOpen ? <Text color={p.dim}><Text color={p.warn.text}>! </Text>{`Trade-off: ${x.rationale}`}</Text> : null,
@@ -183,7 +207,7 @@ function repoRow(ui: any, go: Go, p: Palette, r: SkillRepo, columns: number, sca
   const { Box, Text, Button } = ui
   const tags = r.tags.join(', ')
   const beside = !tight(ui, columns)
-  const budget = outlined(ui) ? room(columns, (beside ? tags.length + 1 : 0) + OUTLINE, scale) : room(columns, 8, scale)
+  const budget = repoTitleRoom(ui, columns, scale, tags)
   return (
     <Box key={`row-repo-${r.id}`} flexDirection="row" gap={1}>
       <Box flexGrow={1} flexShrink={1} minWidth={0}>

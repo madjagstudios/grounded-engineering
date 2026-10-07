@@ -10,6 +10,9 @@ import { enqueue, nextPost, unseen, type PostState } from './outbox'
 import { applyLocal, LOCAL_NAMES, type Msg } from './apply'
 import { clientLook } from './look'
 
+// Characters of the desktop's proportional font that fit in one cell of the Client's width.
+const CHARS_PER_CELL = 1.25
+
 type Outbox = { outbox: Msg[]; local: Msg[]; seq: number }
 type Local = { box: Outbox; n: number }
 
@@ -61,7 +64,7 @@ export default function GroundedApp(model: PaneModel, surface: any) {
   return (
     <Box flexDirection="column" gap={1}>
       {starting ? <Text color={PALETTE.dim}>Starting…</Text> : null}
-      {paneScreen(clientLook(surface.elements, PALETTE, columns, go), shown, go as any, PALETTE, columns, 1)}
+      {paneScreen(clientLook(surface.elements, PALETTE, columns, go), shown, go as any, PALETTE, columns, CHARS_PER_CELL)}
     </Box>
   )
 }

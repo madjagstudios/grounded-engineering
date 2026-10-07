@@ -1,7 +1,7 @@
 import { test, expect } from 'claude-code/testing'
 import { shorten, room } from './tiles'
 import { slimCatalog, type PaneModel } from './model'
-import { HANDLER_NAMES } from './screens'
+import { HANDLER_NAMES, rowTitleRoom, tileTitleRoom, repoTitleRoom } from './screens'
 import { enqueue, nextPost, unseen, RESEND } from './client/outbox'
 import { applyLocal, LOCAL_NAMES, type Msg } from './client/apply'
 import { FIXTURE_CATALOG } from './test-support'
@@ -12,10 +12,60 @@ test('shorten keeps text that fits and cuts with an ellipsis when it does not', 
   expect(shorten('anything at all here', 0)).toBe('anything at all here')
 })
 
-test('room scales the width left after the suffix and never cuts below 11', async () => {
-  expect(room(60, 12, 1)).toBe(39)
-  expect(room(60, 12, 1.25)).toBe(48)
+test('room is the columns less the overhead, times the characters a cell holds, and never negative', async () => {
+  expect(room(60, 12, 1)).toBe(48)
+  expect(room(60, 12, 1.25)).toBe(60)
+  expect(room(10, 20, 1.25)).toBe(0)
   expect(room(0, 12, 1)).toBe(0)
+})
+
+// The desktop's cells hold about 1.25 characters of its proportional font; the terminal's hold 1.
+const DESKTOP = { outlinesTitles: true }
+const TERMINAL = {}
+const CHARS = 1.25
+const LEAN = 'Keep skill entrypoints lean'
+
+test('a desktop row title gets what the row leaves: symbol, outline and pane padding only', async () => {
+  // Below 70 columns the category gives way, so the title has the row to itself.
+  expect(rowTitleRoom(DESKTOP, 33, CHARS, 'Agent & Skill Design')).toBe(31)
+  expect(rowTitleRoom(DESKTOP, 45, CHARS, 'Agent & Skill Design')).toBe(46)
+  // At 140 columns the category sits beside the title and is paid for in cells.
+  expect(rowTitleRoom(DESKTOP, 140, CHARS, 'Agent & Skill Design')).toBe(138)
+  expect(rowTitleRoom(DESKTOP, 140, CHARS, 'Verification')).toBe(148)
+  for (const columns of [33, 45]) expect(shorten(LEAN, rowTitleRoom(DESKTOP, columns, CHARS, 'Verification'))).toBe(LEAN)
+})
+
+test('a desktop tile title gets what its border, padding and badge leave', async () => {
+  expect(tileTitleRoom(DESKTOP, 33, CHARS, '✓ Validated')).toBe(28)
+  expect(tileTitleRoom(DESKTOP, 45, CHARS, '✓ Validated')).toBe(43)
+  expect(tileTitleRoom(DESKTOP, 140, CHARS, '✓ Validated')).toBe(147)
+  expect(tileTitleRoom(DESKTOP, 140, CHARS, '● Needs review')).toBe(143)
+  for (const columns of [33, 45]) expect(shorten(LEAN, tileTitleRoom(DESKTOP, columns, CHARS, '✓ Validated'))).toBe(LEAN)
+})
+
+test('a desktop skill repo title gets the row less its outline, and its tags only when wide', async () => {
+  expect(repoTitleRoom(DESKTOP, 33, CHARS, 'typescript, testing')).toBe(33)
+  expect(repoTitleRoom(DESKTOP, 140, CHARS, 'typescript, testing')).toBe(142)
+})
+
+test('the terminal budget is unchanged: monospace, scale 1, the category column kept when wide', async () => {
+  expect(rowTitleRoom(TERMINAL, 80, 1, 'Verification')).toBe(59)
+  expect(rowTitleRoom(TERMINAL, 80, 1, 'Agent & Skill Design')).toBe(51)
+  expect(rowTitleRoom(TERMINAL, 40, 1, 'Agent & Skill Design')).toBe(11)
+  expect(repoTitleRoom(TERMINAL, 80, 1, 'typescript')).toBe(63)
+})
+
+test('nothing a budget lets through is longer than the budget, and a budget of 10 or less cuts nothing', async () => {
+  const titles = [LEAN, 'Write discriminating skill triggers', 'Confine agent-executed commands in an OS sandbox', 'Gate network egress from agent-run work', 'Inspect the repository before changing it']
+  for (const columns of [33, 45, 140]) {
+    for (const t of titles) {
+      const budget = rowTitleRoom(DESKTOP, columns, CHARS, 'Agent & Skill Design')
+      if (t.length > budget) expect(shorten(t, budget).length).toBeLessThanOrEqual(budget)
+      const tb = tileTitleRoom(DESKTOP, columns, CHARS, '● Needs review')
+      if (t.length > tb) expect(shorten(t, tb).length).toBeLessThanOrEqual(tb)
+    }
+  }
+  expect(shorten('A title that is longer than ten', 10)).toBe('A title that is longer than ten')
 })
 
 test('the slim catalog drops card bodies and sources and stays small', async () => {
