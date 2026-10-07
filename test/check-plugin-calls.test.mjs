@@ -27,6 +27,27 @@ test('calls on several lines and in color are all read', () => {
   assert.deepEqual(parseCalls(text), ['$.fs.read', '$.process.run']);
 });
 
+test('a note naming two helpers is stripped whole, commas and all', () => {
+  assert.deepEqual(parseCalls(sample('$.fs.read (via hostOf, refreshRepo), $.ui.toast')), ['$.fs.read', '$.ui.toast']);
+  assert.equal(checkPluginCalls(sample(`${ALLOWED}, $.fs.list (via hostOf, refreshRepo)`)).ok, true);
+});
+
+test('a calls line wrapped onto the next line is read to its end', () => {
+  const text = `  \u276f ./register.tsx calls: $.command.register, $.fs.read (via hostOf,\n      refreshRepo), $.process.run\n  \u276f ./register.tsx state writes: x\n`;
+  assert.deepEqual(parseCalls(text), ['$.command.register', '$.fs.read', '$.process.run']);
+  const result = checkPluginCalls(text);
+  assert.equal(result.ok, false);
+  assert.deepEqual(result.errors, ['$.process.run is not an allowed plugin call']);
+});
+
+test('a piece that is not shaped like a call fails', () => {
+  for (const piece of ['fetch', '$.fs.read()', 'refreshRepo)', '$fs.read', '$.']) {
+    const result = checkPluginCalls(sample(`${ALLOWED}, ${piece}`));
+    assert.equal(result.ok, false, piece);
+    assert.match(result.errors.join('\n'), /is not shaped like a call/, piece);
+  }
+});
+
 test('the allowed calls pass', () => {
   assert.deepEqual(checkPluginCalls(sample(ALLOWED)), { ok: true, calls: parseCalls(sample(ALLOWED)), errors: [] });
 });

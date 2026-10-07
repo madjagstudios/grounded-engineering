@@ -13,14 +13,27 @@ export const ALLOWED_CALLS = new Set([
 
 const stripAnsi = (text) => text.replace(/\u001b\[[0-9;]*m/g, '');
 
-// Every call named on a `calls:` line, without the engine's "(via helper)" notes.
+// A line that starts a new part of the validator's output: an item (`\u276f`), a result mark,
+// a "Validating ..." heading, or a notice npm prints around npx. Any other non-blank line
+// after a `calls:` line is that line wrapped, and is read as more of it.
+const SECTION_LINE = /^\s*(?:[\u276f\u2714\u2716\u2718\u26a0]\s|Validating\b|npm (?:notice|warn|WARN)\b)/;
+const CALL_SHAPE = /^\$\.[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/;
+
+// Every piece named on a `calls:` line and its continuation lines, with the engine's
+// "(via helper, ...)" notes removed before the list is split on commas.
 export function parseCalls(text) {
+  const lines = stripAnsi(text).split(/\r?\n/);
   const calls = [];
-  for (const line of stripAnsi(text).split(/\r?\n/)) {
-    const m = /\bcalls:\s*(.*)$/.exec(line);
+  for (let i = 0; i < lines.length; i += 1) {
+    const m = /\bcalls:\s*(.*)$/.exec(lines[i]);
     if (!m) continue;
-    for (const part of m[1].split(',')) {
-      const call = part.replace(/\(via [^)]*\)/g, '').trim();
+    let list = m[1];
+    while (i + 1 < lines.length && lines[i + 1].trim() !== '' && !SECTION_LINE.test(lines[i + 1])) {
+      i += 1;
+      list += ` ${lines[i].trim()}`;
+    }
+    for (const part of list.replace(/\(via [^)]*\)/g, '').split(',')) {
+      const call = part.trim();
       if (call) calls.push(call);
     }
   }
@@ -30,7 +43,10 @@ export function parseCalls(text) {
 export function checkPluginCalls(text) {
   const calls = parseCalls(text);
   if (!/\bcalls:/.test(stripAnsi(text))) return { ok: false, calls, errors: ['no calls line found in the plugin validator output'] };
-  const errors = calls.filter((c) => !ALLOWED_CALLS.has(c)).map((c) => `${c} is not an allowed plugin call`);
+  const errors = calls.map((c) => {
+    if (!CALL_SHAPE.test(c)) return `${c} is not shaped like a call`;
+    return ALLOWED_CALLS.has(c) ? null : `${c} is not an allowed plugin call`;
+  }).filter(Boolean);
   return { ok: errors.length === 0, calls, errors };
 }
 

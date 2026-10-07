@@ -49,8 +49,10 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'grounded', description: 'Open Grounded Engineering: practices that fit this repo' })
     await $.command.register({ name: 'grounded-skills', description: 'Open Grounded Engineering: reviewed skill repos' })
-    // A pane restored with the session draws from these before any command has run.
-    await refreshRepo($).catch(() => undefined)
+    // A pane restored with the session draws from these before any command has run. The
+    // read runs beside the session's start rather than in front of it; until it lands, a
+    // render reads the repository itself.
+    void refreshRepo($).catch(() => undefined)
     return next(e)
   })
 
