@@ -62,7 +62,7 @@ function practicesScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palet
         <Box flexDirection="row" gap={1} flexShrink={1} minWidth={0} flexWrap="wrap">
           {chip(ui, p, all.length ? 'warn' : 'ok', gapText)}
           {chip(ui, p, 'neutral', s.languages.join(', ') || 'no languages')}
-          {chip(ui, p, 'neutral', s.test_framework ?? 'no tests')}
+          {chip(ui, p, 'neutral', s.test_framework ?? (s.has_tests ? 'tests (framework unknown)' : 'no tests'))}
           {m.adoption ? chip(ui, p, 'neutral', `Adopted: ${m.adoption.profile ?? 'custom'} · ${m.adoption.cards.length}`) : null}
         </Box>
         <Button key="details" plain hotkey="d" label={m.showSignals ? 'Hide details' : 'Details ›'} onPress={() => go.toggleSignals()} />

@@ -165,6 +165,15 @@ test('terminal: a missing catalog shows the reinstall message instead of a parti
   await ui.unmount()
 })
 
+test('terminal: a test folder with an unrecognized framework is not reported as no tests', async ($, on) => {
+  fakeRepo(on, { 'CLAUDE.md': '# r' }, { tests: ['check.sh'] })
+  placePanes(on)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ text: /tests \(framework unknown\)/ })).toBeDefined()
+  expect(await ui.find({ text: /^no tests$/ })).toBeUndefined()
+  await ui.unmount()
+})
+
 test('terminal: a skill that fails to start says so in a toast', async ($, on) => {
   const toasts: string[] = []
   on('command.run', { command: 'grounded-engineering:adapt' }, async () => { throw new Error('refused') })
