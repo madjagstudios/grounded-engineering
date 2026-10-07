@@ -41,20 +41,27 @@ test('a valid listed record loads', () => {
   assert.equal(records[0].repo, 'example/skills');
 });
 
-test('listed requires a real license', () => {
-  const { errors } = loadSkillRepos(fixture([record({ license: 'NOASSERTION' })]));
-  assert.ok(errors.some((e) => /license/.test(e)), errors.join('\n'));
-});
-
-test('listed rejects non-license values in any letter case', () => {
-  for (const license of ['Other', 'unknown', 'NONE', 'none', 'NoAssertion', 'not a license', 'MIT OR']) {
+test('listed rejects licenses that are not canonical SPDX expressions', () => {
+  for (const license of ['NOASSERTION', 'NONE', 'Other', 'unknown', 'not a license', 'MIT OR', 'FooBar-9', 'mit',
+    'MIT OR FooBar-9', 'MIT WITH Not-An-Exception', ' MIT', 'MIT or Apache-2.0', 'MIT Or Apache-2.0',
+    'MIT AnD Apache-2.0', 'GPL-2.0-only With Classpath-exception-2.0', '(MIT)or(Apache-2.0)', 'MIT ORApache-2.0',
+    'GPL-2.0-only WITHClasspath-exception-2.0', 'MIT  OR Apache-2.0', '( MIT OR Apache-2.0 )']) {
     const { errors } = loadSkillRepos(fixture([record({ license })]));
-    assert.ok(errors.some((e) => /license/.test(e)), `${license}: ${errors.join('\n')}`);
+    assert.ok(errors.some((e) => /not a valid SPDX license expression/.test(e)), `${JSON.stringify(license)}: ${errors.join('\n')}`);
   }
 });
 
-test('listed accepts SPDX-shaped licenses', () => {
-  for (const license of ['Apache-2.0', 'MIT OR Apache-2.0', 'GPL-2.0-or-later WITH Classpath-exception-2.0', 'LGPL-3.0+']) {
+test('records that are not listed are not license-checked', () => {
+  for (const status of ['needs_review', 'delisted']) {
+    const { errors } = loadSkillRepos(fixture([record({ status, status_reason: 'Waiting on a license from the author.', license: 'FooBar-9' })]));
+    assert.deepEqual(errors, [], status);
+  }
+});
+
+test('listed accepts valid SPDX expressions', () => {
+  for (const license of ['Apache-2.0', 'MIT OR Apache-2.0', '(MIT OR Apache-2.0)', 'LicenseRef-Custom',
+    'GPL-2.0-or-later WITH Classpath-exception-2.0', 'LGPL-3.0+', '(MIT AND BSD-3-Clause) OR Apache-2.0',
+    'DocumentRef-spdx:LicenseRef-Custom', 'MIT OR (Apache-2.0 AND BSD-2-Clause)']) {
     const { errors } = loadSkillRepos(fixture([record({ license })]));
     assert.deepEqual(errors, [], license);
   }

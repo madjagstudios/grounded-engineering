@@ -4,11 +4,10 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { runValidation } from './validate.mjs';
 import { createGithubClient } from './lib/github.mjs';
-import { loadSkillRepos } from '../src/lib/skill-repos.mjs';
+import { isValidSpdxLicense, loadSkillRepos } from '../src/lib/skill-repos.mjs';
 
 export const QUERIES = ['topic:claude-skills', 'topic:agent-skills', 'topic:claude-code-skills'];
 const ACTIVE_DAYS = 90;
-const BAD_LICENSES = new Set(['NOASSERTION', 'NONE', '']);
 const isSkillFile = (p) => p === 'SKILL.md' || p.endsWith('/SKILL.md');
 const byStarsThenName = (a, b) => b.stargazers_count - a.stargazers_count || (a.full_name < b.full_name ? -1 : a.full_name > b.full_name ? 1 : 0);
 
@@ -33,7 +32,7 @@ export async function runDiscover({ root, client, now = new Date(), write = (s) 
   const candidates = [];
   for (const [key, it] of seen) {
     if (known.has(key) || it.archived || it.fork) continue;
-    if (!it.license || BAD_LICENSES.has(it.license.spdx_id ?? '')) continue;
+    if (!isValidSpdxLicense(it.license?.spdx_id)) continue;
     if ((it.pushed_at ?? '').slice(0, 10) < cutoff) continue;
     const [owner, repo] = it.full_name.split('/');
     const tree = await gh.listTreePaths(owner, repo, it.default_branch);

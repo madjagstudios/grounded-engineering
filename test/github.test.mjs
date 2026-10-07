@@ -18,7 +18,7 @@ test('resolveHead: repos → default_branch, then list-commits[0].sha; headers +
   ]);
   const c = createGithubClient({ fetchImpl: f, token: 'tok' });
   assert.deepEqual(await c.resolveHead('o', 'r'), { branch: 'main', sha: SHA });
-  assert.equal(f.calls[0].opts.headers['User-Agent'], 'grounded-engineering-check-sources');
+  assert.equal(f.calls[0].opts.headers['User-Agent'], 'grounded-engineering');
   assert.equal(f.calls[0].opts.headers.Authorization, 'Bearer tok');
   assert.equal(f.calls[0].opts.headers['X-GitHub-Api-Version'], '2022-11-28');
   assert.match(f.calls[1].url, /\/commits\?sha=main&per_page=1/);
@@ -107,4 +107,63 @@ test('listTreePaths: returns blob paths and the truncated flag', async () => {
 test('searchRepositories: http errors become { error }', async () => {
   const f = scripted([{ res: res({ status: 422, headers: okHeaders }) }]);
   assert.deepEqual(await createGithubClient({ fetchImpl: f }).searchRepositories('x'), { error: 'search_http_422' });
+});
+
+test('an exhausted search quota does not block core calls', async () => {
+  const later = String(Math.floor(Date.now() / 1000) + 600);
+  const f = scripted([
+    { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later, 'x-ratelimit-resource': 'search' } }) },
+    { res: res({ json: { truncated: false, tree: [{ path: 'SKILL.md', type: 'blob' }] }, headers: { 'x-ratelimit-remaining': '4999', 'x-ratelimit-resource': 'core' } }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  assert.match((await c.searchRepositories('x')).error, /rate_limited/);
+  assert.deepEqual(await c.listTreePaths('o', 'r', 'main'), { paths: ['SKILL.md'], truncated: false });
+  assert.equal(f.calls.length, 2);
+});
+
+test('an exhausted core quota does not block search', async () => {
+  const later = String(Math.floor(Date.now() / 1000) + 600);
+  const f = scripted([
+    { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later, 'x-ratelimit-resource': 'core' } }) },
+    { res: res({ json: { items: [{ full_name: 'o/r' }] }, headers: { 'x-ratelimit-remaining': '29', 'x-ratelimit-resource': 'search' } }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  assert.match((await c.listTreePaths('o', 'r', 'main')).error, /rate_limited/);
+  assert.deepEqual(await c.searchRepositories('x'), { items: [{ full_name: 'o/r' }] });
+});
+
+test('an exhausted bucket blocks its next call without a request', async () => {
+  const later = String(Math.floor(Date.now() / 1000) + 600);
+  const f = scripted([
+    { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later, 'x-ratelimit-resource': 'search' } }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  await c.searchRepositories('x');
+  assert.match((await c.searchRepositories('y')).error, /rate_limited/);
+  assert.equal(f.calls.length, 1);
+});
+
+test('a search 403 without a resource header still exhausts only the search bucket', async () => {
+  const later = String(Math.floor(Date.now() / 1000) + 600);
+  const f = scripted([
+    { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later } }) },
+    { res: res({ json: { truncated: false, tree: [] }, headers: okHeaders }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  await c.searchRepositories('x');
+  assert.deepEqual(await c.listTreePaths('o', 'r', 'main'), { paths: [], truncated: false });
+  assert.match((await c.searchRepositories('y')).error, /rate_limited/);
+  assert.equal(f.calls.length, 2);
+});
+
+test('an unexpected resource header falls back to the bucket of the request', async () => {
+  const later = String(Math.floor(Date.now() / 1000) + 600);
+  const f = scripted([
+    { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later, 'x-ratelimit-resource': '__proto__' } }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  await c.listTreePaths('o', 'r', 'main');
+  assert.equal(({}).remaining, undefined);
+  assert.match((await c.listTreePaths('o', 'r', 'main')).error, /rate_limited/);
+  assert.equal(f.calls.length, 1);
 });

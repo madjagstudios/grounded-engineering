@@ -38,7 +38,5 @@ allOf:
   - if: { properties: { status: { const: listed } }, required: [status] }
     then:
       properties:
-        license:
-          type: string
-          pattern: '^[A-Za-z0-9.+-]+( (AND|OR|WITH) [A-Za-z0-9.+-]+)*$'
-          not: { pattern: '^([Nn][Oo][Nn][Ee]|[Nn][Oo][Aa][Ss][Ss][Ee][Rr][Tt][Ii][Oo][Nn]|[Oo][Tt][Hh][Ee][Rr]|[Uu][Nn][Kk][Nn][Oo][Ww][Nn])$' }
+        # SPDX validity is checked by loadSkillRepos in src/lib/skill-repos.mjs.
+        license: { type: string, minLength: 1 }
