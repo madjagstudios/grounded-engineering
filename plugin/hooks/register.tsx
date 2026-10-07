@@ -1,6 +1,6 @@
 import type { Register } from 'claude-code'
 import { atom, read, update } from 'claude-code'
-import { loadCatalog, type Host } from './catalog'
+import { loadCatalog, type Catalog, type Host } from './catalog'
 import { readAdoption, readSignals } from './signals'
 import type { GroundedScreen, GroundedSignals } from '../types'
 import { Shell } from './view/shell'
@@ -19,17 +19,29 @@ const showSignalsState = atom({ plugin: 'grounded-engineering', key: 'showSignal
 const signalsState = atom({ plugin: 'grounded-engineering', key: 'signals' } as const, null as GroundedSignals | null)
 const adoptionState = atom({ plugin: 'grounded-engineering', key: 'adoption' } as const, null as { profile: string | null; cards: string[] } | null)
 
-// A hook must be a function literal, so each command names its own; the shared work is a
-// function declared at the top of this file, the one place the engine follows `$` into.
+// The parsed catalog, keyed by the plugin root it was read from, so a render does not parse
+// it again. A hot reload loads this module afresh and empties it.
+let catalogCache: { root: string; catalog: Catalog } | null = null
+
+// A hook must be a function literal, so each hook names its own; the shared work is in
+// functions declared at the top of this file, the one place the engine follows `$` into.
+function hostOf($: any): Host {
+  return { fs: { read: (p) => $.fs.read(p).then(String), exists: (p) => $.fs.exists(p), list: (p) => $.fs.list(p) }, plugin: { root: $.plugin.root } }
+}
+
+async function refreshRepo($: any) {
+  const host = hostOf($)
+  const [signals, adoption] = await Promise.all([readSignals(host), readAdoption(host)])
+  await update($, signalsState, () => signals)
+  await update($, adoptionState, () => adoption)
+}
+
 async function openOn($: any, screen: 'practices' | 'skills', text: string) {
-  const host: Host = { fs: { read: (p) => $.fs.read(p).then(String), exists: (p) => $.fs.exists(p), list: (p) => $.fs.list(p) }, plugin: { root: $.plugin.root } }
   await update($, screenState, () => screen)
   await update($, selectedState, () => null)
   await update($, queryState, () => '')
   await $.ui.open({ id: PANE, title: 'Grounded' })
-  const [signals, adoption] = await Promise.all([readSignals(host), readAdoption(host)])
-  await update($, signalsState, () => signals)
-  await update($, adoptionState, () => adoption)
+  await refreshRepo($)
   return { text }
 }
 
@@ -37,6 +49,8 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'grounded', description: 'Open Grounded Engineering: practices that fit this repo' })
     await $.command.register({ name: 'grounded-skills', description: 'Open Grounded Engineering: reviewed skill repos' })
+    // A pane restored with the session draws from these before any command has run.
+    await refreshRepo($).catch(() => undefined)
     return next(e)
   })
 
@@ -45,15 +59,28 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const ui = $.ui.resolve(e)
-    const host: Host = { fs: { read: (p) => $.fs.read(p).then(String), exists: (p) => $.fs.exists(p), list: (p) => $.fs.list(p) }, plugin: { root: $.plugin.root } }
-    let catalog = null
+    const host = hostOf($)
+    let catalog: Catalog | null = null
     let error: string | null = null
-    try { catalog = await loadCatalog(host) } catch (err) { error = (err as Error).message }
-    const [screen, selected, query, category, tag, sort, showSignals, signals, adoption] = await Promise.all([
+    if (catalogCache?.root === host.plugin.root) catalog = catalogCache.catalog
+    else {
+      try {
+        catalog = await loadCatalog(host)
+        catalogCache = { root: host.plugin.root, catalog }
+      } catch (err) { error = (err as Error).message }
+    }
+    const [screen, selected, query, category, tag, sort, showSignals, storedSignals, storedAdoption] = await Promise.all([
       read($, screenState), read($, selectedState), read($, queryState), read($, categoryState), read($, tagState), read($, sortState), read($, showSignalsState), read($, signalsState), read($, adoptionState),
     ])
-    // Decision D4: the plugin's skills run as commands, only from a Button's onPress.
-    const runSkill = (skill: 'adapt' | 'explain', id: string) => void $.command.run({ command: `grounded-engineering:${skill}`, args: id })
+    // A pane restored before anything stored the repository's signals reads them itself: a
+    // render may read, but it may not write state.
+    const [signals, adoption] = storedSignals !== null
+      ? [storedSignals, storedAdoption]
+      : await Promise.all([readSignals(host), readAdoption(host)])
+    // The plugin's skills run as commands, only from a Button's onPress.
+    const runSkill = (skill: 'adapt' | 'explain', id: string) =>
+      void $.command.run({ command: `grounded-engineering:${skill}`, args: id })
+        .catch(() => $.ui.toast(`Could not start /grounded-engineering:${skill} ${id}`))
     return Shell({
       ui, bodyColumns: e.props.bodyColumns, catalog, error, screen, selected, query, category, tag, sort, showSignals, signals, adoption,
       on: {

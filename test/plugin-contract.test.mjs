@@ -24,7 +24,9 @@ test('the mod reads exactly the signals the catalog declares', () => {
   assert.deepEqual(names, SIGNALS.map((s) => s.name));
 });
 
-const ALLOWED_MEMBERS = new Set(['fs.read', 'fs.exists', 'fs.list', 'plugin.root', 'ui.open', 'ui.resolve', 'command.register', 'command.run']);
+// `ui.toast` tells the person when one of the plugin's skills fails to start from the pane;
+// it draws a short line and reaches nothing outside the session.
+const ALLOWED_MEMBERS = new Set(['fs.read', 'fs.exists', 'fs.list', 'plugin.root', 'ui.open', 'ui.resolve', 'ui.toast', 'command.register', 'command.run']);
 const FORBIDDEN_TOKENS = ['fetch(', 'XMLHttpRequest', 'WebSocket', 'child_process'];
 
 // Returns the violations found in one source text: any `$.` member outside the allowlist,
@@ -130,13 +132,17 @@ test('the href scan sees a shorthand property', () => {
   assert.ok(!/[{,]\s*href\s*(?=[,}])/.test("{ label: 'a', href: cardUrl(c, x) }"));
 });
 
-test.skip('marketplace and plugin manifests agree on name and version', { skip: 'version bump lands with the v0.6.0 release (plan 3)' }, () => {
+test('marketplace and plugin manifests agree on name and version', () => {
   const market = JSON.parse(readFileSync(join(root, '.claude-plugin', 'marketplace.json'), 'utf8'));
   const plugin = JSON.parse(readFileSync(join(root, 'plugin', '.claude-plugin', 'plugin.json'), 'utf8'));
-  const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
   const entry = market.plugins.find((p) => p.name === plugin.name);
   assert.ok(entry);
   assert.equal(entry.source, './plugin');
   assert.equal(entry.version, plugin.version);
+});
+
+test.skip('the plugin version matches the package version', { skip: 'version bump lands with the v0.6.0 release' }, () => {
+  const plugin = JSON.parse(readFileSync(join(root, 'plugin', '.claude-plugin', 'plugin.json'), 'utf8'));
+  const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
   assert.equal(plugin.version, pkg.version);
 });

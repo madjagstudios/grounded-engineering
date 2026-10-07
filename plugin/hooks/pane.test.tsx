@@ -115,6 +115,29 @@ for (const surface of ['terminal', 'desktop'] as const) {
     await ui.unmount()
   })
 
+  test(`${surface}: a pane restored without a command reads the repository itself`, async ($, on) => {
+    fakeRepo(on, REPO, DIRS)
+    const ui = await $.ui.mount({ ...PANE, surface })
+    expect(await ui.find({ text: /Reading this repository/ })).toBeUndefined()
+    expect(await ui.find({ text: /Fits this repo/ })).toBeDefined()
+    expect(await ui.find({ text: /4 gaps/ })).toBeDefined()
+    await ui.unmount()
+  })
+
+  test(`${surface}: a skill that fails to start says so in a toast`, async ($, on) => {
+    fakeRepo(on, REPO, DIRS)
+    placePanes(on)
+    const toasts: string[] = []
+    on('command.run', { command: 'grounded-engineering:adapt' }, async () => { throw new Error('refused') })
+    on('ui.toast', async (_$: unknown, e: { text: string }) => { toasts.push(e.text); return { value: undefined } })
+    await $.command.run(typed('grounded'))
+    const ui = await $.ui.mount({ ...PANE, surface })
+    await ui.press({ key: 'fit-select-GE-AS-004' })
+    await ui.press({ key: 'fit-primary-GE-AS-004' })
+    expect(toasts).toEqual(['Could not start /grounded-engineering:adapt GE-AS-004'])
+    await ui.unmount()
+  })
+
   test(`${surface}: a missing catalog shows the reinstall message instead of a partial pane`, async ($, on) => {
     on('fs.read', async () => ({ deny: 'ENOENT' }))
     const ui = await $.ui.mount({ ...PANE, surface })
