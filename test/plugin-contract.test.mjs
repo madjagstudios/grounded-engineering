@@ -59,12 +59,41 @@ test('the mod uses only the capabilities it is allowed', () => {
   }
 });
 
+// Every Link href is a literal https URL or comes from one of these. `l.href` is the shared
+// card's pass-through of a model's links, whose `href:` values are checked below.
+const HREF_SOURCES = new Set(['catalog.repository', 'm.href', 'l.href']);
+const isHttpsLiteral = (value) => /^(['"`])https:\/\/[^'"`$\s]+\1$/.test(value);
+
+test('the URL builders produce https URLs', () => {
+  const text = readFileSync(join(hooksDir, 'catalog.ts'), 'utf8');
+  const cardUrl = /export const cardUrl = [^`]*`([^`]*)`/.exec(text);
+  assert.ok(cardUrl, 'cardUrl not found in plugin/hooks/catalog.ts');
+  assert.ok(cardUrl[1].startsWith('${catalog.repository}/'), `cardUrl must build on catalog.repository: ${cardUrl[1]}`);
+  const repoUrl = /export const repoUrl = [^`]*`([^`]*)`/.exec(text);
+  assert.ok(repoUrl, 'repoUrl not found in plugin/hooks/catalog.ts');
+  assert.ok(repoUrl[1].startsWith('https://github.com/'), `repoUrl must build an https GitHub URL: ${repoUrl[1]}`);
+  const catalog = JSON.parse(readFileSync(join(root, 'plugin', 'catalog.json'), 'utf8'));
+  assert.match(catalog.repository, /^https:\/\/[^\s@]+$/);
+});
+
 test('links in the mod are built only from https URLs', () => {
-  for (const path of sourceFiles(hooksDir)) {
-    for (const m of readFileSync(path, 'utf8').matchAll(/href=\{?['"`]([^'"`$]+)/g)) {
-      assert.ok(m[1].startsWith('https://'), `${path}: ${m[1]}`);
+  const tsx = sourceFiles(hooksDir).filter((path) => path.endsWith('.tsx'));
+  let seen = 0;
+  for (const path of tsx) {
+    const text = readFileSync(path, 'utf8');
+    for (const m of text.matchAll(/href=(?:\{([^}]*)\}|("[^"]*"|'[^']*'))/g)) {
+      seen += 1;
+      const value = (m[1] ?? m[2]).trim();
+      assert.ok(isHttpsLiteral(value) || HREF_SOURCES.has(value), `${path}: href=${value}`);
+      if (value === 'm.href') assert.match(text, /const MORE = \[/, `${path}: m.href outside the MORE list`);
+    }
+    for (const m of text.matchAll(/\bhref:\s*([^,}\]\n]+)/g)) {
+      const value = m[1].trim();
+      if (value === 'string') continue; // a type annotation, not a value
+      assert.ok(isHttpsLiteral(value) || /^(cardUrl|repoUrl)\(/.test(value), `${path}: href: ${value}`);
     }
   }
+  assert.ok(seen > 0, 'no Link href found in the mod');
 });
 
 test.skip('marketplace and plugin manifests agree on name and version', { skip: 'version bump lands with the v0.6.0 release (plan 3)' }, () => {
