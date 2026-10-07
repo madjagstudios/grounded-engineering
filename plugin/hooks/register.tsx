@@ -10,9 +10,9 @@ import { loadCatalog, type Catalog, type Host } from './catalog'
 import { readAdoption, readSignals } from './signals'
 import type { GroundedScreen, GroundedSignals } from '../types'
 import { PALETTE } from './theme'
-import { slimCatalog, type PaneModel } from './model'
+import { slimCatalog, type Ack, type PaneModel } from './model'
 import { paneScreen, linkLabel } from './screens'
-import { validAct } from './client/apply'
+import { pressOf, validAct } from './client/apply'
 
 const PANE = 'grounded'
 // Prints one of the pane's links in the transcript, where the desktop opens it; hidden from the menu.
@@ -53,12 +53,20 @@ async function catalogFor($: any): Promise<{ catalog: Catalog | null; error: str
   } catch (err) { return { catalog: null, error: (err as Error).message } }
 }
 
-// Module state for the desktop Client: ids of presses whose action has finished, and ids of
-// presses received (a press is posted again until it shows here). The model carries only the
-// last 50 acked and 100 seen ids to keep the Client's props small; the module keeps a larger
-// margin (200 and 400) so trimming is rare.
-const acked: string[] = []
-const seen: string[] = []
+// What the plugin has done with each desktop Client's presses, by Client id. Posts carry a
+// Client's presses in order, so the highest number received and finished says it all. Kept for
+// the 16 Clients that posted last; one dropped and posting again starts from nothing, and its
+// presses received but not yet acknowledged to it would run again, so the bound sits far above
+// the Clients one session draws (a Client drawn again gets a new id).
+const CLIENTS = 16
+const acks = new Map<string, Ack>()
+function ackOf(cid: string): Ack {
+  const ack = acks.get(cid) ?? { received: 0, done: 0 }
+  acks.delete(cid)
+  acks.set(cid, ack)
+  if (acks.size > CLIENTS) acks.delete(acks.keys().next().value!)
+  return ack
+}
 // Client presses run one after another, in the order they were made; see ui.message.
 let clientWork: Promise<unknown> = Promise.resolve()
 
@@ -73,7 +81,7 @@ async function paneModel($: any): Promise<PaneModel> {
   const [signals, adoption] = storedSignals !== null ? [storedSignals, storedAdoption] : await Promise.all([readSignals(host), readAdoption(host)])
   return {
     catalog: catalog ? slimCatalog(catalog) : null, error, screen, selected, query, category, tag, sort, showSignals, collapsed,
-    signals, adoption, acked: acked.slice(-50), seen: seen.slice(-100),
+    signals, adoption, acks: Object.fromEntries([...acks].map(([cid, a]) => [cid, { ...a }])),
   }
 }
 
@@ -160,14 +168,15 @@ export const register: Register = on => {
     const table = actions($) as Record<string, (...args: any[]) => Promise<unknown>>
     let ran = false
     for (const a of posted) {
-      const id = (a as { id?: unknown } | null)?.id
-      if (typeof id !== 'string' || id === '' || seen.includes(id)) continue
-      seen.push(id)
-      if (seen.length > 400) seen.splice(0, 200)
+      const press = pressOf(a)
+      if (!press) continue
+      const ack = ackOf(press.cid)
+      if (press.seq <= ack.received) continue
+      ack.received = press.seq
       const act = validAct(catalog, a) ? a : null
       ran = true
       clientWork = clientWork.then(() => (act ? table[act.name]!(...act.args) : undefined)).catch(() => undefined)
-        .then(() => { acked.push(id); if (acked.length > 200) acked.splice(0, 100) })
+        .then(() => { ack.done = press.seq })
     }
     if (ran) await clientWork
     return { props: await paneModel($) }

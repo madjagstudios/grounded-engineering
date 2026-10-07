@@ -364,8 +364,8 @@ test('desktop: a link the pane does not draw, posted to the plugin, runs no comm
   const ui = await mountDesktop($, on)
   // The select after it shows the batch was run.
   await ui.post({ kind: 'acts', acts: [
-    { kind: 'act', id: 'forged-1', name: 'link', args: ['https://example.net/forged'] },
-    { kind: 'act', id: 'forged-2', name: 'select', args: ['fit-GE-AS-004'] },
+    { cid: 'test', seq: 1, name: 'link', args: ['https://example.net/forged'] },
+    { cid: 'test', seq: 2, name: 'select', args: ['fit-GE-AS-004'] },
   ] }, { in: APP })
   await settle(ui)
   expect(await look(ui, { key: 'primary-fit-GE-AS-004' })).toBeDefined()
@@ -377,16 +377,16 @@ test('desktop: the same press posted twice in one batch runs once', async ($, on
   const submitted: string[] = []
   captureSkills(on, submitted)
   const ui = await mountDesktop($, on)
-  const press = { kind: 'act', id: 'twice-1', name: 'adapt', args: ['GE-AS-004'] }
+  const press = { cid: 'test', seq: 1, name: 'adapt', args: ['GE-AS-004'] }
   await ui.post({ kind: 'acts', acts: [press, press] }, { in: APP })
   await settle(ui)
   expect(submitted).toEqual(['grounded-engineering:adapt GE-AS-004'])
   // Posted again later, as a resend is, it is still not run again; the select after it
   // redraws the pane with the press acknowledged.
-  await ui.post({ kind: 'acts', acts: [press, { kind: 'act', id: 'after-1', name: 'select', args: ['fit-GE-AS-004'] }] }, { in: APP })
+  await ui.post({ kind: 'acts', acts: [press, { cid: 'test', seq: 2, name: 'select', args: ['fit-GE-AS-004'] }] }, { in: APP })
   await settle(ui)
   expect(submitted).toEqual(['grounded-engineering:adapt GE-AS-004'])
-  expect((await handed(ui)).acked).toContain('twice-1')
+  expect((await handed(ui)).acks.test).toEqual({ received: 2, done: 2 })
   await ui.unmount()
 })
 
@@ -395,13 +395,17 @@ test('desktop: a press with arguments the pane never sends is acknowledged but n
   captureSkills(on, submitted)
   const ui = await mountDesktop($, on)
   await ui.post({ kind: 'acts', acts: [
-    { kind: 'act', id: 'bad-1', name: 'search', args: [42] },
-    { kind: 'act', id: 'bad-2', name: 'tab', args: ['settings'] },
-    { kind: 'act', id: 'bad-3', name: 'adapt', args: ['GE-NOPE-001'] },
-    { kind: 'act', id: 'bad-4', name: 'toggleLane', args: ['__proto__'] },
-    { kind: 'act', id: 'bad-5', name: 'select', args: [{ a: 1 }] },
+    { cid: 'test', seq: 1, name: 'search', args: [42] },
+    { cid: 'test', seq: 2, name: 'tab', args: ['settings'] },
+    { cid: 'test', seq: 3, name: 'adapt', args: ['GE-NOPE-001'] },
+    { cid: 'test', seq: 4, name: 'toggleLane', args: ['__proto__'] },
+    { cid: 'test', seq: 5, name: 'select', args: [{ a: 1 }] },
+    // Not numbered or not named as a Client numbers and names its presses: ignored.
+    { cid: 'test', seq: 6.5, name: 'tab', args: ['skills'] },
+    { cid: 'x'.repeat(41), seq: 7, name: 'tab', args: ['skills'] },
+    { seq: 8, name: 'tab', args: ['skills'] },
     // The select after them shows the batch ran to its end.
-    { kind: 'act', id: 'good-1', name: 'select', args: ['fit-GE-AS-004'] },
+    { cid: 'test', seq: 6, name: 'select', args: ['fit-GE-AS-004'] },
   ] }, { in: APP })
   await settle(ui)
   const model = await handed(ui)
@@ -409,10 +413,84 @@ test('desktop: a press with arguments the pane never sends is acknowledged but n
   expect(model.screen).toBe('practices')
   expect(model.selected).toBe('fit-GE-AS-004')
   expect(model.collapsed).toEqual({ fits: false, all: false })
-  expect(model.acked).toEqual(expect.arrayContaining(['bad-1', 'bad-2', 'bad-3', 'bad-4', 'bad-5', 'good-1']))
+  expect(model.acks).toEqual({ test: { received: 6, done: 6 } })
   expect(submitted).toEqual([])
   expect(await look(ui, { text: /Fits this repo/ })).toBeDefined()
   expect(await look(ui, { key: 'primary-fit-GE-AS-004' })).toBeDefined()
+  await ui.unmount()
+})
+
+// Each post the plugin answers reads its screen atom once, which is how posts are counted here.
+const countPosts = (on: any) => {
+  const count = { posts: 0 }
+  on('state.get', async (_$: unknown, e: any, next: any) => { if (e.key === 'screen') count.posts++; return next(e) })
+  return count
+}
+// A slow answer: once held, the plugin's writes of one state key wait until the test lets them
+// through, and every press after it waits behind it.
+const slowWrites = (on: any, key: string) => {
+  let held = false
+  let open!: () => void
+  const gate = new Promise<void>((r) => { open = r })
+  on('state.set', async (_$: unknown, e: any, next: any) => { if (held && e.key === key) await gate; return next(e) })
+  return { hold: () => { held = true }, letThrough: () => open() }
+}
+const detailsLabel = async (ui: any) => ((await look(ui, { key: 'details' })) as any).props.label as string
+const searchValue = async (ui: any) => ((await look(ui, { key: 'search' })) as any).props.value as string
+
+test('desktop: 51 Details presses answered late leave the pane showing what the plugin holds', async ($, on) => {
+  const slow = slowWrites(on, 'showSignals')
+  const ui = await mountDesktop($, on)
+  slow.hold()
+  for (let i = 0; i < 51; i++) await ui.press({ key: 'details', in: APP })
+  expect(await detailsLabel(ui)).toBe('Hide details')
+  await ui.advance(60)
+  slow.letThrough()
+  await settle(ui)
+  await ui.advance(1100)
+  await settle(ui)
+  expect((await handed(ui)).showSignals).toBe(true)
+  expect(await detailsLabel(ui)).toBe('Hide details')
+  await ui.unmount()
+})
+
+test('desktop: a slow search followed by 51 presses and more typing shows the query the plugin holds', async ($, on) => {
+  const slow = slowWrites(on, 'query')
+  const ui = await mountDesktop($, on)
+  slow.hold()
+  await ui.input({ key: 'search', text: 'a', kind: 'change', in: APP })
+  for (let i = 0; i < 51; i++) await ui.press({ key: i % 2 ? 'opt-cat-All' : 'opt-cat-Verification', in: APP })
+  await ui.advance(60)
+  slow.letThrough()
+  await settle(ui)
+  for (const text of ['ab', 'abc']) { await ui.input({ key: 'search', text, kind: 'change', in: APP }); await settle(ui) }
+  await ui.advance(1100)
+  await settle(ui)
+  expect((await handed(ui)).query).toBe('abc')
+  expect(await searchValue(ui)).toBe('abc')
+  await ui.unmount()
+})
+
+test('desktop: more than 100 presses before the plugin receives them run once each, and Starting… clears', async ($, on) => {
+  const submitted: string[] = []
+  captureSkills(on, submitted)
+  const counted = countPosts(on)
+  const ui = await mountDesktop($, on)
+  await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
+  await ui.press({ key: 'primary-fit-GE-AS-004', in: APP })
+  for (let i = 0; i < 110; i++) await ui.press({ key: 'lane-all', in: APP })
+  await settle(ui)
+  await ui.advance(1100)
+  await settle(ui)
+  expect(submitted).toEqual(['grounded-engineering:adapt GE-AS-004'])
+  expect(await look(ui, { text: /Starting…/ })).toBeUndefined()
+  expect((await handed(ui)).collapsed).toEqual({ fits: false, all: false })
+  expect(await clientKeys(ui, 'open-all-')).toHaveLength(4)
+  // Nothing is sent again: four seconds bring four syncs and no resends.
+  const before = counted.posts
+  for (let i = 0; i < 40; i++) await ui.advance(100)
+  expect(counted.posts - before).toBe(4)
+  expect(submitted).toEqual(['grounded-engineering:adapt GE-AS-004'])
   await ui.unmount()
 })
 
@@ -589,16 +667,14 @@ test('desktop: the skill repos tab switches at once and explains a repo once', a
 })
 
 test('desktop: one sync a second, not one per draw', async ($, on) => {
-  // Each sync the plugin answers reads its screen atom once, which is how a post is counted here.
-  let reads = 0
-  on('state.get', async (_$: unknown, e: any, next: any) => { if (e.key === 'screen') reads++; return next(e) })
+  const counted = countPosts(on)
   const ui = await mountDesktop($, on)
-  const base = reads
+  const base = counted.posts
   // Two more draws before the 60 ms tick that first sets the Client's state, the second at a
   // different time, so a second set of timers would post in a frame of its own.
   for (let i = 0; i < 2; i++) { await ui.advance(25); await ui.resize({ columns: 90 - i, rows: 40, in: APP }) }
   for (let i = 0; i < 45; i++) await ui.advance(100)
   // 4.55 seconds: syncs at 1, 2, 3 and 4 seconds.
-  expect(reads - base).toBe(4)
+  expect(counted.posts - base).toBe(4)
   await ui.unmount()
 })

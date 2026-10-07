@@ -1,6 +1,8 @@
 import type { PaneModel } from '../model'
 
-export type Msg = { kind: 'act'; id: string; name: string; args: unknown[] }
+// A press: the Client that made it (cid, made once per Client), its place in that Client's
+// order (seq, counting up from 1), and the action it asks for.
+export type Msg = { cid: string; seq: number; name: string; args: unknown[] }
 // Presses the Client shows at once, before the plugin answers.
 export const LOCAL_NAMES = new Set(['tab', 'select', 'search', 'category', 'tag', 'sort', 'toggleSignals', 'toggleLane'])
 
@@ -39,10 +41,18 @@ const ARGS: Record<string, (c: Known | null, a: unknown[]) => boolean> = {
   explain: (c, a) => a.length === 1 && isString(a[0]) && !!c?.skill_repos.some((x) => x.id === a[0]),
   link: (_, a) => a.length === 1 && isString(a[0]),
 }
+// A posted press's Client and number, or null when either is not what a Client makes; such a
+// press cannot be acknowledged, so the plugin ignores it.
+const CID = /^[\w-]{1,40}$/
+export function pressOf(act: unknown): { cid: string; seq: number } | null {
+  if (!act || typeof act !== 'object') return null
+  const { cid, seq } = act as Record<string, unknown>
+  return isString(cid) && CID.test(cid) && Number.isSafeInteger(seq) && (seq as number) > 0 ? { cid, seq: seq as number } : null
+}
 export function validAct(catalog: Known | null, act: unknown): act is Msg {
-  if (!act || typeof act !== 'object') return false
-  const { id, name, args } = act as Record<string, unknown>
-  if (!isString(id) || id === '' || !isString(name) || !Array.isArray(args)) return false
+  if (!pressOf(act)) return false
+  const { name, args } = act as Record<string, unknown>
+  if (!isString(name) || !Array.isArray(args)) return false
   const check = Object.prototype.hasOwnProperty.call(ARGS, name) ? ARGS[name] : undefined
   return !!check && check(catalog, args)
 }
