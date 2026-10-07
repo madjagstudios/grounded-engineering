@@ -108,3 +108,37 @@ test('searchRepositories: http errors become { error }', async () => {
   const f = scripted([{ res: res({ status: 422, headers: okHeaders }) }]);
   assert.deepEqual(await createGithubClient({ fetchImpl: f }).searchRepositories('x'), { error: 'search_http_422' });
 });
+
+test('an exhausted search quota does not block core calls', async () => {
+  const later = String(Math.floor(Date.now() / 1000) + 600);
+  const f = scripted([
+    { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later, 'x-ratelimit-resource': 'search' } }) },
+    { res: res({ json: { truncated: false, tree: [{ path: 'SKILL.md', type: 'blob' }] }, headers: { 'x-ratelimit-remaining': '4999', 'x-ratelimit-resource': 'core' } }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  assert.match((await c.searchRepositories('x')).error, /rate_limited/);
+  assert.deepEqual(await c.listTreePaths('o', 'r', 'main'), { paths: ['SKILL.md'], truncated: false });
+  assert.equal(f.calls.length, 2);
+});
+
+test('an exhausted core quota does not block search', async () => {
+  const later = String(Math.floor(Date.now() / 1000) + 600);
+  const f = scripted([
+    { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later, 'x-ratelimit-resource': 'core' } }) },
+    { res: res({ json: { items: [{ full_name: 'o/r' }] }, headers: { 'x-ratelimit-remaining': '29', 'x-ratelimit-resource': 'search' } }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  assert.match((await c.listTreePaths('o', 'r', 'main')).error, /rate_limited/);
+  assert.deepEqual(await c.searchRepositories('x'), { items: [{ full_name: 'o/r' }] });
+});
+
+test('an exhausted quota still fails closed for its own bucket without a request', async () => {
+  const later = String(Math.floor(Date.now() / 1000) + 600);
+  const f = scripted([
+    { res: res({ status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': later, 'x-ratelimit-resource': 'search' } }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  await c.searchRepositories('x');
+  assert.match((await c.searchRepositories('y')).error, /rate_limited/);
+  assert.equal(f.calls.length, 1);
+});

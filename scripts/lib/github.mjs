@@ -4,7 +4,11 @@ const encodePath = (path) => path.split('/').map(encodeURIComponent).join('/');
 
 export function createGithubClient({ fetchImpl = globalThis.fetch, token, timeoutMs = 15000 } = {}) {
   const authToken = token ?? process.env.GITHUB_TOKEN; // nullish; '' stays '' (no auth)
-  const state = { remaining: null, reset: null, calls: 0 };
+  // GitHub meters search and core requests separately, so one running out must
+  // not block the other. Each bucket fails closed only for itself.
+  const state = { calls: 0, buckets: {} };
+  const bucket = (name) => (state.buckets[name] ??= { remaining: null, reset: null });
+  const bucketFor = (url) => (new URL(url).pathname.startsWith('/search/') ? 'search' : 'core');
   const headers = () => {
     const h = { 'User-Agent': 'grounded-engineering-check-sources', Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
     if (authToken) h.Authorization = `Bearer ${authToken}`;
@@ -13,8 +17,9 @@ export function createGithubClient({ fetchImpl = globalThis.fetch, token, timeou
 
   async function request(url) {
     // Fail closed: remaining:0 blocks until we know the window has passed.
-    if (state.remaining === 0 && (!state.reset || Date.now() / 1000 < state.reset)) {
-      return { error: { reason: `rate_limited (reset ${state.reset ?? 'unknown'})` } };
+    const limit = bucket(bucketFor(url));
+    if (limit.remaining === 0 && (!limit.reset || Date.now() / 1000 < limit.reset)) {
+      return { error: { reason: `rate_limited (reset ${limit.reset ?? 'unknown'})` } };
     }
     const controller = new AbortController();
     let timer;
@@ -30,10 +35,11 @@ export function createGithubClient({ fetchImpl = globalThis.fetch, token, timeou
       if (!res || !res.headers || typeof res.headers.get !== 'function') return { error: { reason: 'malformed_response' } };
       const rem = res.headers.get('x-ratelimit-remaining');
       const rst = res.headers.get('x-ratelimit-reset');
-      if (rem !== null) state.remaining = Number(rem);
-      if (rst !== null) state.reset = Number(rst);
-      if ((res.status === 403 || res.status === 429) && (state.remaining === 0 || res.headers.get('retry-after'))) {
-        return { error: { reason: `rate_limited (reset ${state.reset ?? 'unknown'})` } };
+      const metered = bucket(res.headers.get('x-ratelimit-resource') ?? bucketFor(url));
+      if (rem !== null) metered.remaining = Number(rem);
+      if (rst !== null) metered.reset = Number(rst);
+      if ((res.status === 403 || res.status === 429) && (metered.remaining === 0 || res.headers.get('retry-after'))) {
+        return { error: { reason: `rate_limited (reset ${metered.reset ?? 'unknown'})` } };
       }
       return { res };
     } finally {
