@@ -32,7 +32,7 @@ test('skips local-only repository state while preserving normal source traversal
   const fixtureRoot = mkdtempSync(join(tmpdir(), 'grounded-engineering-walk-'));
   context.after(() => rmSync(fixtureRoot, { recursive: true, force: true }));
 
-  for (const directory of ['.grounded-engineering', '.private', '.superpowers', '.worktrees', 'reports', 'worktrees']) {
+  for (const directory of ['.grounded-engineering', '.private', '.worktrees', 'reports', 'worktrees']) {
     mkdirSync(join(fixtureRoot, directory), { recursive: true });
     writeFileSync(join(fixtureRoot, directory, 'ignored.md'), 'local only');
   }
