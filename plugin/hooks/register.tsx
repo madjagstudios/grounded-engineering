@@ -51,9 +51,12 @@ async function catalogFor($: any): Promise<{ catalog: Catalog | null; error: str
   } catch (err) { return { catalog: null, error: (err as Error).message } }
 }
 
-// Module state for the desktop Client.
+// Module state for the desktop Client: ids of presses whose action has finished, and ids of
+// presses received (a press is posted again until it shows here).
 const acked: string[] = []
 const seen: string[] = []
+// Client presses run one after another, in the order they were made; see ui.message.
+let clientWork: Promise<unknown> = Promise.resolve()
 
 // Everything the pane draws, as plain data: the terminal draws it, the desktop Client receives it.
 async function paneModel($: any): Promise<PaneModel> {
@@ -125,8 +128,32 @@ export const register: Register = on => {
   on('command.run', { command: 'grounded' }, async ($) => openOn($, 'practices', 'Grounded Engineering opened on Practices.'))
   on('command.run', { command: 'grounded-skills' }, async ($) => openOn($, 'skills', 'Grounded Engineering opened on Skill repos.'))
 
+  // The desktop Client posts every press it has not seen acknowledged; run each new one once, in order.
+  on('ui.message', async ($, e, next) => {
+    if (e.element !== 'grounded-app') return next(e)
+    type Act = { kind: 'act'; id: string; name: string; args?: unknown[] }
+    const d = e.data as { kind?: string; acts?: Act[] } | null
+    const fresh = (d?.kind === 'acts' && Array.isArray(d.acts) ? d.acts : []).filter((a) => a && a.id && !seen.includes(a.id))
+    const table = actions($) as Record<string, (...args: any[]) => Promise<unknown>>
+    for (const a of fresh) {
+      seen.push(a.id)
+      if (seen.length > 400) seen.splice(0, 200)
+      // The post is data from code: only the pane's own action names run.
+      const fn = typeof a.name === 'string' && Object.prototype.hasOwnProperty.call(table, a.name) ? table[a.name] : undefined
+      clientWork = clientWork.then(() => (fn ? fn(...(a.args ?? [])) : undefined)).catch(() => undefined)
+        .then(() => { acked.push(a.id); if (acked.length > 200) acked.splice(0, 100) })
+    }
+    if (fresh.length) await clientWork
+    return { props: await paneModel($) }
+  })
+
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     const ui = $.ui.resolve(e)
+    // On desktop the app paints a Pane's own redraws only on the next input; a Client paints itself.
+    if (e.surface === 'desktop' && 'Client' in ui) {
+      const { Client } = ui
+      return <Client key="grounded-app" module="./client/app.tsx" props={await paneModel($)} width="100%" flexGrow={1} />
+    }
     return paneScreen(ui, await paneModel($), handlers($) as any, PALETTE, e.props.bodyColumns ?? 0, 1)
   })
 }

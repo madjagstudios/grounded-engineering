@@ -1,5 +1,6 @@
 import { test, expect } from 'claude-code/testing'
 import { cliManifest, fakeRepo, FIXTURE_CATALOG } from './test-support'
+import { cardUrl } from './catalog'
 
 const REPO = { 'CLAUDE.md': '# r', 'package.json': JSON.stringify({ devDependencies: { vitest: '1' } }), '.claude/agents/a.md': '---\nname: a\n---\n' }
 const DIRS = { '.claude/agents': ['a.md'] }
@@ -21,7 +22,7 @@ const open = async (ui: any, key: string) => ui.find({ key })
 const keysOf = async (ui: any, prefix: string): Promise<string[]> =>
   (await ui.findAll({ type: 'Button', text: /./ })).map((b: any) => b.key as string).filter((k: string) => k?.startsWith(prefix))
 
-// The terminal draws the shared screens directly. Task-level desktop coverage lives with the Client.
+// The terminal draws the shared screens directly; the desktop tests below look inside the Client.
 const mountPane = async ($: any, on: any, files: Record<string, string> = REPO, props: Record<string, unknown> = {}) => {
   fakeRepo(on, files, DIRS)
   placePanes(on)
@@ -182,5 +183,148 @@ test('terminal: a skill that fails to start says so in a toast', async ($, on) =
   await ui.press({ key: 'open-fit-GE-AS-004' })
   await ui.press({ key: 'primary-fit-GE-AS-004' })
   expect(toasts).toEqual(['Could not start /grounded-engineering:adapt GE-AS-004'])
+  await ui.unmount()
+})
+
+// Desktop draws the pane in a Client: look inside it, and let its poster and sync run.
+// Each helper looks only inside the Client, so a Client that failed to draw fails the test.
+const APP = 'grounded-app'
+const look = (pane: any, q: any) => pane.find({ ...q, in: APP })
+const lookAll = (pane: any, q: any) => pane.findAll({ ...q, in: APP })
+const drawnAll = (pane: any) => pane.drawn({ in: APP })
+const settle = async (pane: any) => { await pane.advance(100); await pane.advance(100) }
+const clientKeys = async (pane: any, prefix: string): Promise<string[]> =>
+  (await lookAll(pane, { type: 'Button', text: /./ })).map((b: any) => b.key as string).filter((k: string) => k?.startsWith(prefix))
+const walk = (node: any, visit: (n: any, parent: any) => void, parent: any = null) => {
+  if (!node || typeof node !== 'object') return
+  visit(node, parent)
+  for (const c of [].concat(node.children ?? [])) walk(c, visit, node)
+}
+// The model the plugin last handed the Client, as the pane's own tree carries it.
+const handed = async (pane: any) => ((await pane.drawn()) as any).props.props
+
+const mountDesktop = async ($: any, on: any) => {
+  fakeRepo(on, REPO, DIRS)
+  placePanes(on)
+  await $.command.run(typed('grounded'))
+  return $.ui.mount({ ...PANE, surface: 'desktop' })
+}
+
+test('desktop: the pane is one Client that draws the shared screens', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  const outer = (await ui.drawn()) as any
+  expect(outer.type).toBe('Client')
+  expect(outer.props.key).toBe(APP)
+  expect(await look(ui, { text: /Fits this repo/ })).toBeDefined()
+  expect(await clientKeys(ui, 'open-fit-')).toEqual(['open-fit-GE-AS-004', 'open-fit-GE-VF-004', 'open-fit-GE-TS-001'])
+  await ui.unmount()
+})
+
+test('desktop: opening a fit shows the tile at once, before the plugin hears the press, and a sync confirms it', async ($, on) => {
+  const submitted: string[] = []
+  captureSkills(on, submitted)
+  const ui = await mountDesktop($, on)
+  await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
+  // Nothing has been posted yet: the plugin's model still has no selection.
+  expect((await handed(ui)).selected).toBe(null)
+  expect(await look(ui, { key: 'primary-fit-GE-AS-004' })).toBeDefined()
+  await ui.advance(1100)
+  await settle(ui)
+  expect((await handed(ui)).selected).toBe('fit-GE-AS-004')
+  expect(await look(ui, { key: 'primary-fit-GE-AS-004' })).toBeDefined()
+  expect(submitted).toEqual([])
+  await ui.unmount()
+})
+
+test('desktop: the primary action starts its skill once, however often the poster runs', async ($, on) => {
+  const submitted: string[] = []
+  captureSkills(on, submitted)
+  const ui = await mountDesktop($, on)
+  await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
+  await ui.press({ key: 'primary-fit-GE-AS-004', in: APP })
+  expect(await look(ui, { text: /Starting…/ })).toBeDefined()
+  expect(submitted).toEqual([])
+  await settle(ui)
+  expect(submitted).toEqual(['grounded-engineering:adapt GE-AS-004'])
+  expect(await look(ui, { text: /Starting…/ })).toBeUndefined()
+  // Past the resend interval and a sync: the press is not run again.
+  for (let i = 0; i < 12; i++) await ui.advance(100)
+  await ui.advance(1100)
+  await settle(ui)
+  expect(submitted).toEqual(['grounded-engineering:adapt GE-AS-004'])
+  await ui.unmount()
+})
+
+test('desktop: search filters the All list at once', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  await ui.input({ key: 'search', text: 'sandbox', kind: 'change', in: APP })
+  expect(await clientKeys(ui, 'open-all-')).toEqual(['open-all-GE-VF-004'])
+  await settle(ui)
+  expect((await handed(ui)).query).toBe('sandbox')
+  expect(await clientKeys(ui, 'open-all-')).toEqual(['open-all-GE-VF-004'])
+  await ui.unmount()
+})
+
+test('desktop: a narrow Client cuts a long row title with an ellipsis', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  await ui.resize({ columns: 50, rows: 40, in: APP })
+  await settle(ui)
+  const row = (await look(ui, { key: 'open-all-GE-VF-004' })) as any
+  expect(row.props.label).toMatch(/… ›$/)
+  expect(row.props.label.length).toBeLessThan(48)
+  await ui.unmount()
+})
+
+test('desktop: the Client draws no Link; the Evidence address shows as text', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
+  await settle(ui)
+  const types = new Set<string>()
+  const texts: string[] = []
+  walk(await drawnAll(ui), (n) => { types.add(n.type); if (n.type === 'Text') texts.push(JSON.stringify(n.children ?? '')) })
+  expect(types.has('Link')).toBe(false)
+  expect(texts.some((t) => t.includes('Evidence ›'))).toBe(true)
+  expect(texts.some((t) => t.includes(cardUrl(FIXTURE_CATALOG, FIXTURE_CATALOG.practices[0]!)))).toBe(true)
+  await ui.unmount()
+})
+
+test('desktop: every Client button carries its label as a prop, and actions sit in an outlined box', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
+  await settle(ui)
+  const buttons: { node: any; parent: any }[] = []
+  walk(await drawnAll(ui), (n, parent) => { if (n.type === 'Button') buttons.push({ node: n, parent }) })
+  expect(buttons.length).toBeGreaterThan(10)
+  for (const { node } of buttons) {
+    expect(typeof node.props.label).toBe('string')
+    expect(node.props.hotkey).toBeUndefined()
+    expect(node.props.dimColor).toBeUndefined()
+  }
+  const parentOf = (key: string) => buttons.find((b) => b.node.props.key === key)?.parent
+  expect(parentOf('primary-fit-GE-AS-004')?.props.borderStyle).toBe('round')
+  expect(parentOf('primary-fit-GE-AS-004')?.props.backgroundColor).toBeTruthy()
+  expect(parentOf('tab-skills')?.props.borderStyle).toBe('round')
+  expect(parentOf('tab-skills')?.props.backgroundColor).toBeUndefined()
+  // Titles, options and lane arrows stay plain text controls; only row titles gain a ›.
+  expect(parentOf('open-fit-GE-AS-004')?.props.borderStyle).toBeUndefined()
+  expect(buttons.find((b) => b.node.props.key === 'open-fit-GE-AS-004')?.node.props.label).toBe('Bound delegated work')
+  expect(buttons.find((b) => b.node.props.key === 'open-all-GE-VF-001')?.node.props.label).toMatch(/ ›$/)
+  expect(parentOf('opt-cat-All')?.props.borderStyle).toBeUndefined()
+  expect(parentOf('lane-fits')?.props.borderStyle).toBeUndefined()
+  await ui.unmount()
+})
+
+test('desktop: the skill repos tab switches at once and explains a repo once', async ($, on) => {
+  const submitted: string[] = []
+  captureSkills(on, submitted)
+  const ui = await mountDesktop($, on)
+  await ui.press({ key: 'tab-skills', in: APP })
+  expect(await look(ui, { text: /Fits this repo/ })).toBeUndefined()
+  expect(await clientKeys(ui, 'open-repo-')).toEqual(['open-repo-GE-SR-002', 'open-repo-GE-SR-001'])
+  await ui.press({ key: 'open-repo-GE-SR-002', in: APP })
+  await ui.press({ key: 'primary-repo-GE-SR-002', in: APP })
+  await settle(ui)
+  expect(submitted).toEqual(['grounded-engineering:explain GE-SR-002'])
+  expect((await handed(ui)).screen).toBe('skills')
   await ui.unmount()
 })

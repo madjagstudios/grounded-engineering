@@ -93,16 +93,20 @@ const VETTED_HREF = /^(?:(['"`])https:\/\/[^'"`$\s]+\1$|(?:cardUrl|repoUrl)\(|(?
 
 test('every href in the pane is an https literal or a vetted URL', () => {
   let checked = 0;
+  let inScreens = 0;
   for (const path of sourceFiles(hooksDir).filter((p) => p.endsWith('.tsx'))) {
     const text = readFileSync(path, 'utf8');
     for (const m of text.matchAll(/\bhref(?:=\{([^}]*)\}|=("[^"]*"|'[^']*')|:\s*([^,}\]\n;]+))/g)) {
       const value = (m[1] ?? m[2] ?? m[3]).trim();
       if (value === 'string') continue; // the CardModel type, not a value
       checked += 1;
+      if (path.endsWith('screens.tsx')) inScreens += 1;
       assert.match(value, VETTED_HREF, `${path}: href ${value}`);
     }
   }
   assert.ok(checked > 0, 'no href found in the pane sources');
+  // The shared screens hold every link: the repository, cards, skill repos and the MORE list.
+  assert.ok(inScreens >= 6, `only ${inScreens} hrefs found in screens.tsx`);
 });
 
 test('marketplace and plugin manifests agree on name and version', () => {
