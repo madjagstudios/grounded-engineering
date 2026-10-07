@@ -12,6 +12,7 @@ const PANE = {
 const typed = (command: string) => ({ command, args: '', origin: { kind: 'composer' as const }, presentation: { isFullscreen: true, columns: 160 } })
 // The engine places panes; beneath the plugin a test answers for it.
 const placePanes = (on: any) => on('ui.open', async () => ({ value: { isPlaced: true } }))
+const openArgs = (on: any, into: any[]) => on('ui.open', async (_$: unknown, e: any) => { into.push(e); return { value: { isPlaced: true } } })
 const captureSkills = (on: any, into: string[]) => {
   for (const command of ['grounded-engineering:adapt', 'grounded-engineering:explain']) {
     on('command.run', { command }, async (_$: unknown, e: { command: string; args: string }) => { into.push(`${e.command} ${e.args}`); return { text: '' } })
@@ -159,6 +160,15 @@ test('terminal: a pane restored without a command reads the repository itself', 
   await ui.unmount()
 })
 
+test('the command opens the pane asking for a 100-column dock', async ($, on) => {
+  const opened: any[] = []
+  fakeRepo(on, REPO, DIRS)
+  openArgs(on, opened)
+  await $.command.run(typed('grounded'))
+  expect(opened.length).toBe(1)
+  expect(opened[0]).toMatchObject({ id: 'grounded', title: 'Grounded', columns: 100 })
+})
+
 test('terminal: a missing catalog shows the reinstall message instead of a partial pane', async ($, on) => {
   on('fs.read', async () => ({ deny: 'ENOENT' }))
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
@@ -275,16 +285,57 @@ test('desktop: a narrow Client cuts a long row title with an ellipsis', async ($
   await ui.unmount()
 })
 
-test('desktop: the Client draws no Link; the Evidence address shows as text', async ($, on) => {
+test('desktop: the Client draws no Link; the Evidence link is a Markdown link to the card', async ($, on) => {
   const ui = await mountDesktop($, on)
   await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
   await settle(ui)
   const types = new Set<string>()
-  const texts: string[] = []
-  walk(await drawnAll(ui), (n) => { types.add(n.type); if (n.type === 'Text') texts.push(JSON.stringify(n.children ?? '')) })
+  const markdown: any[] = []
+  walk(await drawnAll(ui), (n) => { types.add(n.type); if (n.type === 'Markdown') markdown.push(n.props) })
   expect(types.has('Link')).toBe(false)
-  expect(texts.some((t) => t.includes('Evidence ›'))).toBe(true)
-  expect(texts.some((t) => t.includes(cardUrl(FIXTURE_CATALOG, FIXTURE_CATALOG.practices[0]!)))).toBe(true)
+  const url = cardUrl(FIXTURE_CATALOG, FIXTURE_CATALOG.practices[0]!)
+  const evidence = markdown.find((m) => String(m.text).includes(url))
+  expect(evidence?.text).toBe(`[Evidence ›](${url})`)
+  // The surface opens the link itself: nothing answers a press on it, so it needs no key.
+  expect(evidence?.onLinkPress).toBeUndefined()
+  expect(evidence?.key).toBeUndefined()
+  await ui.unmount()
+})
+
+test('desktop: every opener ends with a ›, a selected fit title too', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  const label = async (key: string) => ((await look(ui, { key })) as any).props.label as string
+  expect(await label('open-fit-GE-AS-004')).toBe('Bound delegated work ›')
+  await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
+  expect(await label('open-fit-GE-AS-004')).toBe('Bound delegated work ›')
+  expect(await label('open-fit-GE-VF-004')).toMatch(/ ›$/)
+  await ui.unmount()
+})
+
+test('desktop: the Details button never shrinks, so it cannot wrap onto two lines', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  let chain: any[] = []
+  const find = (node: any, trail: any[]): boolean => {
+    if (!node || typeof node !== 'object') return false
+    const here = [...trail, node]
+    if (node.type === 'Button' && node.props.key === 'details') { chain = here; return true }
+    return [].concat(node.children ?? []).some((c) => find(c, here))
+  }
+  expect(find(await drawnAll(ui), [])).toBe(true)
+  expect(chain.slice(-3).some((n) => n.type === 'Box' && n.props.flexShrink === 0)).toBe(true)
+  await ui.unmount()
+})
+
+test('desktop: the header drops its title when the Client is narrow and keeps it when wide', async ($, on) => {
+  const ui = await mountDesktop($, on)
+  await ui.resize({ columns: 100, rows: 40, in: APP })
+  await settle(ui)
+  expect(await look(ui, { text: 'Grounded Engineering' })).toBeDefined()
+  await ui.resize({ columns: 50, rows: 40, in: APP })
+  await settle(ui)
+  expect(await look(ui, { text: 'Grounded Engineering' })).toBeUndefined()
+  expect(await look(ui, { key: 'tab-practices' })).toBeDefined()
+  expect(await look(ui, { key: 'tab-skills' })).toBeDefined()
   await ui.unmount()
 })
 
@@ -305,9 +356,9 @@ test('desktop: every Client button carries its label as a prop, and actions sit 
   expect(parentOf('primary-fit-GE-AS-004')?.props.backgroundColor).toBeTruthy()
   expect(parentOf('tab-skills')?.props.borderStyle).toBe('round')
   expect(parentOf('tab-skills')?.props.backgroundColor).toBeUndefined()
-  // Titles, options and lane arrows stay plain text controls; only row titles gain a ›.
+  // Titles, options and lane arrows stay plain text controls; every opener gains a ›.
   expect(parentOf('open-fit-GE-AS-004')?.props.borderStyle).toBeUndefined()
-  expect(buttons.find((b) => b.node.props.key === 'open-fit-GE-AS-004')?.node.props.label).toBe('Bound delegated work')
+  expect(buttons.find((b) => b.node.props.key === 'open-fit-GE-AS-004')?.node.props.label).toBe('Bound delegated work ›')
   expect(buttons.find((b) => b.node.props.key === 'open-all-GE-VF-001')?.node.props.label).toMatch(/ ›$/)
   expect(parentOf('opt-cat-All')?.props.borderStyle).toBeUndefined()
   expect(parentOf('lane-fits')?.props.borderStyle).toBeUndefined()

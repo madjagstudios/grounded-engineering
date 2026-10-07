@@ -109,7 +109,8 @@ async function openOn($: any, screen: 'practices' | 'skills', text: string) {
   await update($, selectedState, () => null)
   await update($, queryState, () => '')
   await update($, collapsedState, () => ({ fits: false, all: false }))
-  await $.ui.open({ id: PANE, title: 'Grounded' })
+  // A request for a wider dock; a width the person dragged wins.
+  await $.ui.open({ id: PANE, title: 'Grounded', columns: 100 })
   await refreshRepo($)
   return { text }
 }

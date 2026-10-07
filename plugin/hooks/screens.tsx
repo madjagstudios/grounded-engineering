@@ -20,6 +20,9 @@ const MORE = [
   { label: 'awesome-claude-code-mods ›', href: 'https://github.com/karanb192/awesome-claude-code-mods' },
 ]
 
+// Below this many columns the tabs take the whole header row and the title is left out.
+const NARROW = 60
+
 const isValidated = (x: { validation_status: string }) => x.validation_status === 'validated'
 
 export function paneScreen(ui: any, m: PaneModel, go: Go, p: Palette, columns: number, scale: number) {
@@ -35,7 +38,7 @@ export function paneScreen(ui: any, m: PaneModel, go: Go, p: Palette, columns: n
   return (
     <Box flexDirection="column" gap={1}>
       <Box flexDirection="row" justifyContent="space-between" gap={1}>
-        <Box flexGrow={1} flexShrink={1} minWidth={0}><Text bold wrap="truncate-end">Grounded Engineering</Text></Box>
+        {columns > 0 && columns < NARROW ? null : <Box flexGrow={1} flexShrink={1} minWidth={0}><Text bold wrap="truncate-end">Grounded Engineering</Text></Box>}
         <Box flexDirection="row" gap={1} flexShrink={0}>
           <Button key="tab-practices" hotkey="1" variant={m.screen === 'practices' ? 'primary' : 'secondary'} label={`Practices ${c.practices.length}`} onPress={() => go.tab('practices')} />
           <Button key="tab-skills" hotkey="2" variant={m.screen === 'skills' ? 'primary' : 'secondary'} label={`Skill repos ${c.skill_repos.length}`} onPress={() => go.tab('skills')} />
@@ -65,7 +68,7 @@ function practicesScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palet
           {chip(ui, p, 'neutral', s.test_framework ?? (s.has_tests ? 'tests (framework unknown)' : 'no tests'))}
           {m.adoption ? chip(ui, p, 'neutral', `Adopted: ${m.adoption.profile ?? 'custom'} · ${m.adoption.cards.length}`) : null}
         </Box>
-        <Button key="details" plain hotkey="d" label={m.showSignals ? 'Hide details' : 'Details ›'} onPress={() => go.toggleSignals()} />
+        <Box flexShrink={0}><Button key="details" plain hotkey="d" label={m.showSignals ? 'Hide details' : 'Details ›'} onPress={() => go.toggleSignals()} /></Box>
       </Box>
       {m.showSignals ? (
         <Box key="signals" flexDirection="column">

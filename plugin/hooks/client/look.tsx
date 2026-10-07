@@ -7,7 +7,7 @@
 import type { Palette } from '../theme'
 
 export function clientLook(el: any, p: Palette, columns = 0) {
-  const { Box, Text, Button } = el
+  const { Box, Button, Markdown } = el
   const LookButton = (props: any) => {
     // A hotkey answers only in the terminal pane, and a dim label is not known to draw in
     // the Client: the picked dot already marks which option is on.
@@ -15,10 +15,10 @@ export function clientLook(el: any, p: Palette, columns = 0) {
     const label = String(rest.label ?? (typeof children === 'string' ? children : ''))
     const key = String(rest.key ?? '')
     // Text stays a plain control where its symbol or place says so: a title, a picked dot,
-    // a lane arrow, the details toggle. Row titles open a tile: text with a › after it.
+    // a lane arrow, the details toggle. Titles open a tile: text with a › after it.
     if (/^(open-|opt-|lane-|details)/.test(key) || /^[▾▸●○]/u.test(label)) {
-      const opensRow = /^open-(all|repo)-/.test(key)
-      return <Box flexDirection="row" minWidth={0}><Button {...rest} plain label={opensRow ? `${label} ›` : label} /></Box>
+      const opens = key.startsWith('open-')
+      return <Box flexDirection="row" minWidth={0}><Button {...rest} plain label={opens ? `${label} ›` : label} /></Box>
     }
     const primary = rest.variant === 'primary'
     delete rest.plain
@@ -31,10 +31,14 @@ export function clientLook(el: any, p: Palette, columns = 0) {
     )
   }
   // The desktop refuses a Link inside a Client and unmounts the whole Client over it, so a
-  // link is drawn as its text with the address under it, for the person to copy.
-  const LookLink = ({ href, children, label }: any) => (
-    <Box flexDirection="column"><Text>{children ?? label ?? href}</Text><Text color={p.dim}>{href}</Text></Box>
-  )
+  // link is a Markdown line, which every surface draws as it draws an assistant reply's
+  // links: the surface opens them itself, so no onLinkPress and no key. The addresses
+  // reaching here are vetted https URLs and go through as written.
+  const LookLink = ({ href, children, label }: any) => {
+    const own = [children].flat().filter((c) => typeof c === 'string').join('')
+    const text = (own || label || href).replace(/[\\[\]]/g, '\\$&')
+    return <Markdown text={`[${text}](${href})`} />
+  }
   // columns: how wide the Client is, for screens that cut a label to one line.
   return { ...el, Button: LookButton, Link: LookLink, columns }
 }
