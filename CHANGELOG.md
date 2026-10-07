@@ -35,10 +35,13 @@ records the state of the catalog and tooling at that tag.
   release are unchanged.
 
 ### Security
-- Updated the transitive `fast-uri` dependency (via `ajv`) to 3.1.8 for
-  GHSA-qw65-cvwx-89v3, GHSA-58mr-gqgx-xq4g, and GHSA-hrr3-gc8f-f4qj. The
-  validator only resolves this repository's own schema identifiers, so
-  untrusted input did not reach the affected code.
+- The repository lockfile now resolves `fast-uri` (via `ajv`) to 3.1.8, which
+  addresses GHSA-qw65-cvwx-89v3 and GHSA-58mr-gqgx-xq4g (high) and
+  GHSA-hrr3-gc8f-f4qj (moderate). npm does not publish this lockfile; a fresh
+  install of the package already resolves 3.1.8 through `ajv`'s range, so only
+  installs pinned by their own older lockfile need to update. The package
+  compiles only its own bundled schemas, so untrusted input did not reach the
+  affected code.
 
 ## [0.5.0] - 2026-08-28
 
