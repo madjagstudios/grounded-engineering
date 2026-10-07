@@ -1,9 +1,6 @@
 import type { FsEntry } from 'claude-code'
 
-// What the core reads through. The engine follows `$` only inside the hook module that
-// receives it, never across an import, so a hook builds this from its own `$`:
-//   { fs: { read: (p) => $.fs.read(p), exists: (p) => $.fs.exists(p), list: (p) => $.fs.list(p) },
-//     plugin: { root: $.plugin.root } }
+// What the core reads through. Built from a hook's `$` by `hostOf` in register.tsx.
 export type Host = {
   fs: { read(path: string): Promise<string>; exists(path: string): Promise<boolean>; list(path?: string): Promise<FsEntry[]> }
   plugin: { root: string }
@@ -35,7 +32,7 @@ export async function loadCatalog(host: Host): Promise<Catalog> {
     for (const field of ['practices', 'fit_rules', 'skill_repos', 'categories', 'signals', 'sources'] as const) {
       if (!Array.isArray(catalog[field])) throw new Error(`${field} is not a list`)
     }
-    // Every Link the pane draws is built on this, and one bad href refuses the whole pane.
+    // Card links are built on this URL, and the engine refuses the whole pane over one bad link.
     if (typeof catalog.repository !== 'string' || !/^https:\/\/[^\s@]+$/.test(catalog.repository)) {
       throw new Error('repository is not an https URL')
     }

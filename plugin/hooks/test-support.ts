@@ -27,8 +27,7 @@ const strip = (p: string) => p.replace(/^\.\//, '')
 const entriesOf = (dirs: Record<string, string[]>, path: string): FsEntry[] =>
   (dirs[strip(path)] ?? []).map((name): FsEntry => ({ name: name.replace(/\/$/, ''), kind: name.endsWith('/') ? 'dir' : 'file', size: 0, mtimeMs: 0, isLink: false }))
 
-// A test's own `$` is the engine's and has no `fs`, and a hook's `$` cannot cross an import,
-// so plain unit tests hand the core this Host, backed by the same files and dirs maps.
+// A Host for unit tests of the core, backed by maps of files and directory listings.
 export function fakeHost(files: Record<string, string>, dirs: Record<string, string[]> = {}): Host {
   const fs = {
     read: async (path: string) => {
@@ -43,12 +42,8 @@ export function fakeHost(files: Record<string, string>, dirs: Record<string, str
   return { fs, plugin: { root: '/plugin' } }
 }
 
-// For hook-level tests: answers the plugin's fs.* calls beneath its hooks. The engine
-// resolves a relative path against the working directory (the plugin folder under test)
-// before a hook sees it, and a test cannot ask what that folder is, so an absolute path
-// is matched back to the longest repo-relative key it ends with. This is a suffix match,
-// not an exact one: the folder to strip is not knowable from a test, and the small fixed
-// maps a test passes in have no key that is the tail of another path.
+// Answers the plugin's fs calls in hook-level tests. Paths arrive absolute, so each one
+// matches the longest repo-relative key it ends with.
 export function fakeRepo(on: On, files: Record<string, string>, dirs: Record<string, string[]> = {}) {
   const keys = [...Object.keys(files), ...Object.keys(dirs)].sort((a, b) => b.length - a.length)
   const rel = (p: string) => {

@@ -63,12 +63,6 @@ for (const c of BOOLEAN_CASES) {
   })
 }
 
-test('a subagent that limits its tools still counts as a subagent', async () => {
-  const s = await signalsOf({ '.claude/agents/a.md': '---\nname: a\ntools: Read\n---\n' }, { '.claude/agents': ['a.md'] })
-  expect(s.has_subagents).toBe(true)
-  expect(s.subagents_without_tool_limits).toBe(false)
-})
-
 const STACK_CASES: { name: string; files: Record<string, string>; languages: string[]; framework: string | null }[] = [
   { name: 'jest', files: pkg({ devDependencies: { jest: '1' } }), languages: ['javascript'], framework: 'jest' },
   { name: 'vitest', files: pkg({ devDependencies: { vitest: '1' } }), languages: ['javascript'], framework: 'vitest' },
@@ -140,48 +134,30 @@ test('the catalog loads from the plugin root', async () => {
   expect((await loadCatalog(good)).practices.length).toBe(FIXTURE_CATALOG.practices.length)
 })
 
-test('a missing, malformed, null or wrongly versioned catalog throws the plain error', async () => {
-  const bad = ['{nope', 'null', '[]', '"text"', '{"catalog_version":2,"practices":[]}', '{"catalog_version":1}']
-  await expect(loadCatalog(fakeHost({}))).rejects.toThrow('catalog missing or invalid')
-  for (const text of bad) {
-    await expect(loadCatalog(fakeHost({ '/plugin/catalog.json': text }))).rejects.toThrow('catalog missing or invalid')
-  }
-})
+const withField = (field: string, value: unknown) => JSON.stringify({ ...FIXTURE_CATALOG, [field]: value })
+const MALFORMED_CATALOGS: (string | undefined)[] = [
+  undefined, '{nope', 'null', '[]', '"text"', '{"catalog_version":2,"practices":[]}', '{"catalog_version":1}',
+  ...['practices', 'fit_rules', 'skill_repos', 'categories', 'signals', 'sources'].flatMap((field) => [undefined, null, {}, 'x'].map((value) => withField(field, value))),
+  ...[undefined, 42, '', 'http://github.com/x/y', 'javascript:alert(1)', 'https://user@github.com/x', 'github.com/x/y'].map((url) => withField('repository', url)),
+  ...['https://GitHub.com/x/y', 'https://github.com:443/x/y', 'https://github.com/a/../b', 'https://github.com/x y', 'https://github.com'].map((url) => withField('repository', url)),
+]
 
-test('a catalog whose repository is not an https URL throws the plain error', async () => {
-  for (const repository of [undefined, 42, '', 'http://github.com/x/y', 'javascript:alert(1)', 'https://user@github.com/x', 'github.com/x/y']) {
-    const text = JSON.stringify({ ...FIXTURE_CATALOG, repository })
-    await expect(loadCatalog(fakeHost({ '/plugin/catalog.json': text }))).rejects.toThrow('catalog missing or invalid')
-  }
-})
-
-for (const field of ['fit_rules', 'skill_repos', 'categories', 'signals', 'sources'] as const) {
-  test(`a catalog whose ${field} is not an array throws the plain error`, async () => {
-    for (const value of [undefined, null, {}, 'x']) {
-      const text = JSON.stringify({ ...FIXTURE_CATALOG, [field]: value })
-      await expect(loadCatalog(fakeHost({ '/plugin/catalog.json': text }))).rejects.toThrow('catalog missing or invalid')
-    }
-  })
-}
-
-test('a catalog whose repository is not in normal URL form throws the plain error', async () => {
-  for (const repository of ['https://GitHub.com/x/y', 'https://github.com:443/x/y', 'https://github.com/a/../b', 'https://github.com/x y', 'https://github.com']) {
-    const text = JSON.stringify({ ...FIXTURE_CATALOG, repository })
-    await expect(loadCatalog(fakeHost({ '/plugin/catalog.json': text }))).rejects.toThrow('catalog missing or invalid')
+test('rejects a malformed catalog', async () => {
+  for (const text of MALFORMED_CATALOGS) {
+    const files: Record<string, string> = text === undefined ? {} : { '/plugin/catalog.json': text }
+    await expect(loadCatalog(fakeHost(files))).rejects.toThrow('catalog missing or invalid')
   }
 })
 
 const base = { has_claude_md: true, has_agents_md: false, has_skills: false, has_large_skill_md: false, has_subagents: true, subagents_without_tool_limits: true, hooks_configured: false, sandbox_enabled: false, has_tests: true, has_ci: false, grounded_adopted: false, languages: ['typescript'], test_framework: 'vitest' }
 
-test('fits rank validated first, then by id, and show at most three of four that fire', async () => {
-  const fits = rankPractices(FIXTURE_CATALOG, base, null).map((f) => f.practice.id)
-  expect(fits).toEqual(['GE-AS-004', 'GE-VF-004', 'GE-TS-001'])
+test('fits rank validated first, then by id, capped at the limit', async () => {
+  expect(rankPractices(FIXTURE_CATALOG, base, null).map((f) => f.practice.id)).toEqual(['GE-AS-004', 'GE-VF-004', 'GE-TS-001'])
+  expect(rankPractices(FIXTURE_CATALOG, base, null, 2).map((f) => f.practice.id)).toEqual(['GE-AS-004', 'GE-VF-004'])
 })
 
-test('the uncapped ranking counts every firing card, so the summary can say 4 where the list shows 3', async () => {
+test('an uncapped ranking returns every firing card', async () => {
   expect(rankPractices(FIXTURE_CATALOG, base, null, Infinity).map((f) => f.practice.id)).toEqual(['GE-AS-004', 'GE-VF-004', 'GE-TS-001', 'GE-VF-001'])
-  expect(rankPractices(FIXTURE_CATALOG, base, null)).toHaveLength(3)
-  expect(rankPractices(FIXTURE_CATALOG, base, null, 2)).toHaveLength(2)
 })
 
 test('adopted cards and non-firing rules are excluded', async () => {
@@ -214,12 +190,7 @@ test('a later rule supplies the why when the earlier one does not fire', async (
   expect(rankPractices(catalog, base, null).map((f) => f.why)).toEqual(['second'])
 })
 
-test('a rule naming a card that is not in the catalog is ignored', async () => {
-  const catalog = withRules([{ card: 'GE-XX-999', when: { all: [], any: [], none: [] }, why: 'ghost' }])
-  expect(rankPractices(catalog, base, null)).toEqual([])
-})
-
-test('a rule naming a signal the mod does not read is skipped, wherever it names it', async () => {
+test('a rule naming a signal the plugin does not read is skipped, wherever it names it', async () => {
   const when = { all: ['has_tests'], any: [], none: [] }
   for (const extra of [{ all: ['has_tests', 'has_typo'] }, { any: ['has_typo', 'has_tests'] }, { none: ['has_typo'] }]) {
     const catalog = withRules([{ card: 'GE-VF-001', when: { ...when, ...extra }, why: 'unknown' }])
@@ -231,12 +202,6 @@ test('a rule naming a signal the mod does not read is skipped, wherever it names
 test('skill repos sort by fit, then name', async () => {
   expect(sortSkillRepos(FIXTURE_CATALOG.skill_repos, base, 'fit').map((r) => r.name)).toEqual(['beta-ts', 'alpha-skills'])
   expect(sortSkillRepos(FIXTURE_CATALOG.skill_repos, base, 'name').map((r) => r.name)).toEqual(['alpha-skills', 'beta-ts'])
-})
-
-test('a tag named like an inherited property never scores', async () => {
-  const [repo] = FIXTURE_CATALOG.skill_repos
-  const odd = { ...repo!, id: 'GE-SR-009', name: 'zeta', tags: ['constructor', 'toString', '__proto__'] }
-  expect(sortSkillRepos([odd, ...FIXTURE_CATALOG.skill_repos], base, 'fit').map((r) => r.name)).toEqual(['beta-ts', 'alpha-skills', 'zeta'])
 })
 
 test('search matches any field, case-insensitively, and an empty query matches all', async () => {

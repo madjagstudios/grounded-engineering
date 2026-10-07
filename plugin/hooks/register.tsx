@@ -1,3 +1,9 @@
+// Engine rules this file follows:
+// - State atoms are declared here, as top-level consts with a literal plugin and key.
+// - The engine does not follow `$` across an import, so every function that takes `$` is in this file.
+// - Each hook passed to on() is a function literal.
+// - A render never writes state.
+
 import type { Register } from 'claude-code'
 import { atom, read, update } from 'claude-code'
 import { loadCatalog, type Catalog, type Host } from './catalog'
@@ -7,8 +13,6 @@ import { Shell } from './view/shell'
 
 const PANE = 'grounded'
 
-// The engine reads state only through atoms declared in this file, from references whose
-// plugin and key are literals, so the state lives here and not in a module of its own.
 const screenState = atom({ plugin: 'grounded-engineering', key: 'screen' } as const, 'practices' as GroundedScreen)
 const selectedState = atom({ plugin: 'grounded-engineering', key: 'selected' } as const, null as string | null)
 const queryState = atom({ plugin: 'grounded-engineering', key: 'query' } as const, '')
@@ -19,12 +23,10 @@ const showSignalsState = atom({ plugin: 'grounded-engineering', key: 'showSignal
 const signalsState = atom({ plugin: 'grounded-engineering', key: 'signals' } as const, null as GroundedSignals | null)
 const adoptionState = atom({ plugin: 'grounded-engineering', key: 'adoption' } as const, null as { profile: string | null; cards: string[] } | null)
 
-// The parsed catalog, keyed by the plugin root it was read from, so a render does not parse
-// it again. A hot reload loads this module afresh and empties it.
+// The parsed catalog and the plugin root it was read from. A render reuses it instead of
+// parsing the file again. A hot reload starts this module fresh, which empties it.
 let catalogCache: { root: string; catalog: Catalog } | null = null
 
-// A hook must be a function literal, so each hook names its own; the shared work is in
-// functions declared at the top of this file, the one place the engine follows `$` into.
 function hostOf($: any): Host {
   return { fs: { read: (p) => $.fs.read(p).then(String), exists: (p) => $.fs.exists(p), list: (p) => $.fs.list(p) }, plugin: { root: $.plugin.root } }
 }
@@ -49,9 +51,9 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'grounded', description: 'Open Grounded Engineering: practices that fit this repo' })
     await $.command.register({ name: 'grounded-skills', description: 'Open Grounded Engineering: reviewed skill repos' })
-    // A pane restored with the session draws from these before any command has run. The
-    // read runs beside the session's start rather than in front of it; until it lands, a
-    // render reads the repository itself.
+    // A pane restored with the session can render before any command has run. This refresh
+    // is not awaited, so the session starts without waiting for it, and a render that runs
+    // before it finishes reads the repository itself.
     void refreshRepo($).catch(() => undefined)
     return next(e)
   })
@@ -74,8 +76,6 @@ export const register: Register = on => {
     const [screen, selected, query, category, tag, sort, showSignals, storedSignals, storedAdoption] = await Promise.all([
       read($, screenState), read($, selectedState), read($, queryState), read($, categoryState), read($, tagState), read($, sortState), read($, showSignalsState), read($, signalsState), read($, adoptionState),
     ])
-    // A pane restored before anything stored the repository's signals reads them itself: a
-    // render may read, but it may not write state.
     const [signals, adoption] = storedSignals !== null
       ? [storedSignals, storedAdoption]
       : await Promise.all([readSignals(host), readAdoption(host)])
