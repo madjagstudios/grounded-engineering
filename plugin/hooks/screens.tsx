@@ -99,13 +99,13 @@ function practicesScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palet
   const adopted = new Set(m.adoption?.cards ?? [])
   const visible = c.practices.filter((x) => (m.category === 'All' || x.category === m.category) && matchesQuery([x.title, x.pattern, x.id], m.query))
   const gapText = all.length === 0 ? 'no gaps' : `${all.length} gap${all.length === 1 ? '' : 's'}`
+  const detected = [...s.languages, s.test_framework ?? (s.has_tests ? 'tests (framework unknown)' : 'no tests')].join(' · ')
   return (
     <Box flexDirection="column" gap={1}>
       <Box flexDirection="row" justifyContent="space-between" gap={1}>
         <Box flexDirection="row" gap={1} flexShrink={1} minWidth={0} flexWrap="wrap">
           {chip(ui, p, all.length ? 'warn' : 'ok', gapText)}
-          {chip(ui, p, 'neutral', s.languages.join(', ') || 'no languages')}
-          {chip(ui, p, 'neutral', s.test_framework ?? (s.has_tests ? 'tests (framework unknown)' : 'no tests'))}
+          {chip(ui, p, 'neutral', `Detected: ${detected}`)}
           {m.adoption ? chip(ui, p, 'neutral', `Adopted: ${m.adoption.profile ?? 'custom'} · ${m.adoption.cards.length}`) : null}
         </Box>
         <Box flexShrink={0}><Button key="details" plain hotkey="d" label={m.showSignals ? 'Hide details' : 'Details ›'} onPress={() => go.toggleSignals()} /></Box>

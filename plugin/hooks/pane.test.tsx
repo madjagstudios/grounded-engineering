@@ -38,6 +38,7 @@ test('terminal: the Fits lane lists the top fits and counts the gaps', async ($,
   const ui = await mountPane($, on)
   expect(await ui.find({ text: /Fits this repo/ })).toBeDefined()
   expect(await ui.find({ text: /4 gaps/ })).toBeDefined()
+  expect(await ui.find({ text: /Detected: javascript · vitest/ })).toBeDefined()
   expect(await keysOf(ui, 'open-fit-')).toEqual(['open-fit-GE-AS-004', 'open-fit-GE-VF-004', 'open-fit-GE-TS-001'])
   expect((await ui.find({ key: 'tile-fit-GE-AS-004' }))?.text).toContain('Why here:')
   await ui.unmount()
