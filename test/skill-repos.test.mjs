@@ -107,7 +107,7 @@ test('install is an ordered list of one to four literal steps', () => {
 });
 
 test('an install step with shell operators or connecting phrases is rejected', () => {
-  for (const step of ['npx a && npx b', 'echo $(id)', 'npx a > out', '/plugin install a, or /plugin install b']) {
+  for (const step of ['npx a && npx b', 'npx a & npx b', 'echo $(id)', 'npx a > out', '/plugin install a, or /plugin install b']) {
     const { errors } = loadSkillRepos(fixture([record({ install: [step] })]));
     assert.ok(errors.some((e) => /\/install\/0: /.test(e) && /not a single literal command/.test(e)), `${JSON.stringify(step)}: ${errors.join('\n')}`);
   }

@@ -35,9 +35,9 @@ export function isValidSpdxLicense(license) {
   }
 }
 
-// Rejects shell operators (; && || | backtick $( > <) and the connecting phrases (", or ",
-// " then ", "e.g.", parentheses) that turn a step into a sentence.
-const STEP_FORBIDDEN = [';', '&&', '||', '|', '`', '$(', '>', '<', ', or ', ' then ', 'e.g.', '(', ')'];
+// Rejects shell operators (; & | backtick $( > <; these cover && and || too) and the connecting
+// phrases (", or ", " then ", "e.g.", parentheses) that turn a step into a sentence.
+const STEP_FORBIDDEN = [';', '&', '|', '`', '$(', '>', '<', ', or ', ' then ', 'e.g.', '(', ')'];
 
 export function installStepProblem(step) {
   const found = STEP_FORBIDDEN.find((token) => step.includes(token));
