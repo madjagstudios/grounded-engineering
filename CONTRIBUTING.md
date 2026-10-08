@@ -43,13 +43,16 @@ After changing cards, skill-repo records, fit rules, or the package version, run
 
 When you change anything under `plugin/hooks`, also run `claude plugin test plugin`; CI runs it with `claude plugin validate`.
 
-### Source drift
+### Upstream drift
 
 ```bash
 npm run check:sources
+npm run check:skill-repos
 ```
 
-This compares each card's commit-pinned sources with the current heads of their repositories through the GitHub API, and reports drift without changing anything. A drifted `validated` card should move to `needs_review` and be re-audited.
+`check:sources` compares each card's commit-pinned sources with the current heads of their repositories through the GitHub API. A drifted `validated` card should move to `needs_review` and be re-audited. `check:skill-repos` looks at each listed skill repository: whether it still exists under the same name, is not archived, has the license its record states, and whether its README or `.claude-plugin/marketplace.json` changed since the pinned commit. Neither changes anything. Set `GITHUB_TOKEN` to stay within GitHub's rate limit.
+
+The Upstream watch workflow runs both every Monday and keeps one issue labelled `upstream-drift` up to date, closing it when a run finds nothing.
 
 ### Validation provenance
 

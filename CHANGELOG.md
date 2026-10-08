@@ -7,6 +7,19 @@ project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 Practice cards are point-in-time observations against pinned sources; a release
 records the state of the catalog and tooling at that tag.
 
+## [Unreleased]
+
+### Added
+- `npm run check:skill-repos`, which compares each listed skill repository with
+  its record: that it exists under the same name, is not archived, still has
+  the stated license, and whether the README or marketplace file behind its
+  install steps changed since the pinned commit. It exits `1` on drift and `2`
+  on a license or availability problem.
+- An Upstream watch workflow that runs `check:sources` and `check:skill-repos`
+  every Monday and keeps one `upstream-drift` issue up to date. It uses only
+  the workflow's own token, can read the code and write issues, and changes
+  nothing else.
+
 ## [0.6.0] - 2026-10-08
 
 ### Added
@@ -134,6 +147,7 @@ records the state of the catalog and tooling at that tag.
   cards across repository context, code quality, testing, and verification, with
   the research provenance model, schema, and local validator.
 
+[Unreleased]: https://github.com/madjagstudios/grounded-engineering/compare/v0.6.0...HEAD
 [0.6.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.6.0
 [0.5.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.5.0
 [0.4.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.4.0
