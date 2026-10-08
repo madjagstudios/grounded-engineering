@@ -168,7 +168,7 @@ test('an unexpected resource header falls back to the bucket of the request', as
   assert.equal(f.calls.length, 1);
 });
 
-test('getRepo: returns name, archive state and SPDX licence; 404 is missing', async () => {
+test('getRepo: returns name, archive state and SPDX license; 404 is missing', async () => {
   const f = scripted([
     { res: res({ json: { full_name: 'New/name', archived: true, disabled: false, license: { spdx_id: 'MIT' } }, headers: okHeaders }) },
     { res: res({ status: 404, json: {} }) }
@@ -179,7 +179,7 @@ test('getRepo: returns name, archive state and SPDX licence; 404 is missing', as
   assert.deepEqual(await c.getRepo('o', 'gone'), { missing: true });
 });
 
-test('getRepo: no licence is null, and a non-404 failure is an error', async () => {
+test('getRepo: no license is null, and a non-404 failure is an error', async () => {
   const f = scripted([
     { res: res({ json: { full_name: 'o/r', archived: false, disabled: false, license: null }, headers: okHeaders }) },
     { res: res({ status: 500, json: {} }) }

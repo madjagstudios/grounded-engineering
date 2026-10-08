@@ -10,15 +10,10 @@ records the state of the catalog and tooling at that tag.
 ## [Unreleased]
 
 ### Added
-- `npm run check:skill-repos`, which compares each listed skill repository with
-  its record: that it exists under the same name, is not archived, still has
-  the stated license, and whether the README or marketplace file behind its
-  install steps changed since the pinned commit. It exits `1` on drift and `2`
-  on a license or availability problem.
+- `npm run check:skill-repos`, which checks each listed skill repository
+  against its record (see CONTRIBUTING).
 - An Upstream watch workflow that runs `check:sources` and `check:skill-repos`
-  every Monday and keeps one `upstream-drift` issue up to date. It uses only
-  the workflow's own token, can read the code and write issues, and changes
-  nothing else.
+  every Monday and reports what they find in an `upstream-drift` issue.
 
 ## [0.6.0] - 2026-10-08
 

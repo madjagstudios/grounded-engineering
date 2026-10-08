@@ -25,7 +25,7 @@ export async function runUpstreamWatch({ root, api, env = process.env, runSource
   const runUrl = `${env.GITHUB_SERVER_URL}/${env.GITHUB_REPOSITORY}/actions/runs/${env.GITHUB_RUN_ID}`;
   const clean = sources.code === 0 && repos.code === 0;
   const body = [
-    'The weekly upstream check found something to review. Nothing has been changed: a maintainer re-reads the source, then bumps the pin, re-validates the card, or delists the repository.',
+    'The weekly upstream check has something to review, or could not finish (see the exit codes below). Nothing was changed automatically. For a card source, re-read it, then bump the pin or re-validate the card. For a skill repository, re-read it, then update its pin or delist it.',
     `Run: ${runUrl}`,
     section('Practice-card sources', 'npm run check:sources', sources),
     section('Skill repositories', 'npm run check:skill-repos', repos)

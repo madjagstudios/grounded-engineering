@@ -2,7 +2,7 @@ export const LABEL = 'upstream-drift';
 const BASE = 'https://api.github.com';
 
 // One open issue carries the latest report. Findings create it or replace its body;
-// a clean run closes it. Nothing else in the repository is written.
+// a clean run closes it.
 export async function syncIssue({ api, title, body, clean, note }) {
   const open = await api.findOpenIssue();
   if (clean) {

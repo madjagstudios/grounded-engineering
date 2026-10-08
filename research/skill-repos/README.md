@@ -21,7 +21,6 @@ traffic go to the authors.
 - Reference repositories only as `owner/name`, with no deep links.
 - To delist, set `status: delisted` with a `status_reason`. Authors who ask to
   be removed are delisted without debate.
-- Listed repositories are re-checked every week (`npm run check:skill-repos`).
-  If one changes its license, is archived, renamed or removed, or changes the
-  README or marketplace file its install steps came from, an `upstream-drift`
-  issue says so. A maintainer re-reads it and updates the pin, or delists it.
+- Listed repositories are re-checked every week, and a change that affects a
+  listing is reviewed again. A maintainer then re-reads the repository and
+  updates its pin, or delists it.

@@ -9,7 +9,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const text = readFileSync(join(root, '.github', 'workflows', 'upstream-watch.yml'), 'utf8');
 const workflow = parse(text);
 
-test('the upstream watch runs weekly and on demand, and nowhere else', () => {
+test('the upstream watch has one schedule and a manual trigger, and no other triggers', () => {
   assert.deepEqual(Object.keys(workflow.on).sort(), ['schedule', 'workflow_dispatch']);
   assert.equal(workflow.on.schedule.length, 1);
 });

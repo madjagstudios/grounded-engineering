@@ -7,7 +7,7 @@ const PIN = 'a'.repeat(40), HEAD = 'b'.repeat(40);
 const README_OLD = '1'.repeat(40), README_NEW = '2'.repeat(40);
 const record = (over = {}) => ({ id: 'GE-SR-001', name: 'Alpha', repo: 'owner/alpha', license: 'MIT', pinned_commit: PIN, status: 'listed', ...over });
 
-// A repository whose head has not moved past anything the shelf depends on.
+// The head is 3 commits past the pin; the README is unchanged and there is no marketplace file.
 const upstream = (over = {}) => ({
   repo: { fullName: 'owner/alpha', archived: false, disabled: false, license: 'MIT' },
   readme: { [PIN]: README_OLD, [HEAD]: README_OLD },
@@ -37,14 +37,14 @@ test('an unchanged repository is OK, with how far its head has moved', async () 
   assert.equal(out.repos[0].aheadBy, 3);
 });
 
-test('a licence that no longer matches the record is an error that names the record', async () => {
+test('a license that no longer matches the record is an error that names the record', async () => {
   const out = await run([record()], { 'owner/alpha': upstream({ repo: { fullName: 'owner/alpha', archived: false, disabled: false, license: 'GPL-3.0' } }) });
   assert.equal(out.exitCode, 2);
   assert.equal(out.repos[0].id, 'GE-SR-001');
   assert.deepEqual(out.repos[0].findings, [{ result: 'ERROR', reason: 'license_changed', detail: 'MIT → GPL-3.0' }]);
 });
 
-test('no licence is an error; a licence GitHub cannot classify needs a look', async () => {
+test('no license is an error; a license GitHub cannot classify needs a look', async () => {
   const none = await run([record()], { 'owner/alpha': upstream({ repo: { fullName: 'owner/alpha', archived: false, disabled: false, license: null } }) });
   assert.deepEqual(none.repos[0].findings.map((f) => f.reason), ['license_missing']);
   assert.equal(none.exitCode, 2);

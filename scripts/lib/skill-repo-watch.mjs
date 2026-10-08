@@ -28,7 +28,7 @@ async function watchOne(record, client) {
   if (repo.archived) findings.push(error('archived'));
   if (repo.disabled) findings.push(error('disabled'));
 
-  // GitHub reports the default branch's licence; NOASSERTION means it could not classify it.
+  // GitHub reports the default branch's license; NOASSERTION means it could not classify it.
   if (repo.license === null) findings.push(error('license_missing'));
   else if (repo.license === 'NOASSERTION') findings.push(drifted('license_unrecognized'));
   else if (repo.license !== record.license) findings.push(error('license_changed', `${record.license} → ${repo.license}`));

@@ -12,9 +12,9 @@ const REASONS = {
   renamed: 'renamed or transferred to',
   archived: 'archived',
   disabled: 'disabled',
-  license_missing: 'no licence detected',
-  license_unrecognized: 'licence not recognised by GitHub; check it by hand',
-  license_changed: 'licence changed',
+  license_missing: 'no license detected',
+  license_unrecognized: 'license not recognized by GitHub; check it by hand',
+  license_changed: 'license changed',
   pinned_commit_unreadable: 'pinned commit not found',
   install_source_changed: 'install source changed:',
   lookup_failed: 'lookup failed:'
