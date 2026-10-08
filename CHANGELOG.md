@@ -14,9 +14,8 @@ records the state of the catalog and tooling at that tag.
   marketplace. `/grounded` opens a read-only pane with two screens: Practices,
   with "Fits this repo" suggestions from repository signals, and Skill repos.
   Its `adapt` skill proposes a change for approval, and `explain` says what
-  installing a listed repository would add. It works in
-  the terminal and in the desktop app, where a pressed link is printed in the
-  transcript to click.
+  installing a listed repository would add. It works in the terminal and in the
+  desktop app, where a pressed link is printed in the transcript to click.
 - Skill-repo records: reviewed, link-only pointers to third-party skill
   repositories under `research/skill-repos/`, with a schema
   (`research/skill-repo-schema.yaml`) and validation in `npm test`. A listed
@@ -45,9 +44,9 @@ records the state of the catalog and tooling at that tag.
   a repository that adopted the earlier `ai-assisted` pack, `check` reports a
   pack metadata mismatch once the CLI is upgraded. The `baseline` pack is
   unchanged.
-- The adopt apply policy is reworded: each rule is stated once, and tools
-  built around `adopt apply` are told to rely on the policy rather than on the
-  CLI's code. The write behavior it describes is unchanged.
+- The adopt apply policy no longer names a CLI version, and tells tools built
+  around `adopt apply` to rely on the policy, not on the CLI's code. The write
+  behavior it describes is unchanged.
 
 ### Security
 - The repository lockfile now resolves `fast-uri` (via `ajv`) to 3.1.8, which

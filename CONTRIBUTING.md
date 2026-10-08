@@ -49,28 +49,21 @@ When you change anything under `plugin/hooks`, also run `claude plugin test plug
 npm run check:sources
 ```
 
-This compares each card's commit-pinned sources with the current heads of
-their repositories through the GitHub API, and reports drift without changing
-anything. A drifted `validated` card should move to `needs_review` and be
-re-audited.
+This compares each card's commit-pinned sources with the current heads of their repositories through the GitHub API, and reports drift without changing anything. A drifted `validated` card should move to `needs_review` and be re-audited.
 
 ### Validation provenance
 
-After using a card's practice in a real repository, print a `validated_against`
-block for it from the current source pins, ready to paste into the card:
+After using a card's practice in a real repository, print a `validated_against` block for it from the current source pins, ready to paste into the card:
 
 ```bash
 npm run scaffold:validation -- GE-VF-003
 ```
 
-It runs offline and never edits the card; recording the validation claim is
-the maintainer's call. Add `--check` to see whether a `validated` card's block
-still matches the pins. It works even when `npm test` is failing on other
-cards, so you can fix one card's provenance before the rest.
+It runs offline and never edits the card; recording the validation claim is the maintainer's call. Add `--check` to see whether a `validated` card's block still matches the pins. It works even when `npm test` is failing on other cards, so you can fix one card's provenance before the rest.
 
 ## Review standard
 
-Changes to the evidence model are also reviewed for source fidelity, licensing, broken links, unfinished-work markers, and accidental disclosure of private context.
+Changes to the evidence model are reviewed for source fidelity, licensing, broken links, unfinished-work markers, and accidental disclosure of private context.
 
 Reviewers should be able to answer three questions:
 

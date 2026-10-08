@@ -112,6 +112,7 @@ test('terminal: a card adopted through the CLI offers no primary action', async 
   await ui.press({ key: 'open-all-GE-AS-004' })
   const card = await ui.find({ key: 'tile-all-GE-AS-004' })
   expect(card?.text).toContain('Adopted through the CLI')
+  expect(await keysOf(ui, 'primary-')).toEqual([])
   // A card the CLI did not adopt says nothing of the kind, and keeps its primary action.
   await ui.press({ key: 'open-all-GE-VF-001' })
   const other = await ui.find({ key: 'tile-all-GE-VF-001' })
@@ -197,7 +198,7 @@ test('terminal: a pane restored without a command reads the repository itself', 
   await ui.unmount()
 })
 
-test('/grounded opens the pane asking for a 100-column dock, and does not pass the command on to the grounded skill', async ($, on) => {
+test('/grounded opens a 100-column dock and handles the command itself', async ($, on) => {
   const opened: any[] = []
   const skillRuns: string[] = []
   fakeRepo(on, REPO, DIRS)
@@ -528,7 +529,7 @@ test('the link command prints a link the pane draws, and not one it does not', a
 const describing = ($: any, command: string) => $.command.describe({
   command, description: 'a command', isHidden: false, immediate: true, provider: { plugin: 'grounded-engineering', tier: 'append' },
 })
-test('grounded-link, adapt and explain are hidden from the slash menu; /grounded and /grounded-skills are listed', async ($, on) => {
+test('only /grounded and /grounded-skills appear in the slash menu', async ($, on) => {
   // Beneath the plugin the engine's own listing answers as the command declared itself.
   on('command.describe', async (_$: unknown, e: any) => ({ description: e.description, isHidden: e.isHidden }))
   expect((await describing($, 'grounded-link')).isHidden).toBe(true)
@@ -544,6 +545,7 @@ test('terminal: an open card keeps its accent edge and paints no background', as
   const card = (await ui.find({ key: 'tile-fit-GE-AS-004' })) as any
   expect(card.props.borderColor).toBe(PALETTE.accent.edge)
   expect(card.props.backgroundColor).toBeUndefined()
+  await ui.unmount()
 })
 
 test('desktop: openers are outlined and sized to their label', async ($, on) => {

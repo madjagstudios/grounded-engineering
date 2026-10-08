@@ -6,7 +6,7 @@ title: Confine agent-executed commands in an OS sandbox
 category: Verification
 subcategory: Execution isolation
 pattern: Run agent-executed commands inside an operating-system sandbox with a least-privilege policy.
-underlying_principle: The operating system should enforce isolation, not the agent's judgment about what is safe to run.
+underlying_principle: Isolation should be enforced by the operating system, not left to the agent's judgment about what is safe to run.
 observed_implementation: A sandboxing crate exposes platform sandbox managers (Landlock, Seatbelt, Windows) and filesystem and network violation recorders behind a common interface.
 applicability: [AI_ASSISTED, REPOSITORY_GOVERNANCE]
 control_types: [DETERMINISTIC_CHECK, PERMISSION]
@@ -38,8 +38,8 @@ an operating-system sandbox scoped to least privilege, and treat recorded
 violations as a signal, so a mistaken or malicious command is stopped by the
 platform.
 
-Platform selection can find no sandbox at all. When it does, do not run the
-command unconfined. A policy widened until nothing is denied isolates nothing;
+Some platforms have no sandbox available; then do not run the command
+unconfined. A policy widened until nothing is denied isolates nothing;
 tighten it and surface the violation instead of relaxing it to get a task
 through.
 

@@ -20,7 +20,7 @@ the proposal's adapter and the repository manifest at
 - `codex`: the repository-root `AGENTS.md`.
 - `claude`: the repository-root `CLAUDE.md`.
 
-When creating a proposal, the Codex adapter refuses to select a target when
+When creating a proposal, the Codex adapter selects no target if
 `AGENTS.override.md` is present. The Claude adapter selects only the root
 `CLAUDE.md`, not `.claude/CLAUDE.md`, nested `CLAUDE.md`, or
 `CLAUDE.local.md`. Apply does not re-run adapter preflight; it uses the

@@ -541,7 +541,7 @@
         "AI_ASSISTED",
         "REPOSITORY_GOVERNANCE"
       ],
-      "body": "Use this when an agent runs shell commands or generated code. Confine them with\nan operating-system sandbox scoped to least privilege, and treat recorded\nviolations as a signal, so a mistaken or malicious command is stopped by the\nplatform.\n\nPlatform selection can find no sandbox at all. When it does, do not run the\ncommand unconfined. A policy widened until nothing is denied isolates nothing;\ntighten it and surface the violation instead of relaxing it to get a task\nthrough.\n\n## Evidence trail\n\n- [CODEX-SANDBOX-ISOLATION](../../research/sources/codex.md#codex-sandbox-isolation): the re-exported platform sandbox managers and violation recorders.",
+      "body": "Use this when an agent runs shell commands or generated code. Confine them with\nan operating-system sandbox scoped to least privilege, and treat recorded\nviolations as a signal, so a mistaken or malicious command is stopped by the\nplatform.\n\nSome platforms have no sandbox available; then do not run the command\nunconfined. A policy widened until nothing is denied isolates nothing;\ntighten it and surface the violation instead of relaxing it to get a task\nthrough.\n\n## Evidence trail\n\n- [CODEX-SANDBOX-ISOLATION](../../research/sources/codex.md#codex-sandbox-isolation): the re-exported platform sandbox managers and violation recorders.",
       "category": "Verification",
       "confidence": "medium",
       "control_types": [

@@ -31,14 +31,8 @@ card's main action.
 
 ### Command-line tool
 
-Needs Node.js 20 or later. The CLI writes the same practices into `AGENTS.md`,
-`CLAUDE.md` or a neutral Markdown file:
-
-```bash
-npx grounded-engineering adopt preview --profile ai-assisted --adapter claude
-```
-
-See [Adopt a profile](#adopt-a-profile) below.
+Needs Node.js 20 or later. It writes the same practices into `AGENTS.md`,
+`CLAUDE.md` or a neutral Markdown file; see [Adopt a profile](#adopt-a-profile).
 
 ## Skill repos
 
@@ -60,6 +54,7 @@ research/       Source observations, pinned references, and category audits
 practices/      Short, reusable engineering-practice cards
 integrations/   Consumer-specific translation guidance for agent instruction files
 plugin/         The Claude Code plugin: pane, skills, and generated catalog
+src/, bin/      The command-line tool
 scripts/        Validation, catalog build, and source-drift tools
 ```
 
@@ -109,8 +104,8 @@ yet.
 compares them with the pack bundled in the installed CLI. It exits `0` when
 clean, `1` on drift or a repository-state mismatch, and `2` on an invocation
 error. The write path is specified in the
-[adopt apply policy](policies/adopt-apply.md), which the CLI's help also names;
-compatibility notes for each release are in [`CHANGELOG.md`](CHANGELOG.md).
+[adopt apply policy](policies/adopt-apply.md); compatibility notes for each
+release are in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## How sources are used
 
