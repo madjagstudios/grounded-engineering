@@ -18,7 +18,7 @@ evidence_level: recommended
 source_ids: [CODEX-TRUST-BOUNDARY, CLAUDE-ENFORCEMENT-BOUNDARY]
 evidence_refs:
   - source_id: CODEX-TRUST-BOUNDARY
-    locator: policy_template.md:5-13, :15-26, and :64-76 for evidence handling, authorization, and outcome policy
+    locator: policy_template.md:5-13, :15-26, and :66-78 for evidence handling, authorization, and outcome policy
     relationship: generalized_principle
   - source_id: CLAUDE-ENFORCEMENT-BOUNDARY
     locator: official memory documentation sections distinguishing guidance from enforcement; retrieved 2026-08-26
@@ -28,7 +28,7 @@ validation:
   validated_against:
     - source_id: CODEX-TRUST-BOUNDARY
       revisions:
-        - dc08ace7821614a702b1214c9d08ae0db2634d82
+        - 515c291d875e07faa64e3fa43dc9bbffed8db31f
     - source_id: CLAUDE-ENFORCEMENT-BOUNDARY
       revisions:
         - 2026-08-26

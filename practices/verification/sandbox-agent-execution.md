@@ -18,14 +18,14 @@ evidence_level: recommended
 source_ids: [CODEX-SANDBOX-ISOLATION]
 evidence_refs:
   - source_id: CODEX-SANDBOX-ISOLATION
-    locator: lib.rs:1-48 for the re-exported sandbox managers and violation recorders
+    locator: lib.rs:1-63 for the re-exported sandbox managers and violation recorders
     relationship: observed_implementation
 validation:
   status: validated
   validated_against:
     - source_id: CODEX-SANDBOX-ISOLATION
       revisions:
-        - 03861e69ef549717c0fc7045abad56321d4a082b
+        - 515c291d875e07faa64e3fa43dc9bbffed8db31f
 revisit:
   required: false
 agent_snippet: Run agent-executed commands in a least-privilege OS sandbox where one is available; when none is available, do not run them unconfined.

@@ -661,15 +661,15 @@
       "featured": false,
       "id": "GE-SR-002",
       "install": [
-        "/plugin install mattpocock-skills",
+        "/plugin install mattpocock-skills@claude-plugins-official",
         "/setup-matt-pocock-skills"
       ],
       "install_note": "It is in the official marketplace.",
       "license": "MIT",
       "name": "Skills For Real Engineers",
-      "pinned_commit": "f3fc5632f401156837ee3872f14fe33ccf1024ea",
+      "pinned_commit": "b0618bc436ad893b3c5e84e55fba86586d34a404",
       "repo": "mattpocock/skills",
-      "reviewed_on": "2026-10-07",
+      "reviewed_on": "2026-10-08",
       "summary": "Skills for everyday work with an agent, built around an interview that pins down the task before any code is written and a shared glossary of your project's domain terms.",
       "tags": [
         "planning",
@@ -1010,14 +1010,14 @@
       "install_note": null,
       "license": "MIT",
       "name": "Ponytail",
-      "pinned_commit": "552acd5efd0aeae2583a12efe39373d2f076f25e",
+      "pinned_commit": "9cc65d03aa2da1db7121b912d03596409ee340b8",
       "repo": "DietrichGebert/ponytail",
-      "reviewed_on": "2026-10-07",
-      "summary": "An always-on prompt that pushes the agent to write less code and reuse what already exists, with a command that reviews a diff for over-engineering.",
+      "reviewed_on": "2026-10-08",
+      "summary": "An always-on prompt that pushes the agent to write less code and reuse what already exists, with commands that review a diff or a whole repo for bugs, risk and over-engineering.",
       "tags": [
         "review"
       ],
-      "watch_out_for": "Hooks run at session start and on every prompt, keep a flag file under ~/.claude, and once nudge the agent to edit settings.json for a status line."
+      "watch_out_for": "Hooks run at session start and on every prompt, keep flag files under ~/.claude, and once nudge the agent to edit settings.json for a status line. They also add a map of your code's function and class names to the agent's context."
     }
   ],
   "sources": [
@@ -1055,11 +1055,11 @@
     },
     {
       "id": "CODEX-AGENTS-IMPLEMENTATION",
-      "url": "https://github.com/openai/codex/blob/dc08ace7821614a702b1214c9d08ae0db2634d82/codex-rs/core/src/agents_md.rs#L1-L16"
+      "url": "https://github.com/openai/codex/blob/515c291d875e07faa64e3fa43dc9bbffed8db31f/codex-rs/core/src/agents_md.rs#L1-L18"
     },
     {
       "id": "CODEX-NETWORK-CAPABILITY",
-      "url": "https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/core/src/tools/network_approval.rs"
+      "url": "https://github.com/openai/codex/blob/515c291d875e07faa64e3fa43dc9bbffed8db31f/codex-rs/core/src/tools/network_approval.rs"
     },
     {
       "id": "CODEX-PATCH-FORMAT",
@@ -1067,11 +1067,11 @@
     },
     {
       "id": "CODEX-SAFETY-POLICY",
-      "url": "https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/core/src/safety.rs"
+      "url": "https://github.com/openai/codex/blob/515c291d875e07faa64e3fa43dc9bbffed8db31f/codex-rs/core/src/safety.rs"
     },
     {
       "id": "CODEX-SANDBOX-ISOLATION",
-      "url": "https://github.com/openai/codex/blob/03861e69ef549717c0fc7045abad56321d4a082b/codex-rs/sandboxing/src/lib.rs"
+      "url": "https://github.com/openai/codex/blob/515c291d875e07faa64e3fa43dc9bbffed8db31f/codex-rs/sandboxing/src/lib.rs"
     },
     {
       "id": "CODEX-SKILL-DESCRIPTION",
@@ -1087,7 +1087,7 @@
     },
     {
       "id": "CODEX-TRUST-BOUNDARY",
-      "url": "https://github.com/openai/codex/blob/dc08ace7821614a702b1214c9d08ae0db2634d82/codex-rs/ext/guardian-v2/src/sync_reviewer/policy_template.md#L5-L13"
+      "url": "https://github.com/openai/codex/blob/515c291d875e07faa64e3fa43dc9bbffed8db31f/codex-rs/prompts/templates/guardian/policy_template.md#L5-L13"
     }
   ]
 }
