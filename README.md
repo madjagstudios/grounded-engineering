@@ -1,90 +1,68 @@
 # Grounded Engineering
 
-Grounded Engineering is a source-backed catalog of practical engineering habits for professional software development, including AI-assisted development, traditional development, and repository onboarding.
+Engineering practices drawn from mature open-source repositories, each tied to
+the source it came from, plus a shelf of reviewed third-party skill
+repositories. It runs as a pane inside Claude Code and as a command-line tool.
 
-The project turns observations from mature engineering and agent repositories into small, reviewable practices. Each recommendation keeps its evidence, scope, confidence, and validation status visible so contributors can improve it instead of treating it as unexplained doctrine.
+![The Grounded pane in Claude Code: it lists the practices that fit the open repository, and Adapt asks Claude to propose the change](docs/media/grounded-pane.gif)
 
-## Repository layers
+Type `/grounded` and the pane reads the repository you have open. It shows the
+practices that fit what it finds (tests with no CI gate, agent instructions
+only Claude reads, no OS sandbox) and why each one applies. **Adapt** asks
+Claude to propose the smallest change that brings the practice into your
+repository; nothing is written until you approve it. Every card links to the
+sources it was drawn from, pinned to the revision that was read.
+
+## Install
+
+### Claude Code plugin
+
+Needs Claude Code 2.1.288 or later, in the terminal or the desktop app's Code
+tab.
+
+```text
+/plugin marketplace add madjagstudios/grounded-engineering
+/plugin install grounded-engineering@grounded-engineering
+```
+
+Then type `/grounded`. In the terminal the pane also has keyboard shortcuts:
+`1` and `2` switch screens, `d` shows what it detected, and `a` runs the open
+card's main action.
+
+### Command-line tool
+
+Needs Node.js 20 or later. It writes the same practices into `AGENTS.md`,
+`CLAUDE.md` or a neutral Markdown file; see [Adopt a profile](#adopt-a-profile).
+
+## Skill repos
+
+![The Skill repos screen: Ponytail is featured at the top, and Explain install has Claude read the repository before anything is installed](docs/media/grounded-skill-repos.gif)
+
+The second screen lists sixteen third-party skill repositories, each read at a
+pinned commit and approved by a maintainer before it is listed. The shelf holds
+links and our own short notes only; credit and stars go to the authors.
+**Explain install** has Claude read the repository at that commit and list what
+it would add (hooks, scripts, network use, settings it changes) before quoting
+the author's own install steps. Claude installs nothing unless you agree, and
+you type any slash commands yourself. Authors who ask to be removed are
+delisted. The records live in [`research/skill-repos/`](research/skill-repos/).
+
+## Repository layout
 
 ```text
 research/       Source observations, pinned references, and category audits
 practices/      Short, reusable engineering-practice cards
 integrations/   Consumer-specific translation guidance for agent instruction files
-scripts/        Deterministic local validation
+plugin/         The Claude Code plugin: pane, skills, and generated catalog
+src/, bin/      The command-line tool
+scripts/        Validation, catalog build, and source-drift tools
 ```
-
-The layers are intentionally separate. Research preserves provenance and decision history; practice cards are the concise consumption surface; integrations explain how to adapt cards to a local repository without creating another source of truth.
-
-## Current status
-
-`v0.5.0` is the current release. It ships the historical eight-card `baseline`
-pack, the seventeen-card `ai-assisted` pack, provider-neutral Markdown output,
-the Codex `AGENTS.md` adapter, the Claude root `CLAUDE.md` adapter, the
-read-only `check` command for managed-block drift detection, the per-source
-validation-provenance floor, and the opt-in `check:sources` online drift
-check.
-
-The historical baseline pack metadata remains at `v0.2.0` with
-`pack_version: 1.0.0` so existing adopters can stay green while
-`update propose` is still reserved. The `ai-assisted` profile adds the full
-seventeen-card set, but it does not rewrite existing policy; it creates a
-reviewable proposal that the consuming repository must explicitly accept.
-
-The recommendations are point-in-time observations against pinned sources. Source changes do not silently rewrite cards; re-auditing is a deliberate maintenance step. A card cannot report a validation state stronger than `not_validated` without recording, for each source, the full revision set it was checked against. A source re-pin is caught offline until the card is re-validated.
-
-Grounded Engineering is built and maintained with AI agents in real engineering workflows.
-
-## Use it
-
-1. Read the relevant card in [`practices/`](practices/).
-2. Follow its evidence links and review its applicability and boundaries.
-3. Translate only the needed guidance into your repository's canonical policy and agent adapters.
-4. Put deterministic requirements in hooks, CI, permissions, or approval workflows rather than relying on prose alone.
-5. Run the local validator before proposing a change.
-
-```bash
-npm install
-npm test
-```
-
-The validator is local and deterministic. It does not fetch sources or make repository changes.
-
-Source drift checking is an opt-in, report-only operation:
-
-```bash
-npm run check:sources
-```
-
-The command uses the GitHub API to compare commit-pinned source blobs with the
-current repository heads. It refuses to run unless the catalog validates, and
-does not run as part of the default validator or test suite. Drift affecting a
-`validated` card is reported with a reminder to move it to `needs_review` and
-re-audit it; the command makes no repository changes.
-
-To prepare validation provenance for a card after genuinely exercising its
-practice, print the current source pins locally:
-
-```bash
-npm run scaffold:validation -- GE-VF-003
-npm run scaffold:validation -- practices/verification/decision-separate-from-action.md
-```
-
-The command is offline and report-only. It validates the source registry and
-selected card reference, then emits a paste-ready `validated_against` block in
-source order; it never edits a card or changes `validation.status`. The
-maintainer remains responsible for recording the validation claim. Add
-`--check` to report whether a `validated` card's existing block matches the
-current local source pins. The command intentionally does not require the
-unrelated card catalog to be clean, so a provenance repair can be prepared
-before a full repository validation run.
 
 ## Adopt a profile
 
-Every adoption flow is reviewable and local-first. `preview` and `create` are
-read-only with respect to canonical policy; `create` stores a proposal under
-`.grounded-engineering/proposals/<proposal-id>/`.
-
-Run it straight from npm, no clone required:
+Adoption does not rewrite existing policy. `preview` only reads, and `create`
+stores a proposal under `.grounded-engineering/proposals/<proposal-id>/` for
+you to review; nothing is written until `apply --confirm`.
 
 ```bash
 # one-off, nothing installed
@@ -92,87 +70,65 @@ npx grounded-engineering adopt preview --profile ai-assisted --adapter claude
 
 # or install the command
 npm install -g grounded-engineering
-grounded-engineering adopt preview --profile baseline
-```
-
-Profiles:
-
-- `baseline`: the historical eight-card Context & Instructions starter pack.
-  Its pack metadata stays pinned at `v0.2.0` for compatibility with existing
-  adopters.
-- `ai-assisted`: all seventeen current cards, adding the six Agent & Skill
-  Design practices on top of the baseline set.
-
-Adapter choices:
-
-- `neutral` (default): writes provider-neutral Markdown to
-  `GROUNDED_ENGINEERING.md`.
-- `codex`: writes into a card-keyed managed block in `AGENTS.md`.
-- `claude`: writes into a card-keyed managed block in the repository-root
-  `CLAUDE.md`.
-
-v0.4.0 supports one adapter target per repository manifest. Applying a second
-adapter remains deferred until `update propose` exists.
-
-The full preview → create → review → apply → check flow, using the installed
-command:
-
-```bash
-grounded-engineering adopt preview --profile ai-assisted --adapter claude
 grounded-engineering adopt create --profile ai-assisted --adapter claude
 # Review proposal.yaml, plan.md, and diff.patch; complete local_decisions.
 grounded-engineering adopt apply <proposal-id> --confirm
 grounded-engineering check
 ```
 
-The write-path contract is documented in the packaged
-[first-party adopt apply policy](policies/adopt-apply.md), which the CLI also
-names in its help output.
+Profiles:
 
-### Provider adapters
+- `baseline`: the original eight cards on repository context, code quality,
+  testing and verification. Its pack metadata stays at `v0.2.0` so existing
+  adopters stay green.
+- `ai-assisted`: all seventeen cards.
 
-By default `adopt` emits provider-neutral Markdown to
-`GROUNDED_ENGINEERING.md`. Pass `--adapter codex` to target `AGENTS.md`, or
-`--adapter claude` to target the repository-root `CLAUDE.md`:
+Adapters:
 
-```bash
-grounded-engineering adopt preview --profile baseline --adapter codex
-grounded-engineering adopt preview --profile ai-assisted --adapter claude
-```
+- `neutral` (default) writes Markdown to `docs/grounded-engineering.md` if the
+  repository has a `docs/` folder, otherwise to `GROUNDED_ENGINEERING.md`.
+- `codex` writes to `AGENTS.md`. If `AGENTS.override.md` exists, Codex reads
+  it instead, so the tool reports it and writes nothing.
+- `claude` writes to the repository-root `CLAUDE.md`. It reports
+  `.claude/CLAUDE.md`, nested `CLAUDE.md` and `CLAUDE.local.md` files but does
+  not edit them.
 
-Both provider adapters write only inside card-keyed managed blocks and preserve
-bytes outside those boundaries. The Codex adapter creates or updates
-`AGENTS.md`. The Claude adapter creates or updates only the root `CLAUDE.md`;
-if `.claude/CLAUDE.md`, nested `CLAUDE.md`, or `CLAUDE.local.md` are present,
-the tool reports them during preflight but does not edit them in v0.4.0. If a
-Codex override file governs instruction resolution, the tool reports it and
-generates nothing rather than writing to a file Codex will not read.
+Every adapter writes only inside managed blocks keyed by card ID, and leaves
+everything outside them byte for byte. Apply writes the target and
+`.grounded-engineering/manifest.yaml` only after re-checking the proposal's
+preconditions. A repository can have one adapter target. Adding a second
+target, and choosing cards with `--cards` outside `preview`, are not supported
+yet.
 
-Apply writes the selected target and `.grounded-engineering/manifest.yaml` only
-after checking the saved preconditions and explicit local decisions. Existing
-policy and instruction files are not silently overwritten; managed updates are
-bounded by card-keyed markers.
+`grounded-engineering check` reads the manifest and the target files and
+compares them with the pack bundled in the installed CLI. It exits `0` when
+clean, `1` on drift or a repository-state mismatch, and `2` on an invocation
+error. The write path is specified in the
+[adopt apply policy](policies/adopt-apply.md); compatibility notes for each
+release are in [`CHANGELOG.md`](CHANGELOG.md).
 
-`grounded-engineering check` is read-only. It reads the manifest and target
-files from the current repository, but loads the selected pack and practice
-cards from the pack bundled with the installed CLI. Exit code `0` means clean,
-`1` means drift or repository-state mismatch, and `2` means invocation error.
-`update propose` is still reserved in v0.4.0, and custom `--cards` selection
-remains preview-only.
+## How sources are used
 
-The current release's compatibility contract is exercised by the repository's
-tests and validator and is summarized in the release notes.
+Cards paraphrase their sources and link to the revision and the file or
+heading they draw on. We quote only where a source's license allows it, and
+never copy vendor prompt files. Each card says whether its practice is
+observed, recommended, or validated in use.
 
-## Evidence posture
-
-The default public evidence form is a paraphrase with an immutable source link and a locator such as a section heading, file path, or pinned commit. Verbatim excerpts are exceptional and require an explicit redistribution decision. Large vendor prompt files and instruction documents are not copied into this repository.
-
-Every practice identifies whether it is observed, recommended, or locally validated. Validation notes are generalized and do not disclose private repository names, paths, tracker IDs, or other internal details.
+A card does not change when its source does. `npm run check:sources` reports
+drift, and a card marked validated records which revision of each source it
+was checked against.
 
 ## Contributing
 
-Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`research/README.md`](research/README.md). Contributions should improve the evidence, the practice, or the translation boundary without collapsing those layers together.
+Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) and
+[`research/README.md`](research/README.md). Keep source observations in
+`research/`, the practice in `practices/`, and tool-specific wording in
+`integrations/`; a change that mixes them is harder to review.
+
+Grounded Engineering is built and maintained with AI agents.
 
 ## License
 
-Original repository content is available under the [MIT License](LICENSE). Third-party sources remain subject to their own licenses and terms; links, attribution, and redistribution decisions are recorded with the evidence.
+Original repository content is available under the [MIT License](LICENSE).
+Third-party sources remain under their own licenses and terms; links and
+attribution are recorded with the evidence.

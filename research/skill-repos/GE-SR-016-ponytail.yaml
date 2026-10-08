@@ -8,6 +8,7 @@ pinned_commit: '552acd5efd0aeae2583a12efe39373d2f076f25e'
 reviewed_on: 2026-10-07
 status: listed
 status_reason: null
+featured: true
 best_for: [AI_ASSISTED]
 tags: [review]
 summary: An always-on prompt that pushes the agent to write less code and reuse what already exists, with a command that reviews a diff for over-engineering.

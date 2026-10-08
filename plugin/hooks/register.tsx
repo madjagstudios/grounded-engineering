@@ -9,7 +9,7 @@ import { atom, read, update } from 'claude-code'
 import { loadCatalog, type Catalog, type Host } from './catalog'
 import { readAdoption, readSignals } from './signals'
 import type { GroundedScreen, GroundedSignals } from '../types'
-import { PALETTE } from './theme'
+import { TERMINAL_PALETTE } from './theme'
 import { slimCatalog, type Ack, type PaneModel } from './model'
 import { paneScreen, linkLabel } from './screens'
 import { pressOf, validAct } from './client/apply'
@@ -142,7 +142,6 @@ async function openOn($: any, screen: 'practices' | 'skills', text: string) {
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
-    await $.command.register({ name: 'grounded', description: 'Open Grounded Engineering: practices that fit this repo' })
     await $.command.register({ name: 'grounded-skills', description: 'Open Grounded Engineering: reviewed skill repos' })
     await $.command.register({ name: LINK_COMMAND, description: 'Print a Grounded Engineering link', argumentHint: '[url]', immediate: true })
     // A pane restored with the session can render before any command has run. A render that
@@ -151,10 +150,15 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('command.run', { command: 'grounded' }, async ($) => openOn($, 'practices', 'Grounded Engineering opened on Practices.'))
+  // /grounded is skills/grounded, answered here: the desktop slash menu lists a plugin's skills,
+  // not the commands session.start registers.
+  on('command.run', { command: 'grounded-engineering:grounded' }, async ($) => openOn($, 'practices', 'Grounded Engineering opened on Practices.'))
   on('command.run', { command: 'grounded-skills' }, async ($) => openOn($, 'skills', 'Grounded Engineering opened on Skill repos.'))
   on('command.run', { command: LINK_COMMAND }, async ($, e) => ({ text: (await linkLine($, e.args.trim())) ?? 'Not a link the Grounded pane shows.' }))
   on('command.describe', { command: LINK_COMMAND }, async ($, e, next) => next({ ...e, isHidden: true }))
+  // The pane runs these two.
+  on('command.describe', { command: 'grounded-engineering:adapt' }, async ($, e, next) => next({ ...e, isHidden: true }))
+  on('command.describe', { command: 'grounded-engineering:explain' }, async ($, e, next) => next({ ...e, isHidden: true }))
 
   // Runs each press the Client posts once, in order; one that is not a valid action is acknowledged, not run.
   on('ui.message', async ($, e, next) => {
@@ -186,6 +190,6 @@ export const register: Register = on => {
       const { Client } = ui
       return <Client key="grounded-app" module="./client/app.tsx" props={await paneModel($)} width="100%" flexGrow={1} />
     }
-    return paneScreen(ui, await paneModel($), handlers($) as any, PALETTE, e.props.bodyColumns ?? 0, 1)
+    return paneScreen(ui, await paneModel($), handlers($) as any, TERMINAL_PALETTE, e.props.bodyColumns ?? 0, 1)
   })
 }

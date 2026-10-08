@@ -5,13 +5,13 @@ id: GE-AS-006
 title: Gate network egress from agent-run work
 category: Agent & Skill Design
 subcategory: Capability scoping
-pattern: Treat network access from agent-executed work as a capability mediated by an enforcing proxy and policy — allowed, denied, or routed to approval — not an ambient default of running code.
-underlying_principle: Network egress is a distinct capability with its own risk, not an ambient default of running code.
-observed_implementation: When managed network enforcement is active, an execution-scoped proxy and policy decider allow a request, deny it, or route it to approval; when enforcement is inactive, the tool does not mediate.
+pattern: Treat network access from agent-run work as a capability that an enforcing proxy and an explicit policy decide on, not an ambient default.
+underlying_principle: Network egress carries its own risk and deserves its own decision.
+observed_implementation: When managed network enforcement is active, an execution-scoped proxy and a policy decider allow a request, deny it, or route it to approval; when enforcement is inactive, the tool does not mediate.
 applicability: [AI_ASSISTED, REPOSITORY_GOVERNANCE]
 control_types: [PERMISSION, APPROVAL, DETERMINISTIC_CHECK]
 disposition: ADAPT
-rationale: Gating network egress through an enforcing proxy and explicit policy — allow, deny, or approve — contains exfiltration and supply-chain risk that ambient network access would leave open.
+rationale: A per-request decision contains exfiltration and supply-chain risk that open network access leaves in place.
 delivery_horizon: V1
 confidence: medium
 evidence_level: recommended
@@ -28,12 +28,21 @@ validation:
         - 03861e69ef549717c0fc7045abad56321d4a082b
 revisit:
   required: false
-agent_snippet: Route network access from agent-run code through an enforcing proxy and explicit policy — allow, deny, or approve — rather than leaving egress ambient, and confirm a real proxy is in the path before relying on the gate.
+agent_snippet: Send network access from agent-run code through an enforcing proxy and an explicit allow, deny, or approve policy, and confirm a proxy is actually in the path before relying on it.
 ---
 
 # Gate network egress from agent-run work
 
-Use this when agent-executed code or commands can reach the network. Route egress through an enforcing proxy and an explicit policy — allow, deny, or approve — so exfiltration and untrusted-fetch risk is a mediated decision rather than ambient. A task that genuinely needs the network — installing dependencies, calling a declared API — should get a scoped, explicit grant; the goal is an explicit decision, not a blanket block that pushes people to disable the control. The boundary: this contains egress only where an enforcing proxy is actually in the request path — without one there is nothing to gate — and telemetry recording that a request happened is not the same as a durable audit record.
+Use this when agent-run code or commands can reach the network. Put an
+enforcing proxy in the request path and let an explicit policy allow the
+request, deny it, or ask for approval. Work that needs the network, such as
+installing dependencies or calling a declared API, should get a scoped grant:
+the aim is a deliberate decision, not a blanket block that people learn to
+switch off.
+
+The boundary is the proxy itself. Without one in the path there is nothing to
+gate, and telemetry showing that a request happened is not a durable audit
+record.
 
 ## Evidence trail
 

@@ -2,8 +2,8 @@
 
 Policy version: 1.0
 
-This policy describes the write behavior of the `adopt apply` command in the
-Grounded Engineering v0.5.0 CLI. The command is:
+This policy describes the write behavior of the Grounded Engineering CLI's
+`adopt apply` command:
 
 ```text
 grounded-engineering adopt apply <proposal-id> --confirm
@@ -20,12 +20,15 @@ the proposal's adapter and the repository manifest at
 - `codex`: the repository-root `AGENTS.md`.
 - `claude`: the repository-root `CLAUDE.md`.
 
-When creating a proposal, the Codex adapter refuses to select a target when
+When creating a proposal, the Codex adapter selects no target if
 `AGENTS.override.md` is present. The Claude adapter selects only the root
 `CLAUDE.md`, not `.claude/CLAUDE.md`, nested `CLAUDE.md`, or
 `CLAUDE.local.md`. Apply does not re-run adapter preflight; it uses the
 serialized target path and kind from the saved proposal, while still refusing
 unsafe paths outside the consuming repository root.
+
+Apply does not refresh sources, fetch network content, write arbitrary paths,
+or edit practice cards, source records, or their `validation.status` values.
 
 ## Write boundary and gates
 
@@ -46,24 +49,16 @@ hold:
 The target and manifest are committed as one local transaction. If a write
 fails, the transaction rolls back. The manifest records the selected pack,
 cards, target precondition, managed-block fingerprint, and apply-time
-validation result. `grounded-engineering check` schema-validates that
-manifest, then independently compares its pack, card, and target metadata;
-it does not interpret `validation.status` as a separate check gate.
+validation result.
 
 ## Re-apply and checking
 
-In v0.5.0, apply refuses when `.grounded-engineering/manifest.yaml` already
-exists. Re-applying or applying a second adapter is reserved for a future
-update flow; this is an intentional refusal, not an overwrite strategy.
+Apply refuses when `.grounded-engineering/manifest.yaml` already exists.
+Re-applying, or applying a second adapter, is not supported yet.
 
-`grounded-engineering check` is read-only. It compares the manifest and
-managed target with the bundled pack and reports drift or repository-state
-mismatch. Apply does not edit practice cards, source records, or their
-`validation.status` values.
+`grounded-engineering check` is read-only. It schema-validates the manifest,
+then compares its pack, card, and target metadata and the managed target with
+the pack bundled in the CLI, and reports drift or a repository-state mismatch.
 
-## Non-goals
-
-Apply does not refresh sources, fetch network content, write arbitrary paths,
-modify unmanaged prose, change practice cards, or update Jira. Grounded
-Engineering does not depend on or endorse any third-party wrapper for the
-write path.
+If you build a tool around `adopt apply`, rely on this document, not on the
+CLI's current code.

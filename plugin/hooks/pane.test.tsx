@@ -5,6 +5,7 @@ import { PALETTE } from './theme'
 
 const REPO = { 'CLAUDE.md': '# r', 'package.json': JSON.stringify({ devDependencies: { vitest: '1' } }), '.claude/agents/a.md': '---\nname: a\n---\n' }
 const DIRS = { '.claude/agents': ['a.md'] }
+const OPEN = 'grounded-engineering:grounded'
 const PANE = {
   plugin: 'grounded-engineering', component: 'Pane' as const, requestId: 'grounded',
   props: { title: 'Grounded', isFocused: false, bodyColumns: 72, placement: 'dock', scroll: { offset: 0, bodyRows: 40 }, view: {} } as const,
@@ -28,7 +29,7 @@ const keysOf = async (ui: any, prefix: string): Promise<string[]> =>
 const mountPane = async ($: any, on: any, files: Record<string, string> = REPO, props: Record<string, unknown> = {}) => {
   fakeRepo(on, files, DIRS)
   placePanes(on)
-  await $.command.run(typed('grounded'))
+  await $.command.run(typed(OPEN))
   return $.ui.mount({ ...PANE, props: { ...PANE.props, ...props }, surface: 'terminal' })
 }
 
@@ -36,6 +37,7 @@ test('terminal: the Fits lane lists the top fits and counts the gaps', async ($,
   const ui = await mountPane($, on)
   expect(await ui.find({ text: /Fits this repo/ })).toBeDefined()
   expect(await ui.find({ text: /4 gaps/ })).toBeDefined()
+  expect(await ui.find({ text: /Detected: javascript · vitest/ })).toBeDefined()
   expect(await keysOf(ui, 'open-fit-')).toEqual(['open-fit-GE-AS-004', 'open-fit-GE-VF-004', 'open-fit-GE-TS-001'])
   expect((await ui.find({ key: 'tile-fit-GE-AS-004' }))?.text).toContain('Why here:')
   await ui.unmount()
@@ -110,6 +112,7 @@ test('terminal: a card adopted through the CLI offers no primary action', async 
   await ui.press({ key: 'open-all-GE-AS-004' })
   const card = await ui.find({ key: 'tile-all-GE-AS-004' })
   expect(card?.text).toContain('Adopted through the CLI')
+  expect(await keysOf(ui, 'primary-')).toEqual([])
   // A card the CLI did not adopt says nothing of the kind, and keeps its primary action.
   await ui.press({ key: 'open-all-GE-VF-001' })
   const other = await ui.find({ key: 'tile-all-GE-VF-001' })
@@ -126,12 +129,24 @@ test('terminal: the skill repos tab says so when none are listed', async ($, on)
   await ui.unmount()
 })
 
+test('terminal: a featured repo is listed first and labelled', async ($, on) => {
+  const repos = FIXTURE_CATALOG.skill_repos.map((r) => ({ ...r, featured: r.id === 'GE-SR-001' }))
+  const ui = await mountPane($, on, { ...REPO, 'catalog.json': JSON.stringify({ ...FIXTURE_CATALOG, skill_repos: repos }) })
+  await ui.press({ key: 'tab-skills' })
+  expect(await keysOf(ui, 'open-repo-')).toEqual(['open-repo-GE-SR-001', 'open-repo-GE-SR-002'])
+  expect((await ui.find({ key: 'row-repo-GE-SR-001' }))?.text).toContain('Featured')
+  expect((await ui.find({ key: 'row-repo-GE-SR-002' }))?.text).not.toContain('Featured')
+  await ui.press({ key: 'open-repo-GE-SR-001' })
+  expect((await ui.find({ key: 'tile-repo-GE-SR-001' }))?.text).toContain('Featured')
+  await ui.unmount()
+})
+
 test('terminal: a skill repo opens, explains, and links to GitHub', async ($, on) => {
   const submitted: string[] = []
   captureSkills(on, submitted)
   const ui = await mountPane($, on)
   await ui.press({ key: 'tab-skills' })
-  // Sorted by fit: this repo uses TypeScript and tests, which beta-ts is tagged for.
+  // Sorted by fit: this repo has tests, which beta-ts is tagged for.
   expect(await keysOf(ui, 'open-repo-')).toEqual(['open-repo-GE-SR-002', 'open-repo-GE-SR-001'])
   expect(await open(ui, 'primary-repo-GE-SR-002')).toBeUndefined()
   await ui.press({ key: 'open-repo-GE-SR-002' })
@@ -161,7 +176,7 @@ test('terminal: a command opening the pane clears an earlier search and reopens 
   const ui = await mountPane($, on)
   await ui.input({ key: 'search', text: 'sandbox', kind: 'change' })
   await ui.press({ key: 'lane-fits' })
-  await $.command.run(typed('grounded'))
+  await $.command.run(typed(OPEN))
   expect((await ui.find({ key: 'search' }))?.props.value).toBe('')
   expect((await keysOf(ui, 'open-fit-')).length).toBe(3)
   await ui.unmount()
@@ -183,11 +198,14 @@ test('terminal: a pane restored without a command reads the repository itself', 
   await ui.unmount()
 })
 
-test('the command opens the pane asking for a 100-column dock', async ($, on) => {
+test('/grounded opens a 100-column dock and handles the command itself', async ($, on) => {
   const opened: any[] = []
+  const skillRuns: string[] = []
   fakeRepo(on, REPO, DIRS)
   openArgs(on, opened)
-  await $.command.run(typed('grounded'))
+  on('command.run', { command: OPEN }, async (_$: unknown, e: { command: string }) => { skillRuns.push(e.command); return { text: '' } })
+  expect((await $.command.run(typed(OPEN))).text).toBe('Grounded Engineering opened on Practices.')
+  expect(skillRuns).toEqual([])
   expect(opened.length).toBe(1)
   expect(opened[0]).toMatchObject({ id: 'grounded', title: 'Grounded', columns: 100 })
 })
@@ -239,7 +257,7 @@ const handed = async (pane: any) => ((await pane.drawn()) as any).props.props
 const mountDesktop = async ($: any, on: any) => {
   fakeRepo(on, REPO, DIRS)
   placePanes(on)
-  await $.command.run(typed('grounded'))
+  await $.command.run(typed(OPEN))
   return $.ui.mount({ ...PANE, surface: 'desktop' })
 }
 
@@ -441,12 +459,12 @@ const slowWrites = (on: any, key: string) => {
 const detailsLabel = async (ui: any) => ((await look(ui, { key: 'details' })) as any).props.label as string
 const searchValue = async (ui: any) => ((await look(ui, { key: 'search' })) as any).props.value as string
 
-// Counts past 50 and 100: an earlier version kept only the last 50 finished and 100 received ids.
 test('desktop: many Details presses answered late all clear together', async ($, on) => {
   const slow = slowWrites(on, 'showSignals')
   const ui = await mountDesktop($, on)
   slow.hold()
-  for (let i = 0; i < 51; i++) await ui.press({ key: 'details', in: APP })
+  // An odd number of presses leaves Details open.
+  for (let i = 0; i < 61; i++) await ui.press({ key: 'details', in: APP })
   expect(await detailsLabel(ui)).toBe('Hide details')
   await ui.advance(60)
   slow.letThrough()
@@ -463,7 +481,7 @@ test('desktop: a slow search followed by many presses keeps the full query', asy
   const ui = await mountDesktop($, on)
   slow.hold()
   await ui.input({ key: 'search', text: 'a', kind: 'change', in: APP })
-  for (let i = 0; i < 51; i++) await ui.press({ key: i % 2 ? 'opt-cat-All' : 'opt-cat-Verification', in: APP })
+  for (let i = 0; i < 60; i++) await ui.press({ key: i % 2 ? 'opt-cat-All' : 'opt-cat-Verification', in: APP })
   await ui.advance(60)
   slow.letThrough()
   await settle(ui)
@@ -482,7 +500,7 @@ test('desktop: many presses posted before the plugin receives any each run once 
   const ui = await mountDesktop($, on)
   await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
   await ui.press({ key: 'primary-fit-GE-AS-004', in: APP })
-  for (let i = 0; i < 110; i++) await ui.press({ key: 'lane-all', in: APP })
+  for (let i = 0; i < 120; i++) await ui.press({ key: 'lane-all', in: APP })
   await settle(ui)
   await ui.advance(1100)
   await settle(ui)
@@ -498,7 +516,7 @@ test('desktop: many presses posted before the plugin receives any each run once 
   await ui.unmount()
 })
 
-test('the link command prints only links the pane draws, and never echoes another', async ($, on) => {
+test('the link command prints a link the pane draws, and not one it does not', async ($, on) => {
   fakeRepo(on, REPO, DIRS)
   const url = cardUrl(FIXTURE_CATALOG, FIXTURE_CATALOG.practices[0]!)
   expect((await $.command.run({ ...typed('grounded-link'), args: url })).text).toBe(`Evidence for GE-AS-004: ${url}`)
@@ -511,12 +529,23 @@ test('the link command prints only links the pane draws, and never echoes anothe
 const describing = ($: any, command: string) => $.command.describe({
   command, description: 'a command', isHidden: false, immediate: true, provider: { plugin: 'grounded-engineering', tier: 'append' },
 })
-test('the link command is left out of the slash menu, and the pane commands are not', async ($, on) => {
+test('only /grounded and /grounded-skills appear in the slash menu', async ($, on) => {
   // Beneath the plugin the engine's own listing answers as the command declared itself.
   on('command.describe', async (_$: unknown, e: any) => ({ description: e.description, isHidden: e.isHidden }))
   expect((await describing($, 'grounded-link')).isHidden).toBe(true)
-  expect((await describing($, 'grounded')).isHidden).toBe(false)
+  expect((await describing($, 'grounded-engineering:adapt')).isHidden).toBe(true)
+  expect((await describing($, 'grounded-engineering:explain')).isHidden).toBe(true)
+  expect((await describing($, OPEN)).isHidden).toBe(false)
   expect((await describing($, 'grounded-skills')).isHidden).toBe(false)
+})
+
+test('terminal: an open card keeps its accent edge and paints no background', async ($, on) => {
+  const ui = await mountPane($, on)
+  await ui.press({ key: 'open-fit-GE-AS-004' })
+  const card = (await ui.find({ key: 'tile-fit-GE-AS-004' })) as any
+  expect(card.props.borderColor).toBe(PALETTE.accent.edge)
+  expect(card.props.backgroundColor).toBeUndefined()
+  await ui.unmount()
 })
 
 test('desktop: openers are outlined and sized to their label', async ($, on) => {
@@ -587,7 +616,7 @@ const optionRowOf = (tree: any, key: string): any => {
   }
   return find(tree, [])
 }
-test('wrapped option rows have no blank line between them, on both surfaces', async ($, on) => {
+test('wrapped option rows set no row gap, on both surfaces', async ($, on) => {
   const term = await mountPane($, on)
   for (const row of [optionRowOf(await term.drawn(), 'opt-cat-All')]) {
     expect(row.props.flexWrap).toBe('wrap')
@@ -605,7 +634,7 @@ test('wrapped option rows have no blank line between them, on both surfaces', as
   await desk.unmount()
 })
 
-test('desktop: the Details button never shrinks, so it cannot wrap onto two lines', async ($, on) => {
+test('desktop: the Details button sits in a box that never shrinks', async ($, on) => {
   const ui = await mountDesktop($, on)
   let chain: any[] = []
   const find = (node: any, trail: any[]): boolean => {

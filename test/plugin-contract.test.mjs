@@ -117,7 +117,7 @@ test('marketplace and plugin manifests agree on name and version', () => {
   assert.equal(entry.version, plugin.version);
 });
 
-test.skip('the plugin version matches the package version', { skip: 'version bump lands with the v0.6.0 release' }, () => {
+test('the plugin version matches the package version', () => {
   const plugin = JSON.parse(readFileSync(join(root, 'plugin', '.claude-plugin', 'plugin.json'), 'utf8'));
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
   assert.equal(plugin.version, pkg.version);

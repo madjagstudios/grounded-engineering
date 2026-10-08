@@ -7,25 +7,24 @@ project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 Practice cards are point-in-time observations against pinned sources; a release
 records the state of the catalog and tooling at that tag.
 
-## [Unreleased]
+## [0.6.0] - 2026-10-08
 
 ### Added
 - Claude Code plugin (`plugin/`), installable from this repository as a
-  marketplace: a read-only pane with Practices and Skill repos screens, "Fits
-  this repo" suggestions from repository signals, and `adapt` and `explain`
-  skills that propose changes for approval. Its "Fits this repo" and "All
-  practices" lists fold away. In the terminal the pane answers the keys `1` and
-  `2` (screens), `d` (details) and `a` (the open card's main action). In the
-  desktop app, pressing a link prints it in the transcript (through a hidden
-  `/grounded-link` command), where it can be clicked.
+  marketplace. `/grounded` opens a read-only pane with two screens: Practices,
+  with "Fits this repo" suggestions from repository signals, and Skill repos.
+  Its `adapt` skill proposes a change for approval, and `explain` says what
+  installing a listed repository would add. It works in the terminal and in the
+  desktop app, where a pressed link is printed in the transcript to click.
 - Skill-repo records: reviewed, link-only pointers to third-party skill
   repositories under `research/skill-repos/`, with a schema
   (`research/skill-repo-schema.yaml`) and validation in `npm test`. A listed
-  record's license must be a valid SPDX expression, and every record's
-  `install` steps must be literal commands, with other guidance in `install_note`. The first
-  sixteen are listed, each read at a pinned commit.
+  record's license must be a valid SPDX expression, and its `install` steps
+  must be literal commands, with other guidance in `install_note`. Sixteen are
+  listed, each read at a pinned commit. A record marked `featured` is listed
+  first and labelled; Ponytail is the first featured record.
 - Repository signal vocabulary and fit rules (`plugin/fit-rules.yaml`) that map
-  signals to practice cards, validated against the real cards.
+  signals to practice cards, checked against the card IDs in `practices/`.
 - Plugin catalog `plugin/catalog.json`, built by `npm run build:catalog`. It
   rebuilds byte-identical, so CI can tell when it is out of date.
 - `npm run discover:skill-repos`, which prints candidate skill repositories for
@@ -37,12 +36,17 @@ records the state of the catalog and tooling at that tag.
   (`GE-AS-006`).
 
 ### Changed
-- The validator's public-content check now ships only generic patterns
-  (unfinished-work markers and home-directory paths). A maintainer can add their
-  own in an untracked `.private/public-content-patterns.txt`.
+- The validator's public-content check looks for unfinished-work markers and
+  home-directory paths. Extra patterns can go in an untracked
+  `.private/public-content-patterns.txt`.
 - The `ai-assisted` pack now ships all seventeen cards, adding the four new
-  cards above; its `pack_version` is `1.1.0`. The `baseline` pack and the CLI
-  release are unchanged.
+  cards above. Its `pack_version` is `1.1.0` and its release is `v0.6.0`, so in
+  a repository that adopted the earlier `ai-assisted` pack, `check` reports a
+  pack metadata mismatch once the CLI is upgraded. The `baseline` pack is
+  unchanged.
+- The adopt apply policy no longer names a CLI version, and tells tools built
+  around `adopt apply` to rely on the policy, not on the CLI's code. The write
+  behavior it describes is unchanged.
 
 ### Security
 - The repository lockfile now resolves `fast-uri` (via `ajv`) to 3.1.8, which
@@ -130,6 +134,7 @@ records the state of the catalog and tooling at that tag.
   cards across repository context, code quality, testing, and verification, with
   the research provenance model, schema, and local validator.
 
+[0.6.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.6.0
 [0.5.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.5.0
 [0.4.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.4.0
 [0.3.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.3.0

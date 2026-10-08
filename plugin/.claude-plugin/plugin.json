@@ -1,6 +1,6 @@
 {
   "name": "grounded-engineering",
-  "version": "0.6.0-pre.1",
+  "version": "0.6.0",
   "description": "Source-backed engineering practices and reviewed skill repositories, in a Claude Code pane.",
   "hooks": "./hooks/hooks.json",
   "types": "./types/index.d.ts",

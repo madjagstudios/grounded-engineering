@@ -39,6 +39,8 @@ properties:
     items: { type: string, minLength: 1, maxLength: 160, pattern: '^[^\r\n]*$' }
   # Plain-language context for the steps: prerequisites, alternatives, per-repo setup. Never run.
   install_note: { type: [string, 'null'], minLength: 10, maxLength: 200 }
+  # A maintainer's pick: listed first under Fit and labelled Featured in the pane.
+  featured: { type: boolean }
 allOf:
   - if: { properties: { status: { const: delisted } }, required: [status] }
     then:

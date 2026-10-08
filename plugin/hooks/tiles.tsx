@@ -23,7 +23,7 @@ export function tile(ui: Ui, p: Palette, tone: Tone, key: string, children: unkn
   const { Box } = ui
   const c = p[tone]
   return (
-    <Box key={key} flexDirection="column" borderStyle="round" borderColor={c.edge} backgroundColor={c.bg} paddingX={1}>
+    <Box key={key} flexDirection="column" borderStyle="round" borderColor={c.edge} {...(c.bg ? { backgroundColor: c.bg } : {})} paddingX={1}>
       {children}
     </Box>
   )
@@ -47,7 +47,7 @@ export function badge(ui: Ui, p: Palette, tone: Tone, text: string) {
 
 export function chip(ui: Ui, p: Palette, tone: Tone, text: string) {
   const { Text } = ui
-  return <Text color={p[tone].text} backgroundColor={p[tone].bg} wrap="truncate-end">{` ${text} `}</Text>
+  return <Text color={p[tone].text} {...(p[tone].bg ? { backgroundColor: p[tone].bg } : {})} wrap="truncate-end">{` ${text} `}</Text>
 }
 
 // A picked-dot choice: a plain Button that reads as a radio option.

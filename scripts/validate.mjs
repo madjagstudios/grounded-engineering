@@ -91,7 +91,7 @@ export function runValidation({ root }) {
   }
 
   const applyPolicyText = read(join(validationRoot, 'policies', 'adopt-apply.md'));
-  for (const snippet of ['Policy version: 1.0', 'grounded-engineering adopt apply <proposal-id> --confirm', 'does not depend on or endorse any third-party wrapper']) {
+  for (const snippet of ['Policy version: 1.0', 'grounded-engineering adopt apply <proposal-id> --confirm', 'rely on this document']) {
     if (!applyPolicyText.includes(snippet)) errors.push(`policies/adopt-apply.md: missing required public policy text: ${snippet}`);
   }
 
@@ -125,6 +125,6 @@ if (isMain) {
     for (const error of errors) console.error(`- ${error}`);
     process.exitCode = 1;
   } else {
-    console.log('Grounded Engineering validation passed: schema, examples, practice cards, links, provenance IDs, and public-content checks.');
+    console.log('Grounded Engineering validation passed.');
   }
 }

@@ -1,24 +1,15 @@
 # Practices
 
-Practice cards are the concise consumption surface. They intentionally omit research history that would waste agent context; each card links back to its evidence trail.
+Practice cards are the short form people and agents read. Research history stays out of them, and each card links back to its evidence.
 
 | Area | Cards |
 | --- | --- |
-| Code quality | [Search before adding helpers](code-quality/search-before-adding-helpers.md), [Make proportional changes](code-quality/proportional-changes.md) |
+| Code quality | [Search before adding helpers](code-quality/search-before-adding-helpers.md), [Make proportional changes](code-quality/proportional-changes.md), [Express edits in an explicit, verifiable format](code-quality/explicit-edit-format.md) |
 | Testing | [Test meaningful behavior](testing/meaningful-behavior.md), [Test real wiring](testing/real-wiring.md) |
 | Repository context | [Inspect the repository first](repository-context/inspect-repository-first.md), [Keep canonical context discoverable](repository-context/canonical-context.md) |
-| Verification | [Use the real verification gate](verification/real-verification-gate.md), [Match claims to evidence](verification/claims-match-evidence.md) |
-| Agent & skill design | [Keep skill entrypoints lean](agent-design/lean-skill-entrypoints.md), [Write discriminating triggers](agent-design/discriminating-triggers.md), [Choose the control surface](agent-design/control-surface.md), [Bound delegated work](agent-design/bounded-delegation.md), [Validate real usage](agent-design/real-usage-validation.md) |
+| Verification | [Use the real verification gate](verification/real-verification-gate.md), [Match claims to evidence](verification/claims-match-evidence.md), [Decide permission separately from the action](verification/decision-separate-from-action.md), [Confine agent-executed commands in an OS sandbox](verification/sandbox-agent-execution.md) |
+| Agent & skill design | [Keep skill entrypoints lean](agent-design/lean-skill-entrypoints.md), [Write discriminating triggers](agent-design/discriminating-triggers.md), [Choose the control surface](agent-design/control-surface.md), [Bound delegated work](agent-design/bounded-delegation.md), [Validate real usage](agent-design/real-usage-validation.md), [Gate network egress from agent-run work](agent-design/gated-network-egress.md) |
 
 Cards are not universal law. Check applicability, boundaries, evidence level, and local policy before translating one into an agent instruction or deterministic control.
 
-Grounded Engineering currently ships two reviewable adoption packs:
-
-- `baseline`: the historical eight-card Context & Instructions starter pack for
-  repository context, code quality, testing, and verification.
-- `ai-assisted`: all seventeen current cards, combining the baseline set with
-  the six Agent & Skill Design cards.
-
-Both packs preserve each card's canonical ID and public disposition while
-leaving local applicability, acceptance, and provider-specific translation to
-the consuming repository's review.
+The CLI's two adoption packs are described under [Adopt a profile](../README.md#adopt-a-profile).

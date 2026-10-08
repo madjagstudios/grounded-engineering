@@ -1,6 +1,6 @@
 # Contributing
 
-Grounded Engineering is a research-backed documentation project. A useful contribution is specific, bounded, and traceable from source observation to practical recommendation.
+Most changes add or revise a practice card, a source record, or a skill-repo record. The pane and skills live in `plugin/`, and the CLI in `src/`.
 
 ## Before opening a change
 
@@ -28,7 +28,7 @@ Practice cards should be small enough to use during a real change. They should s
 
 ## Skill-repo records
 
-Skill-repo records are written by hand after reading the repository; see `research/skill-repos/README.md`.
+To propose a skill repository, follow `research/skill-repos/README.md`. A maintainer approves each record before it is listed.
 
 ## Validation
 
@@ -43,9 +43,27 @@ After changing cards, skill-repo records, fit rules, or the package version, run
 
 When you change anything under `plugin/hooks`, also run `claude plugin test plugin`; CI runs it with `claude plugin validate`.
 
-Changes to the evidence model must also be reviewed for source fidelity, licensing, broken links, temporary markers, and accidental disclosure of private context.
+### Source drift
+
+```bash
+npm run check:sources
+```
+
+This compares each card's commit-pinned sources with the current heads of their repositories through the GitHub API, and reports drift without changing anything. A drifted `validated` card should move to `needs_review` and be re-audited.
+
+### Validation provenance
+
+After using a card's practice in a real repository, print a `validated_against` block for it from the current source pins, ready to paste into the card:
+
+```bash
+npm run scaffold:validation -- GE-VF-003
+```
+
+It runs offline and never edits the card; recording the validation claim is the maintainer's call. Add `--check` to see whether a `validated` card's block still matches the pins. It works even when `npm test` is failing on other cards, so you can fix one card's provenance before the rest.
 
 ## Review standard
+
+Changes to the evidence model are reviewed for source fidelity, licensing, broken links, unfinished-work markers, and accidental disclosure of private context.
 
 Reviewers should be able to answer three questions:
 

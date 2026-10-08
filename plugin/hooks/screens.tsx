@@ -25,13 +25,13 @@ const MORE = [
 // Below this many columns the tabs take the whole header row and the title is left out.
 const NARROW = 60
 
-// On desktop, titles are cut to one line; below WIDE columns the category, tags and badge give way.
 const PANE = 2 // pane padding
 const SYMBOL = 2 // a row's status symbol and its gap
 const OUTLINE = 4 // the outline and the label padding
 const TILE = 4 // a tile's border and padding
 const TERMINAL = 9 // the terminal's fixed overhead per row
 const TERMINAL_TAGS = 8 // the terminal's room for a repo row's tags
+// On desktop, titles are cut to one line; below WIDE columns the category, tags and badge give way.
 const WIDE = 70
 const outlined = (ui: any) => ui.outlinesTitles === true
 const tight = (ui: any, columns: number) => outlined(ui) && columns > 0 && columns < WIDE
@@ -63,7 +63,7 @@ export function linkLabel(c: LinkCatalog, url: string): string | null {
 }
 
 const isValidated = (x: { validation_status: string }) => x.validation_status === 'validated'
-const byline = (r: SlimSkillRepo) => `${r.repo.split('/')[0]} · ${r.license}`
+const byline = (r: SlimSkillRepo) => `${r.featured ? 'Featured · ' : ''}${r.repo.split('/')[0]} · ${r.license}`
 
 export function paneScreen(ui: any, m: PaneModel, go: Go, p: Palette, columns: number, scale: number) {
   const { Box, Text, Button } = ui
@@ -99,13 +99,13 @@ function practicesScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palet
   const adopted = new Set(m.adoption?.cards ?? [])
   const visible = c.practices.filter((x) => (m.category === 'All' || x.category === m.category) && matchesQuery([x.title, x.pattern, x.id], m.query))
   const gapText = all.length === 0 ? 'no gaps' : `${all.length} gap${all.length === 1 ? '' : 's'}`
+  const detected = [...s.languages, s.test_framework ?? (s.has_tests ? 'tests (framework unknown)' : 'no tests')].join(' · ')
   return (
     <Box flexDirection="column" gap={1}>
       <Box flexDirection="row" justifyContent="space-between" gap={1}>
         <Box flexDirection="row" gap={1} flexShrink={1} minWidth={0} flexWrap="wrap">
           {chip(ui, p, all.length ? 'warn' : 'ok', gapText)}
-          {chip(ui, p, 'neutral', s.languages.join(', ') || 'no languages')}
-          {chip(ui, p, 'neutral', s.test_framework ?? (s.has_tests ? 'tests (framework unknown)' : 'no tests'))}
+          {chip(ui, p, 'neutral', `Detected: ${detected}`)}
           {m.adoption ? chip(ui, p, 'neutral', `Adopted: ${m.adoption.profile ?? 'custom'} · ${m.adoption.cards.length}`) : null}
         </Box>
         <Box flexShrink={0}><Button key="details" plain hotkey="d" label={m.showSignals ? 'Hide details' : 'Details ›'} onPress={() => go.toggleSignals()} /></Box>
@@ -197,7 +197,7 @@ function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
 
 function repoRow(ui: any, go: Go, p: Palette, r: SlimSkillRepo, columns: number, scale: number) {
   const { Box, Text, Button } = ui
-  const tags = r.tags.join(', ')
+  const tags = `${r.featured ? 'Featured · ' : ''}${r.tags.join(', ')}`
   const beside = !tight(ui, columns)
   const budget = repoTitleRoom(ui, columns, scale, tags)
   return (

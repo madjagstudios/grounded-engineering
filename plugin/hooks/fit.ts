@@ -29,9 +29,10 @@ const TAG_SIGNALS = new Map<string, (s: Signals) => boolean>([
   ['devops', (s) => s.has_ci],
 ])
 
-export function sortSkillRepos<R extends Pick<SkillRepo, 'name' | 'tags'>>(repos: R[], signals: Signals, mode: 'fit' | 'name'): R[] {
+export function sortSkillRepos<R extends Pick<SkillRepo, 'name' | 'tags' | 'featured'>>(repos: R[], signals: Signals, mode: 'fit' | 'name'): R[] {
   const score = (r: R) => r.tags.filter((t) => TAG_SIGNALS.get(t)?.(signals)).length
-  return [...repos].sort((a, b) => (mode === 'fit' ? score(b) - score(a) : 0) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+  const fit = (a: R, b: R) => Number(b.featured) - Number(a.featured) || score(b) - score(a)
+  return [...repos].sort((a, b) => (mode === 'fit' ? fit(a, b) : 0) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
 }
 
 export function matchesQuery(text: string[], query: string): boolean {

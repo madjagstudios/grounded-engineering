@@ -204,6 +204,12 @@ test('skill repos sort by fit, then name', async () => {
   expect(sortSkillRepos(FIXTURE_CATALOG.skill_repos, base, 'name').map((r) => r.name)).toEqual(['alpha-skills', 'beta-ts'])
 })
 
+test('a featured repo leads the fit order but keeps its place by name', async () => {
+  const feature = (name: string) => FIXTURE_CATALOG.skill_repos.map((r) => ({ ...r, featured: r.name === name }))
+  expect(sortSkillRepos(feature('alpha-skills'), base, 'fit').map((r) => r.name)).toEqual(['alpha-skills', 'beta-ts'])
+  expect(sortSkillRepos(feature('beta-ts'), base, 'name').map((r) => r.name)).toEqual(['alpha-skills', 'beta-ts'])
+})
+
 test('search matches any field, case-insensitively, and an empty query matches all', async () => {
   expect(matchesQuery(['Bound delegated work'], 'DELEG')).toBe(true)
   expect(matchesQuery(['Bound delegated work'], 'sandbox')).toBe(false)
