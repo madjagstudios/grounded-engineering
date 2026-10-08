@@ -54,16 +54,19 @@ it does not interpret `validation.status` as a separate check gate.
 
 In v0.6.0, apply refuses when `.grounded-engineering/manifest.yaml` already
 exists. Re-applying or applying a second adapter is reserved for a future
-update flow; this is an intentional refusal, not an overwrite strategy.
+update flow.
 
 `grounded-engineering check` is read-only. It compares the manifest and
 managed target with the bundled pack and reports drift or repository-state
 mismatch. Apply does not edit practice cards, source records, or their
 `validation.status` values.
 
-## Non-goals
+## What apply does not do
 
 Apply does not refresh sources, fetch network content, write arbitrary paths,
-modify unmanaged prose, change practice cards, or update Jira. Grounded
-Engineering does not depend on or endorse any third-party wrapper for the
-write path.
+modify unmanaged prose, or change practice cards.
+
+This policy is the write path's contract. Grounded Engineering
+does not depend on or endorse any third-party wrapper for the write path; a
+tool that wraps apply should follow this document rather than infer the
+behavior from the code.

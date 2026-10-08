@@ -205,9 +205,9 @@ test('skill repos sort by fit, then name', async () => {
 })
 
 test('a featured repo leads the fit order but keeps its place by name', async () => {
-  const repos = FIXTURE_CATALOG.skill_repos.map((r) => ({ ...r, featured: r.name === 'alpha-skills' }))
-  expect(sortSkillRepos(repos, base, 'fit').map((r) => r.name)).toEqual(['alpha-skills', 'beta-ts'])
-  expect(sortSkillRepos(repos.slice().reverse(), base, 'name').map((r) => r.name)).toEqual(['alpha-skills', 'beta-ts'])
+  const feature = (name: string) => FIXTURE_CATALOG.skill_repos.map((r) => ({ ...r, featured: r.name === name }))
+  expect(sortSkillRepos(feature('alpha-skills'), base, 'fit').map((r) => r.name)).toEqual(['alpha-skills', 'beta-ts'])
+  expect(sortSkillRepos(feature('beta-ts'), base, 'name').map((r) => r.name)).toEqual(['alpha-skills', 'beta-ts'])
 })
 
 test('search matches any field, case-insensitively, and an empty query matches all', async () => {

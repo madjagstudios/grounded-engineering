@@ -1,6 +1,6 @@
 # Practices
 
-Practice cards are the concise consumption surface. They intentionally omit research history that would waste agent context; each card links back to its evidence trail.
+Practice cards are the short form people and agents read. Research history stays out of them, and each card links back to its evidence.
 
 | Area | Cards |
 | --- | --- |
@@ -12,14 +12,6 @@ Practice cards are the concise consumption surface. They intentionally omit rese
 
 Cards are not universal law. Check applicability, boundaries, evidence level, and local policy before translating one into an agent instruction or deterministic control.
 
-Grounded Engineering currently ships two reviewable adoption packs:
-
-- `baseline`: the historical eight-card Context & Instructions starter pack for
-  repository context, code quality, testing, and verification.
-- `ai-assisted`: all seventeen current cards: the baseline set, the six Agent
-  & Skill Design cards, and three cards on edit formats, permission decisions
-  and sandboxing.
-
-Both packs preserve each card's canonical ID and public disposition while
-leaving local applicability, acceptance, and provider-specific translation to
-the consuming repository's review.
+The CLI's two adoption packs are described under [Adopt a profile](../README.md#adopt-a-profile).
+Both keep each card's ID and disposition; whether a card applies to your
+repository is for your review to decide.

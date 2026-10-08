@@ -31,7 +31,7 @@ test('catalog carries every card, sorted, with repo-relative posix paths', () =>
   assert.deepEqual(catalog.categories, [...new Set(catalog.practices.map((p) => p.category))].sort());
 });
 
-test('catalog never carries star counts or a status field', () => {
+test('catalog has no stargazers or stars key and no status field', () => {
   const text = serializeCatalog(buildCatalog(root));
   assert.ok(!/stargazers|"stars"/.test(text));
   for (const r of buildCatalog(root).skill_repos) assert.ok(!('status' in r));

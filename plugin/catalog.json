@@ -516,7 +516,7 @@
         "TRADITIONAL",
         "REPOSITORY_GOVERNANCE"
       ],
-      "body": "Use this when an agent takes actions with real consequences, such as writing\nfiles, running commands or leaving a sandbox. Compute the verdict (allow, ask\nor reject) from explicit policy before acting, so the decision can be read,\ntested and audited apart from the action.\n\nThe boundary is keeping the policy narrow. A decision function that grows to\nre-implement the action has lost the separation it was there to provide.\n\n## Evidence trail\n\n- [CODEX-SAFETY-POLICY](../../research/sources/codex.md#codex-safety-policy): the three-way safety verdict computed separately from applying the action.",
+      "body": "Use this when an agent takes actions with real consequences, such as writing\nfiles, running commands or leaving a sandbox. Compute the verdict (allow, ask\nor reject) from explicit policy before acting, so the decision can be read,\ntested and audited apart from the action.\n\nKeep the policy narrow: a decision function that grows to re-implement the\naction has lost the separation it was there to provide.\n\n## Evidence trail\n\n- [CODEX-SAFETY-POLICY](../../research/sources/codex.md#codex-safety-policy): the three-way safety verdict computed separately from applying the action.",
       "category": "Verification",
       "confidence": "medium",
       "control_types": [
@@ -536,12 +536,12 @@
       "validation_status": "validated"
     },
     {
-      "agent_snippet": "Run agent-executed commands in a least-privilege OS sandbox where one is available, surface violations instead of widening the policy, and treat \"no sandbox available\" as a case that fails safe, not as permission to run unconfined.",
+      "agent_snippet": "Run agent-executed commands in a least-privilege OS sandbox where one is available; when none is available, do not run them unconfined.",
       "applicability": [
         "AI_ASSISTED",
         "REPOSITORY_GOVERNANCE"
       ],
-      "body": "Use this when an agent runs shell commands or generated code. Confine it with\nan operating-system sandbox scoped to least privilege, and treat recorded\nviolations as a signal, so a mistaken or malicious command is stopped by the\nplatform rather than by trust.\n\nThe boundary is availability. Platform selection can resolve to no sandbox,\nand that case has to fail safe. A policy widened until nothing is denied\nisolates nothing, so tighten it and surface the violation instead of relaxing\nit to get a task through.\n\n## Evidence trail\n\n- [CODEX-SANDBOX-ISOLATION](../../research/sources/codex.md#codex-sandbox-isolation): the re-exported platform sandbox managers and violation recorders.",
+      "body": "Use this when an agent runs shell commands or generated code. Confine it with\nan operating-system sandbox scoped to least privilege, and treat recorded\nviolations as a signal, so a mistaken or malicious command is stopped by the\nplatform.\n\nPlatform selection can resolve to no sandbox, and that case has to fail safe.\nSeparately, a policy widened until nothing is denied isolates nothing; tighten\nit and surface the violation instead of relaxing it to get a task through.\n\n## Evidence trail\n\n- [CODEX-SANDBOX-ISOLATION](../../research/sources/codex.md#codex-sandbox-isolation): the re-exported platform sandbox managers and violation recorders.",
       "category": "Verification",
       "confidence": "medium",
       "control_types": [

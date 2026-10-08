@@ -28,7 +28,7 @@ Practice cards should be small enough to use during a real change. They should s
 
 ## Skill-repo records
 
-Skill-repo records are written by hand after reading the repository; see `research/skill-repos/README.md`.
+Each skill-repo record is written from the repository at a pinned commit and approved by a maintainer before it is listed; see `research/skill-repos/README.md`.
 
 ## Validation
 
@@ -39,9 +39,36 @@ npm install
 npm test
 ```
 
+The validator runs offline and changes nothing.
+
 After changing cards, skill-repo records, fit rules, or the package version, run `npm run build:catalog` and commit the updated `plugin/catalog.json`; `npm test` fails when it is stale.
 
 When you change anything under `plugin/hooks`, also run `claude plugin test plugin`; CI runs it with `claude plugin validate`.
+
+### Source drift
+
+```bash
+npm run check:sources
+```
+
+This compares each card's commit-pinned sources with the current heads of
+their repositories through the GitHub API, and reports drift without changing
+anything. A drifted `validated` card should move to `needs_review` and be
+re-audited.
+
+### Validation provenance
+
+After genuinely exercising a card's practice, print a `validated_against`
+block for it from the current source pins, ready to paste into the card:
+
+```bash
+npm run scaffold:validation -- GE-VF-003
+```
+
+It runs offline and never edits the card; recording the validation claim is
+the maintainer's call. Add `--check` to see whether a `validated` card's block
+still matches the pins. It does not need the rest of the catalog to validate,
+so a provenance fix can be prepared first.
 
 Changes to the evidence model must also be reviewed for source fidelity, licensing, broken links, temporary markers, and accidental disclosure of private context.
 

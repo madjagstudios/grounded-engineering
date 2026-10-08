@@ -151,7 +151,7 @@ export const register: Register = on => {
   })
 
   // /grounded is skills/grounded, answered here: the desktop slash menu lists a plugin's skills,
-  // not the commands a mod registers.
+  // not the commands session.start registers.
   on('command.run', { command: 'grounded-engineering:grounded' }, async ($) => openOn($, 'practices', 'Grounded Engineering opened on Practices.'))
   on('command.run', { command: 'grounded-skills' }, async ($) => openOn($, 'skills', 'Grounded Engineering opened on Skill repos.'))
   on('command.run', { command: LINK_COMMAND }, async ($, e) => ({ text: (await linkLine($, e.args.trim())) ?? 'Not a link the Grounded pane shows.' }))

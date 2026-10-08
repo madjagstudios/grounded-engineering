@@ -28,7 +28,7 @@ validation:
         - 03861e69ef549717c0fc7045abad56321d4a082b
 revisit:
   required: false
-agent_snippet: Run agent-executed commands in a least-privilege OS sandbox where one is available, surface violations instead of widening the policy, and treat "no sandbox available" as a case that fails safe, not as permission to run unconfined.
+agent_snippet: Run agent-executed commands in a least-privilege OS sandbox where one is available; when none is available, do not run them unconfined.
 ---
 
 # Confine agent-executed commands in an OS sandbox
@@ -36,12 +36,11 @@ agent_snippet: Run agent-executed commands in a least-privilege OS sandbox where
 Use this when an agent runs shell commands or generated code. Confine it with
 an operating-system sandbox scoped to least privilege, and treat recorded
 violations as a signal, so a mistaken or malicious command is stopped by the
-platform rather than by trust.
+platform.
 
-The boundary is availability. Platform selection can resolve to no sandbox,
-and that case has to fail safe. A policy widened until nothing is denied
-isolates nothing, so tighten it and surface the violation instead of relaxing
-it to get a task through.
+Platform selection can resolve to no sandbox, and that case has to fail safe.
+Separately, a policy widened until nothing is denied isolates nothing; tighten
+it and surface the violation instead of relaxing it to get a task through.
 
 ## Evidence trail
 

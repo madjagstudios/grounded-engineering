@@ -11,22 +11,18 @@ records the state of the catalog and tooling at that tag.
 
 ### Added
 - Claude Code plugin (`plugin/`), installable from this repository as a
-  marketplace: a read-only pane with Practices and Skill repos screens, "Fits
-  this repo" suggestions from repository signals, and `adapt` and `explain`
-  skills that propose changes for approval. `/grounded` opens the pane, and is
-  listed in both the terminal's and the desktop app's slash menu. The pane runs
-  `adapt` and `explain`, so the terminal's menu leaves them out; typed in full
-  they still work. Its "Fits this repo" and "All practices" lists fold away. In the terminal the pane answers the keys `1` and
-  `2` (screens), `d` (details) and `a` (the open card's main action). In the
-  desktop app, pressing a link prints it in the transcript (through a hidden
-  `/grounded-link` command), where it can be clicked.
+  marketplace. `/grounded` opens a read-only pane with two screens: Practices,
+  with "Fits this repo" suggestions from repository signals, and Skill repos.
+  Its `adapt` and `explain` skills propose changes for approval. It works in
+  the terminal, where the keys `1`, `2`, `d` and `a` drive it, and in the
+  desktop app, where a pressed link is printed in the transcript to click.
 - Skill-repo records: reviewed, link-only pointers to third-party skill
   repositories under `research/skill-repos/`, with a schema
   (`research/skill-repo-schema.yaml`) and validation in `npm test`. A listed
-  record's license must be a valid SPDX expression, and every record's
-  `install` steps must be literal commands, with other guidance in `install_note`. The first
-  sixteen are listed, each read at a pinned commit. A record marked `featured`
-  is listed first and labelled Featured; Ponytail is the first.
+  record's license must be a valid SPDX expression, and its `install` steps
+  must be literal commands, with other guidance in `install_note`. Sixteen are
+  listed, each read at a pinned commit. A record marked `featured` is listed
+  first and labelled; Ponytail is the first.
 - Repository signal vocabulary and fit rules (`plugin/fit-rules.yaml`) that map
   signals to practice cards, validated against the real cards.
 - Plugin catalog `plugin/catalog.json`, built by `npm run build:catalog`. It

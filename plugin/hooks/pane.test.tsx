@@ -5,7 +5,6 @@ import { PALETTE } from './theme'
 
 const REPO = { 'CLAUDE.md': '# r', 'package.json': JSON.stringify({ devDependencies: { vitest: '1' } }), '.claude/agents/a.md': '---\nname: a\n---\n' }
 const DIRS = { '.claude/agents': ['a.md'] }
-// /grounded is the plugin's grounded skill, which the hooks module answers.
 const OPEN = 'grounded-engineering:grounded'
 const PANE = {
   plugin: 'grounded-engineering', component: 'Pane' as const, requestId: 'grounded',
@@ -198,11 +197,14 @@ test('terminal: a pane restored without a command reads the repository itself', 
   await ui.unmount()
 })
 
-test('/grounded opens the pane asking for a 100-column dock, without reaching the model', async ($, on) => {
+test('/grounded opens the pane asking for a 100-column dock, without running the skill beneath', async ($, on) => {
   const opened: any[] = []
+  const skillRuns: string[] = []
   fakeRepo(on, REPO, DIRS)
   openArgs(on, opened)
+  on('command.run', { command: OPEN }, async (_$: unknown, e: { command: string }) => { skillRuns.push(e.command); return { text: '' } })
   expect((await $.command.run(typed(OPEN))).text).toBe('Grounded Engineering opened on Practices.')
+  expect(skillRuns).toEqual([])
   expect(opened.length).toBe(1)
   expect(opened[0]).toMatchObject({ id: 'grounded', title: 'Grounded', columns: 100 })
 })
@@ -456,7 +458,6 @@ const slowWrites = (on: any, key: string) => {
 const detailsLabel = async (ui: any) => ((await look(ui, { key: 'details' })) as any).props.label as string
 const searchValue = async (ui: any) => ((await look(ui, { key: 'search' })) as any).props.value as string
 
-// Counts past 50 and 100: an earlier version kept only the last 50 finished and 100 received ids.
 test('desktop: many Details presses answered late all clear together', async ($, on) => {
   const slow = slowWrites(on, 'showSignals')
   const ui = await mountDesktop($, on)
@@ -536,7 +537,6 @@ test('the link command and the pane skills are left out of the slash menu, and t
   expect((await describing($, 'grounded-skills')).isHidden).toBe(false)
 })
 
-// 'background' is not a terminal theme key: the terminal drew it as solid cyan under dim text.
 test('terminal: an open card keeps its accent edge and paints no background', async ($, on) => {
   const ui = await mountPane($, on)
   await ui.press({ key: 'open-fit-GE-AS-004' })

@@ -38,8 +38,8 @@ files, running commands or leaving a sandbox. Compute the verdict (allow, ask
 or reject) from explicit policy before acting, so the decision can be read,
 tested and audited apart from the action.
 
-The boundary is keeping the policy narrow. A decision function that grows to
-re-implement the action has lost the separation it was there to provide.
+Keep the policy narrow: a decision function that grows to re-implement the
+action has lost the separation it was there to provide.
 
 ## Evidence trail
 
