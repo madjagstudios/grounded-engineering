@@ -142,7 +142,6 @@ async function openOn($: any, screen: 'practices' | 'skills', text: string) {
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
-    await $.command.register({ name: 'grounded', description: 'Open Grounded Engineering: practices that fit this repo' })
     await $.command.register({ name: 'grounded-skills', description: 'Open Grounded Engineering: reviewed skill repos' })
     await $.command.register({ name: LINK_COMMAND, description: 'Print a Grounded Engineering link', argumentHint: '[url]', immediate: true })
     // A pane restored with the session can render before any command has run. A render that
@@ -151,11 +150,13 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('command.run', { command: 'grounded' }, async ($) => openOn($, 'practices', 'Grounded Engineering opened on Practices.'))
+  // /grounded is skills/grounded, answered here: the desktop slash menu lists a plugin's skills,
+  // not the commands a mod registers.
+  on('command.run', { command: 'grounded-engineering:grounded' }, async ($) => openOn($, 'practices', 'Grounded Engineering opened on Practices.'))
   on('command.run', { command: 'grounded-skills' }, async ($) => openOn($, 'skills', 'Grounded Engineering opened on Skill repos.'))
   on('command.run', { command: LINK_COMMAND }, async ($, e) => ({ text: (await linkLine($, e.args.trim())) ?? 'Not a link the Grounded pane shows.' }))
   on('command.describe', { command: LINK_COMMAND }, async ($, e, next) => next({ ...e, isHidden: true }))
-  // The pane runs these; listed, they take the slash menu's first match from /grounded.
+  // The pane runs these two.
   on('command.describe', { command: 'grounded-engineering:adapt' }, async ($, e, next) => next({ ...e, isHidden: true }))
   on('command.describe', { command: 'grounded-engineering:explain' }, async ($, e, next) => next({ ...e, isHidden: true }))
 

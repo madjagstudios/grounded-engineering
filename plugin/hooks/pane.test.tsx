@@ -5,6 +5,8 @@ import { PALETTE } from './theme'
 
 const REPO = { 'CLAUDE.md': '# r', 'package.json': JSON.stringify({ devDependencies: { vitest: '1' } }), '.claude/agents/a.md': '---\nname: a\n---\n' }
 const DIRS = { '.claude/agents': ['a.md'] }
+// /grounded is the plugin's grounded skill, which the hooks module answers.
+const OPEN = 'grounded-engineering:grounded'
 const PANE = {
   plugin: 'grounded-engineering', component: 'Pane' as const, requestId: 'grounded',
   props: { title: 'Grounded', isFocused: false, bodyColumns: 72, placement: 'dock', scroll: { offset: 0, bodyRows: 40 }, view: {} } as const,
@@ -28,7 +30,7 @@ const keysOf = async (ui: any, prefix: string): Promise<string[]> =>
 const mountPane = async ($: any, on: any, files: Record<string, string> = REPO, props: Record<string, unknown> = {}) => {
   fakeRepo(on, files, DIRS)
   placePanes(on)
-  await $.command.run(typed('grounded'))
+  await $.command.run(typed(OPEN))
   return $.ui.mount({ ...PANE, props: { ...PANE.props, ...props }, surface: 'terminal' })
 }
 
@@ -173,7 +175,7 @@ test('terminal: a command opening the pane clears an earlier search and reopens 
   const ui = await mountPane($, on)
   await ui.input({ key: 'search', text: 'sandbox', kind: 'change' })
   await ui.press({ key: 'lane-fits' })
-  await $.command.run(typed('grounded'))
+  await $.command.run(typed(OPEN))
   expect((await ui.find({ key: 'search' }))?.props.value).toBe('')
   expect((await keysOf(ui, 'open-fit-')).length).toBe(3)
   await ui.unmount()
@@ -195,11 +197,11 @@ test('terminal: a pane restored without a command reads the repository itself', 
   await ui.unmount()
 })
 
-test('the command opens the pane asking for a 100-column dock', async ($, on) => {
+test('/grounded opens the pane asking for a 100-column dock, without reaching the model', async ($, on) => {
   const opened: any[] = []
   fakeRepo(on, REPO, DIRS)
   openArgs(on, opened)
-  await $.command.run(typed('grounded'))
+  expect((await $.command.run(typed(OPEN))).text).toBe('Grounded Engineering opened on Practices.')
   expect(opened.length).toBe(1)
   expect(opened[0]).toMatchObject({ id: 'grounded', title: 'Grounded', columns: 100 })
 })
@@ -251,7 +253,7 @@ const handed = async (pane: any) => ((await pane.drawn()) as any).props.props
 const mountDesktop = async ($: any, on: any) => {
   fakeRepo(on, REPO, DIRS)
   placePanes(on)
-  await $.command.run(typed('grounded'))
+  await $.command.run(typed(OPEN))
   return $.ui.mount({ ...PANE, surface: 'desktop' })
 }
 
@@ -529,7 +531,7 @@ test('the link command and the pane skills are left out of the slash menu, and t
   expect((await describing($, 'grounded-link')).isHidden).toBe(true)
   expect((await describing($, 'grounded-engineering:adapt')).isHidden).toBe(true)
   expect((await describing($, 'grounded-engineering:explain')).isHidden).toBe(true)
-  expect((await describing($, 'grounded')).isHidden).toBe(false)
+  expect((await describing($, OPEN)).isHidden).toBe(false)
   expect((await describing($, 'grounded-skills')).isHidden).toBe(false)
 })
 
