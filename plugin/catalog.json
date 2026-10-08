@@ -716,7 +716,7 @@
         "TRADITIONAL"
       ],
       "id": "GE-SR-005",
-      "install": "/plugin marketplace add wshobson/agents, then /plugin install python-development@claude-code-workflows",
+      "install": "/plugin marketplace add wshobson/agents, then /plugin install each plugin you want, e.g. python-development@claude-code-workflows",
       "license": "MIT",
       "name": "claude-code-workflows",
       "pinned_commit": "46891e7e60da0e52baf1050b7b6391b64e84c6d9",
@@ -775,7 +775,7 @@
         "TRADITIONAL"
       ],
       "id": "GE-SR-008",
-      "install": "/plugin marketplace add levnikolaevich/claude-code-skills, then /plugin install implementation-suite@levnikolaevich-skills-marketplace",
+      "install": "/plugin marketplace add levnikolaevich/claude-code-skills, then /plugin install each plugin you want, e.g. implementation-suite@levnikolaevich-skills-marketplace",
       "license": "MIT",
       "name": "Claude-Codex Skills",
       "pinned_commit": "0ce87969906ac3c00947298ee2127d9e7cd466d8",

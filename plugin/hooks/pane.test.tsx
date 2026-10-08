@@ -135,6 +135,9 @@ test('terminal: a skill repo opens, explains, and links to GitHub', async ($, on
   expect(await keysOf(ui, 'open-repo-')).toEqual(['open-repo-GE-SR-002', 'open-repo-GE-SR-001'])
   expect(await open(ui, 'primary-repo-GE-SR-002')).toBeUndefined()
   await ui.press({ key: 'open-repo-GE-SR-002' })
+  // The title is the name alone; the owner and licence sit beside it, and there is no status badge.
+  expect(await ui.find({ text: 'example · Apache-2.0' })).toBeDefined()
+  expect(await ui.find({ text: /^Reviewed$/ })).toBeUndefined()
   expect((await ui.find({ type: 'Link', text: /Star on GitHub/ }))?.props.href).toBe('https://github.com/example/beta-ts')
   await ui.press({ key: 'primary-repo-GE-SR-002' })
   expect(submitted).toEqual(['grounded-engineering:explain GE-SR-002'])
