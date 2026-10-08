@@ -10,6 +10,6 @@ status: listed
 status_reason: null
 best_for: [AI_ASSISTED, TRADITIONAL]
 tags: [review, testing, security]
-summary: Eighteen Java skills covering code review, Spring Boot, JPA, concurrency, OWASP security audit, Maven dependency audit and conventional commits, plus an eval script that checks a prompt reaches the right skill.
-watch_out_for: Java-only. The optional setup scripts write CLAUDE.md, a settings file with pre-approved commands and MCP config into your project, and the routing eval needs a model API key; the skills install without any of it.
+summary: Eighteen Java skills with depth in Spring Boot, JPA and concurrency review, plus an eval script that checks a prompt reaches the right skill.
+watch_out_for: The optional setup scripts write CLAUDE.md, a settings file with pre-approved commands and MCP config into your project, and the routing eval needs a model API key; the skills install without any of it.
 install: npx skills@latest add decebals/claude-code-java

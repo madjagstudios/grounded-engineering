@@ -10,6 +10,6 @@ status: listed
 status_reason: null
 best_for: [AI_ASSISTED, TRADITIONAL]
 tags: [review, testing, debugging, security]
-summary: Sixty-seven role-style skills covering languages, frameworks, infrastructure, testing, debugging, review and security. Each has short workflow rules and reference files that load only when relevant.
+summary: Sixty-seven specialist skills, each named for a role such as code reviewer or DevOps engineer, across many languages and frameworks. Reference files load only when relevant.
 watch_out_for: "The marketplace installs from a generated plugin branch, not the main branch reviewed here. The nine project-workflow commands need an Atlassian MCP server and create and update Jira tickets."
 install: /plugin marketplace add jeffallan/claude-skills, then /plugin install fullstack-dev-skills@fullstack-dev-skills

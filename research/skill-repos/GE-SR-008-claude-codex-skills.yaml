@@ -10,6 +10,6 @@ status: listed
 status_reason: null
 best_for: [AI_ASSISTED, TRADITIONAL]
 tags: [planning, review, testing, devops]
-summary: Thirty-one standalone skills in eight plugins for planning, scoped implementation, audits and delivery, each written as a checklist that demands evidence before the agent reports a task as done.
+summary: Skills written as strict checklists that make the agent show evidence before it calls a task done, split into eight plugins from planning to delivery.
 watch_out_for: Each skill is long and formal, so context cost is real. The delivery plugin has skills that commit, push, release and deploy; they ask for explicit authorization, but read them before installing.
 install: /plugin marketplace add levnikolaevich/claude-code-skills, then /plugin install each plugin you want, e.g. implementation-suite@levnikolaevich-skills-marketplace

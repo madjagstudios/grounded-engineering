@@ -10,6 +10,6 @@ status: listed
 status_reason: null
 best_for: [AI_ASSISTED, TRADITIONAL]
 tags: [planning, testing, review, debugging]
-summary: Skills for the day-to-day loop of working with an agent. A grilling interview before work, specs and tickets, TDD at agreed seams, bug diagnosis, two-axis code review and a shared domain glossary.
+summary: Skills for everyday work with an agent, built around an interview that pins down the task before any code is written and a shared glossary of your project's domain terms.
 watch_out_for: Run /setup-matt-pocock-skills once per repo before the engineering skills; it asks about your issue tracker and edits your CLAUDE.md or AGENTS.md. Plugin updates can lag the repo by days or weeks.
 install: "/plugin install mattpocock-skills (official marketplace), then run /setup-matt-pocock-skills in each repo"

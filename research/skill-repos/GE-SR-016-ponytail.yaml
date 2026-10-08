@@ -10,6 +10,6 @@ status: listed
 status_reason: null
 best_for: [AI_ASSISTED]
 tags: [review]
-summary: One always-on prompt that pushes the agent to write less code, reusing what exists and preferring the standard library and platform features. Adds commands to review a diff for over-engineering and to track deferred shortcuts.
-watch_out_for: Hooks run at session start and on every prompt, keep a flag file under ~/.claude, and once nudge the agent to edit settings.json for a status line. The README's savings figures come from the author's own benchmark.
+summary: An always-on prompt that pushes the agent to write less code and reuse what already exists, with a command that reviews a diff for over-engineering.
+watch_out_for: Hooks run at session start and on every prompt, keep a flag file under ~/.claude, and once nudge the agent to edit settings.json for a status line.
 install: "/plugin marketplace add DietrichGebert/ponytail, then /plugin install ponytail@ponytail"

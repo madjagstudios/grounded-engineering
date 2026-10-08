@@ -10,6 +10,6 @@ status: listed
 status_reason: null
 best_for: [AI_ASSISTED]
 tags: [planning]
-summary: Keeps a task plan, findings log and progress log as markdown files in the project and re-injects them through hooks, so an agent can pick a long task back up after /clear or context compaction.
-watch_out_for: Hooks fire on every prompt and before most tool calls, and an optional gated mode can hold the agent's stop until phases are marked complete. The benchmark figures are the author's own.
+summary: Keeps a long task's plan, findings and progress in markdown files and re-injects them through hooks, so the agent can pick the task back up after /clear or context compaction.
+watch_out_for: Hooks fire on every prompt and before most tool calls, and an optional gated mode can keep the agent from stopping until every phase is marked complete.
 install: /plugin marketplace add OthmanAdi/planning-with-files, then /plugin install planning-with-files@planning-with-files

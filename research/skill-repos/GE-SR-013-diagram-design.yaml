@@ -10,6 +10,6 @@ status: listed
 status_reason: null
 best_for: [AI_ASSISTED, ONBOARDING]
 tags: [design, docs]
-summary: A skill that has the agent draw architecture, sequence, ER, state, dependency and deployment diagrams, among more than 40 types, as self-contained HTML and SVG. It also redraws Mermaid, draw.io or Excalidraw sources in one style.
-watch_out_for: Generated files load Google Fonts when opened, and PNG export needs Playwright and Chromium installed separately. The README also recommends turning on marketplace auto-update, which updates the plugin in the background.
+summary: Draws architecture, sequence and other technical diagrams as self-contained HTML and SVG files, and can redraw existing Mermaid, draw.io or Excalidraw sources in its own style.
+watch_out_for: Generated files load Google Fonts when opened, and PNG export needs Playwright and Chromium installed separately.
 install: /plugin marketplace add cathrynlavery/diagram-design, then /plugin install diagram-design@diagram-design
