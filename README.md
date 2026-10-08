@@ -1,5 +1,11 @@
 # Grounded Engineering
 
+[![Validate](https://github.com/madjagstudios/grounded-engineering/actions/workflows/validate.yml/badge.svg)](https://github.com/madjagstudios/grounded-engineering/actions/workflows/validate.yml)
+[![npm](https://img.shields.io/npm/v/grounded-engineering?label=npm)](https://www.npmjs.com/package/grounded-engineering)
+[![License: MIT](https://img.shields.io/github/license/madjagstudios/grounded-engineering)](LICENSE)
+[![Node](https://img.shields.io/node/v/grounded-engineering)](package.json)
+[![Claude Code plugin](https://img.shields.io/badge/Claude_Code_plugin-2.1.288%2B-D97757)](#claude-code-plugin)
+
 Engineering practices drawn from mature open-source repositories, each tied to
 the source it came from, plus a shelf of reviewed third-party skill
 repositories. It runs as a pane inside Claude Code and as a command-line tool.
