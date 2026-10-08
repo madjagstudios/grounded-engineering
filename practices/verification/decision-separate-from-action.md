@@ -7,7 +7,7 @@ category: Verification
 subcategory: Authorization
 pattern: Decide whether an action is allowed with an explicit policy, separate from the code that performs it.
 underlying_principle: Authorization is a different concern from execution, and should be decidable and testable on its own.
-observed_implementation: A safety assessment, kept separate from the code that applies the change, returns auto-approve, ask-user, or reject for a write action, computed from the approval policy, permission profile, writable roots, and sandbox availability.
+observed_implementation: A dedicated safety function returns auto-approve, ask-user, or reject for a write action, computed from the approval policy, permission profile, writable paths, and whether a sandbox is available.
 applicability: [AI_ASSISTED, TRADITIONAL, REPOSITORY_GOVERNANCE]
 control_types: [DETERMINISTIC_CHECK, APPROVAL, HUMAN_REVIEW]
 disposition: ADOPT

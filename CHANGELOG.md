@@ -17,15 +17,15 @@ records the state of the catalog and tooling at that tag.
 
 ### Changed
 - Five Codex sources re-read and re-pinned to `515c291`, after the first
-  weekly run reported them changed. Every card claim still holds; locators
-  moved to the new line numbers. GE-VF-002's source moved to
-  `codex-rs/prompts/templates/guardian/`, and its principle no longer names
-  "relevance", which the file never treats as a dimension. GE-VF-003 no longer
-  says the verdict is computed "before the action runs", which the cited file
-  does not show.
+  weekly run reported them changed; locators moved to the new line numbers.
+  CODEX-TRUST-BOUNDARY now lives under `codex-rs/prompts/templates/guardian/`,
+  and its principle names evidence trust, authorization, and the action's risk
+  instead of "relevance", which the file never treats as a dimension. GE-VF-003
+  no longer says the verdict is computed "before the action runs", which the
+  cited file does not show. The other card claims still hold.
 - Ponytail re-reviewed: its review commands now cover bugs and risk as well
-  as over-engineering, and a new session-start hook adds a map of your code's
-  names to the agent's context. Skills For Real Engineers now installs as
+  as over-engineering, and a session-start hook now adds a map of your code's
+  function and class names to the agent's context. Skills For Real Engineers now installs as
   `mattpocock-skills@claude-plugins-official`, as its README documents.
 
 ## [0.6.0] - 2026-10-08
