@@ -18,7 +18,7 @@ evidence_level: recommended
 source_ids: [CODEX-SANDBOX-ISOLATION]
 evidence_refs:
   - source_id: CODEX-SANDBOX-ISOLATION
-    locator: lib.rs:1-48 for the module surface — platform sandbox managers and filesystem/network violation recorders re-exported behind a common interface
+    locator: lib.rs:1-48 for the re-exported sandbox managers and violation recorders
     relationship: observed_implementation
 validation:
   status: validated

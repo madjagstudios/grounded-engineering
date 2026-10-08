@@ -25,9 +25,9 @@ tab.
 /plugin install grounded-engineering@grounded-engineering
 ```
 
-Then type `/grounded`. In the terminal the pane also answers keys: `1` and `2`
-switch screens, `d` shows what it detected, and `a` runs the open card's main
-action.
+Then type `/grounded`. In the terminal the pane also has keyboard shortcuts:
+`1` and `2` switch screens, `d` shows what it detected, and `a` runs the open
+card's main action.
 
 ### Command-line tool
 
@@ -63,12 +63,6 @@ plugin/         The Claude Code plugin: pane, skills, and generated catalog
 scripts/        Validation, catalog build, and source-drift tools
 ```
 
-The recommendations are point-in-time observations against pinned sources.
-Source changes do not silently rewrite cards; re-auditing is a deliberate
-maintenance step. A card cannot claim a validation state stronger than
-`not_validated` without recording, for each source, the revisions it was
-checked against.
-
 ## Adopt a profile
 
 Adoption does not rewrite existing policy. `preview` only reads, and `create`
@@ -98,14 +92,14 @@ Adapters:
 
 - `neutral` (default) writes Markdown to `docs/grounded-engineering.md` if the
   repository has a `docs/` folder, otherwise to `GROUNDED_ENGINEERING.md`.
-- `codex` writes to `AGENTS.md`. If a Codex override file governs which
-  instructions Codex reads, the tool reports it and writes nothing.
+- `codex` writes to `AGENTS.md`. If `AGENTS.override.md` exists, Codex reads
+  it instead, so the tool reports it and writes nothing.
 - `claude` writes to the repository-root `CLAUDE.md`. It reports
   `.claude/CLAUDE.md`, nested `CLAUDE.md` and `CLAUDE.local.md` files but does
   not edit them.
 
-`codex` and `claude` write only inside managed blocks keyed by card ID, and
-leave everything outside them byte for byte. Apply writes the target and
+Every adapter writes only inside managed blocks keyed by card ID, and leaves
+everything outside them byte for byte. Apply writes the target and
 `.grounded-engineering/manifest.yaml` only after re-checking the proposal's
 preconditions. A repository can have one adapter target. Adding a second
 target, and choosing cards with `--cards` outside `preview`, are not supported
@@ -124,6 +118,10 @@ Cards paraphrase their sources and link to the revision and the file or
 heading they draw on. We quote only where a source's license allows it, and
 never copy vendor prompt files. Each card says whether its practice is
 observed, recommended, or validated in use.
+
+A card does not change when its source does. `npm run check:sources` reports
+drift, and a card marked validated records which revision of each source it
+was checked against.
 
 ## Contributing
 

@@ -13,7 +13,8 @@ records the state of the catalog and tooling at that tag.
 - Claude Code plugin (`plugin/`), installable from this repository as a
   marketplace. `/grounded` opens a read-only pane with two screens: Practices,
   with "Fits this repo" suggestions from repository signals, and Skill repos.
-  Its `adapt` and `explain` skills propose changes for approval. It works in
+  Its `adapt` skill proposes a change for approval, and `explain` says what
+  installing a listed repository would add. It works in
   the terminal and in the desktop app, where a pressed link is printed in the
   transcript to click.
 - Skill-repo records: reviewed, link-only pointers to third-party skill
@@ -24,7 +25,7 @@ records the state of the catalog and tooling at that tag.
   listed, each read at a pinned commit. A record marked `featured` is listed
   first and labelled; Ponytail is the first featured record.
 - Repository signal vocabulary and fit rules (`plugin/fit-rules.yaml`) that map
-  signals to practice cards, validated against the real cards.
+  signals to practice cards, checked against the card IDs in `practices/`.
 - Plugin catalog `plugin/catalog.json`, built by `npm run build:catalog`. It
   rebuilds byte-identical, so CI can tell when it is out of date.
 - `npm run discover:skill-repos`, which prints candidate skill repositories for

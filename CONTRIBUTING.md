@@ -1,6 +1,6 @@
 # Contributing
 
-Grounded Engineering is a research-backed documentation project. A useful contribution is specific, bounded, and traceable from source observation to practical recommendation.
+Most changes add or revise a practice card, a source record, or a skill-repo record. The pane and skills live in `plugin/`, and the CLI in `src/`.
 
 ## Before opening a change
 
@@ -28,7 +28,7 @@ Practice cards should be small enough to use during a real change. They should s
 
 ## Skill-repo records
 
-Each skill-repo record is written from the repository at a pinned commit and approved by a maintainer before it is listed; see `research/skill-repos/README.md`.
+To propose a skill repository, follow `research/skill-repos/README.md`. A maintainer approves each record before it is listed.
 
 ## Validation
 
@@ -56,7 +56,7 @@ re-audited.
 
 ### Validation provenance
 
-After genuinely exercising a card's practice, print a `validated_against`
+After using a card's practice in a real repository, print a `validated_against`
 block for it from the current source pins, ready to paste into the card:
 
 ```bash
@@ -68,9 +68,9 @@ the maintainer's call. Add `--check` to see whether a `validated` card's block
 still matches the pins. It works even when `npm test` is failing on other
 cards, so you can fix one card's provenance before the rest.
 
-Changes to the evidence model must also be reviewed for source fidelity, licensing, broken links, unfinished-work markers, and accidental disclosure of private context.
-
 ## Review standard
+
+Changes to the evidence model are also reviewed for source fidelity, licensing, broken links, unfinished-work markers, and accidental disclosure of private context.
 
 Reviewers should be able to answer three questions:
 

@@ -27,6 +27,9 @@ When creating a proposal, the Codex adapter refuses to select a target when
 serialized target path and kind from the saved proposal, while still refusing
 unsafe paths outside the consuming repository root.
 
+Apply does not refresh sources, fetch network content, write arbitrary paths,
+or edit practice cards, source records, or their `validation.status` values.
+
 ## Write boundary and gates
 
 For an existing target, apply changes only the card-keyed managed blocks. All
@@ -56,9 +59,6 @@ Re-applying, or applying a second adapter, is not supported yet.
 `grounded-engineering check` is read-only. It schema-validates the manifest,
 then compares its pack, card, and target metadata and the managed target with
 the pack bundled in the CLI, and reports drift or a repository-state mismatch.
-
-Apply does not refresh sources, fetch network content, write arbitrary paths,
-or edit practice cards, source records, or their `validation.status` values.
 
 If you build a tool around `adopt apply`, rely on this document, not on the
 CLI's current code.

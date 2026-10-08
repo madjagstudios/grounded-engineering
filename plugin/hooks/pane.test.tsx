@@ -145,7 +145,7 @@ test('terminal: a skill repo opens, explains, and links to GitHub', async ($, on
   captureSkills(on, submitted)
   const ui = await mountPane($, on)
   await ui.press({ key: 'tab-skills' })
-  // Sorted by fit: this repo uses TypeScript and tests, which beta-ts is tagged for.
+  // Sorted by fit: this repo has tests, which beta-ts is tagged for.
   expect(await keysOf(ui, 'open-repo-')).toEqual(['open-repo-GE-SR-002', 'open-repo-GE-SR-001'])
   expect(await open(ui, 'primary-repo-GE-SR-002')).toBeUndefined()
   await ui.press({ key: 'open-repo-GE-SR-002' })
@@ -197,7 +197,7 @@ test('terminal: a pane restored without a command reads the repository itself', 
   await ui.unmount()
 })
 
-test('/grounded opens the pane asking for a 100-column dock, without running the skill beneath', async ($, on) => {
+test('/grounded opens the pane asking for a 100-column dock, and does not pass the command on to the grounded skill', async ($, on) => {
   const opened: any[] = []
   const skillRuns: string[] = []
   fakeRepo(on, REPO, DIRS)
@@ -462,7 +462,8 @@ test('desktop: many Details presses answered late all clear together', async ($,
   const slow = slowWrites(on, 'showSignals')
   const ui = await mountDesktop($, on)
   slow.hold()
-  for (let i = 0; i < 51; i++) await ui.press({ key: 'details', in: APP })
+  // An odd number of presses leaves Details open.
+  for (let i = 0; i < 61; i++) await ui.press({ key: 'details', in: APP })
   expect(await detailsLabel(ui)).toBe('Hide details')
   await ui.advance(60)
   slow.letThrough()
@@ -479,7 +480,7 @@ test('desktop: a slow search followed by many presses keeps the full query', asy
   const ui = await mountDesktop($, on)
   slow.hold()
   await ui.input({ key: 'search', text: 'a', kind: 'change', in: APP })
-  for (let i = 0; i < 51; i++) await ui.press({ key: i % 2 ? 'opt-cat-All' : 'opt-cat-Verification', in: APP })
+  for (let i = 0; i < 60; i++) await ui.press({ key: i % 2 ? 'opt-cat-All' : 'opt-cat-Verification', in: APP })
   await ui.advance(60)
   slow.letThrough()
   await settle(ui)
@@ -498,7 +499,7 @@ test('desktop: many presses posted before the plugin receives any each run once 
   const ui = await mountDesktop($, on)
   await ui.press({ key: 'open-fit-GE-AS-004', in: APP })
   await ui.press({ key: 'primary-fit-GE-AS-004', in: APP })
-  for (let i = 0; i < 110; i++) await ui.press({ key: 'lane-all', in: APP })
+  for (let i = 0; i < 120; i++) await ui.press({ key: 'lane-all', in: APP })
   await settle(ui)
   await ui.advance(1100)
   await settle(ui)
@@ -514,7 +515,7 @@ test('desktop: many presses posted before the plugin receives any each run once 
   await ui.unmount()
 })
 
-test('the link command prints only links the pane draws, and never echoes another', async ($, on) => {
+test('the link command prints a link the pane draws, and not one it does not', async ($, on) => {
   fakeRepo(on, REPO, DIRS)
   const url = cardUrl(FIXTURE_CATALOG, FIXTURE_CATALOG.practices[0]!)
   expect((await $.command.run({ ...typed('grounded-link'), args: url })).text).toBe(`Evidence for GE-AS-004: ${url}`)
