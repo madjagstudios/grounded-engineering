@@ -105,7 +105,7 @@
       "why": "This repo's settings don't turn on the OS sandbox."
     }
   ],
-  "package_version": "0.5.0",
+  "package_version": "0.6.0",
   "practices": [
     {
       "agent_snippet": "Keep the skill entrypoint focused; move conditional procedures and references out of the default context when they are not needed for every invocation.",
@@ -242,12 +242,12 @@
       "validation_status": "validated"
     },
     {
-      "agent_snippet": "Route network access from agent-run code through an enforcing proxy and explicit policy — allow, deny, or approve — rather than leaving egress ambient, and confirm a real proxy is in the path before relying on the gate.",
+      "agent_snippet": "Send network access from agent-run code through an enforcing proxy and an explicit allow, deny, or approve policy, and confirm a proxy is actually in the path before relying on it.",
       "applicability": [
         "AI_ASSISTED",
         "REPOSITORY_GOVERNANCE"
       ],
-      "body": "Use this when agent-executed code or commands can reach the network. Route egress through an enforcing proxy and an explicit policy — allow, deny, or approve — so exfiltration and untrusted-fetch risk is a mediated decision rather than ambient. A task that genuinely needs the network — installing dependencies, calling a declared API — should get a scoped, explicit grant; the goal is an explicit decision, not a blanket block that pushes people to disable the control. The boundary: this contains egress only where an enforcing proxy is actually in the request path — without one there is nothing to gate — and telemetry recording that a request happened is not the same as a durable audit record.\n\n## Evidence trail\n\n- [CODEX-NETWORK-CAPABILITY](../../research/sources/codex.md#codex-network-capability): the policy decider and execution-scoped proxy that mediate agent network access when managed enforcement is active.",
+      "body": "Use this when agent-run code or commands can reach the network. Put an\nenforcing proxy in the request path and let an explicit policy allow the\nrequest, deny it, or ask for approval. Work that needs the network, such as\ninstalling dependencies or calling a declared API, should get a scoped grant:\nthe aim is a deliberate decision, not a blanket block that people learn to\nswitch off.\n\nThe boundary is the proxy itself. Without one in the path there is nothing to\ngate, and telemetry showing that a request happened is not a durable audit\nrecord.\n\n## Evidence trail\n\n- [CODEX-NETWORK-CAPABILITY](../../research/sources/codex.md#codex-network-capability): the policy decider and execution-scoped proxy that mediate agent network access when managed enforcement is active.",
       "category": "Agent & Skill Design",
       "confidence": "medium",
       "control_types": [
@@ -257,8 +257,8 @@
       ],
       "id": "GE-AS-006",
       "path": "practices/agent-design/gated-network-egress.md",
-      "pattern": "Treat network access from agent-executed work as a capability mediated by an enforcing proxy and policy — allowed, denied, or routed to approval — not an ambient default of running code.",
-      "rationale": "Gating network egress through an enforcing proxy and explicit policy — allow, deny, or approve — contains exfiltration and supply-chain risk that ambient network access would leave open.",
+      "pattern": "Treat network access from agent-run work as a capability that an enforcing proxy and an explicit policy decide on, not an ambient default.",
+      "rationale": "A per-request decision contains exfiltration and supply-chain risk that open network access leaves in place.",
       "source_ids": [
         "CODEX-NETWORK-CAPABILITY"
       ],
@@ -318,12 +318,12 @@
       "validation_status": "validated"
     },
     {
-      "agent_snippet": "Produce edits in an explicit, context-anchored format and verify the target context matches before mutating, so a stale or mistargeted change is caught rather than corrupting the file.",
+      "agent_snippet": "Write edits in an explicit, context-anchored format and check that the context still matches the file before applying them.",
       "applicability": [
         "AI_ASSISTED",
         "TRADITIONAL"
       ],
-      "body": "Use this when an agent or tool applies edits to files programmatically. Prefer a format that carries surrounding context and is validated against the target before it touches the filesystem, so a hunk that no longer matches is rejected rather than applied blindly. The boundary: parsing a well-formed patch is not proof it applies safely — the context still has to match the current file at apply time. And a full-file rewrite or a structured code transform can be safer than a context patch for large or generated files: match the format to the edit rather than forcing every change through one shape.\n\n## Evidence trail\n\n- [CODEX-PATCH-FORMAT](../../research/sources/codex.md#codex-patch-format): the explicit patch grammar, parsed separately from filesystem application.",
+      "body": "Use this when an agent or tool edits files programmatically. Prefer a format\nthat carries surrounding context, so a hunk that no longer matches the file is\nrejected instead of applied blindly.\n\nThe boundary is apply time. A patch that parses can still fail to apply, so\nthe context has to be matched against the current file. For large or generated\nfiles, a full rewrite or a structured transform can be safer than a context\npatch; pick the format that fits the edit.\n\n## Evidence trail\n\n- [CODEX-PATCH-FORMAT](../../research/sources/codex.md#codex-patch-format): the explicit patch grammar, parsed separately from filesystem application.",
       "category": "Code Quality",
       "confidence": "medium",
       "control_types": [
@@ -332,8 +332,8 @@
       ],
       "id": "GE-CQ-003",
       "path": "practices/code-quality/explicit-edit-format.md",
-      "pattern": "Express an agent-generated edit in an explicit, parseable format with surrounding context.",
-      "rationale": "An explicit, context-anchored edit format lets the target be checked for a match before mutation, so a stale or mistargeted edit is caught rather than silently corrupting the file.",
+      "pattern": "Express an agent-generated edit in an explicit, parseable format that carries surrounding context.",
+      "rationale": "A context-anchored format lets a stale or mistargeted edit be caught before it is written.",
       "source_ids": [
         "CODEX-PATCH-FORMAT"
       ],
@@ -510,13 +510,13 @@
       "validation_status": "validated"
     },
     {
-      "agent_snippet": "Before an escalating or irreversible action, compute an explicit allow/ask/reject verdict from policy, profile, and sandbox availability, and route risky writes to approval rather than running them unchecked.",
+      "agent_snippet": "Before an escalating or irreversible action, compute an allow, ask, or reject verdict from explicit policy, and send risky writes to approval instead of running them.",
       "applicability": [
         "AI_ASSISTED",
         "TRADITIONAL",
         "REPOSITORY_GOVERNANCE"
       ],
-      "body": "Use this when an agent performs actions with real consequences — writing files, running commands, escaping a sandbox. Compute a verdict (allow, ask, or reject) from explicit policy before acting, so authorization is auditable and risky or non-conforming actions are refused or escalated rather than performed. The boundary: keep the policy narrow and explicit; a decision function that grows to re-encode the whole action's logic has lost the separation it was meant to provide.\n\n## Evidence trail\n\n- [CODEX-SAFETY-POLICY](../../research/sources/codex.md#codex-safety-policy): the three-way safety verdict computed separately from applying the action.",
+      "body": "Use this when an agent takes actions with real consequences, such as writing\nfiles, running commands or leaving a sandbox. Compute the verdict (allow, ask\nor reject) from explicit policy before acting, so the decision can be read,\ntested and audited apart from the action.\n\nThe boundary is keeping the policy narrow. A decision function that grows to\nre-implement the action has lost the separation it was there to provide.\n\n## Evidence trail\n\n- [CODEX-SAFETY-POLICY](../../research/sources/codex.md#codex-safety-policy): the three-way safety verdict computed separately from applying the action.",
       "category": "Verification",
       "confidence": "medium",
       "control_types": [
@@ -526,8 +526,8 @@
       ],
       "id": "GE-VF-003",
       "path": "practices/verification/decision-separate-from-action.md",
-      "pattern": "Compute whether an action is allowed with an explicit policy, separate from the code that performs it.",
-      "rationale": "Separating the allow, ask, or reject decision from the action makes authorization auditable and lets risky or non-conforming writes route to approval or refusal instead of running unchecked.",
+      "pattern": "Decide whether an action is allowed with an explicit policy, separate from the code that performs it.",
+      "rationale": "A separate allow, ask, or reject verdict makes authorization auditable and sends risky writes to approval or refusal instead of letting them run.",
       "source_ids": [
         "CODEX-SAFETY-POLICY"
       ],
@@ -536,12 +536,12 @@
       "validation_status": "validated"
     },
     {
-      "agent_snippet": "Run agent-executed commands inside an OS sandbox with least privilege where a supported backend is enabled, surface violations instead of widening the policy silently, and treat \"no sandbox available\" as fail-safe rather than permission to run unconfined.",
+      "agent_snippet": "Run agent-executed commands in a least-privilege OS sandbox where one is available, surface violations instead of widening the policy, and treat \"no sandbox available\" as a case that fails safe, not as permission to run unconfined.",
       "applicability": [
         "AI_ASSISTED",
         "REPOSITORY_GOVERNANCE"
       ],
-      "body": "Use this when an agent runs shell commands or executes generated code. Confine execution with an operating-system sandbox scoped to least privilege, and treat recorded violations as signal, so a mistaken or malicious command is contained by the platform rather than by trust. The boundary: this holds only where a supported OS backend is available and enabled — platform selection can resolve to no sandbox, and that case must fail safe rather than silently run unconfined. And a sandbox widened until nothing is denied provides no isolation — tighten the policy and surface violations rather than relaxing it to make a task pass.\n\n## Evidence trail\n\n- [CODEX-SANDBOX-ISOLATION](../../research/sources/codex.md#codex-sandbox-isolation): the re-exported platform sandbox managers and violation recorders.",
+      "body": "Use this when an agent runs shell commands or generated code. Confine it with\nan operating-system sandbox scoped to least privilege, and treat recorded\nviolations as a signal, so a mistaken or malicious command is stopped by the\nplatform rather than by trust.\n\nThe boundary is availability. Platform selection can resolve to no sandbox,\nand that case has to fail safe. A policy widened until nothing is denied\nisolates nothing, so tighten it and surface the violation instead of relaxing\nit to get a task through.\n\n## Evidence trail\n\n- [CODEX-SANDBOX-ISOLATION](../../research/sources/codex.md#codex-sandbox-isolation): the re-exported platform sandbox managers and violation recorders.",
       "category": "Verification",
       "confidence": "medium",
       "control_types": [
@@ -551,7 +551,7 @@
       "id": "GE-VF-004",
       "path": "practices/verification/sandbox-agent-execution.md",
       "pattern": "Run agent-executed commands inside an operating-system sandbox with a least-privilege policy.",
-      "rationale": "Where a supported OS sandbox backend is enabled, it contains the blast radius of an agent-run command regardless of the agent's intent, and recorded violations make over-broad access visible instead of silent.",
+      "rationale": "Where a supported sandbox backend is enabled, it limits what an agent-run command can reach whatever the agent intended, and recorded violations make over-broad access visible.",
       "source_ids": [
         "CODEX-SANDBOX-ISOLATION"
       ],

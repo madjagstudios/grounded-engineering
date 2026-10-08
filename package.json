@@ -1,6 +1,6 @@
 {
   "name": "grounded-engineering",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Source-backed engineering practices for professional software development and AI-assisted work.",
   "type": "module",
   "bin": {
@@ -40,6 +40,7 @@
     "coding-agents",
     "code-review",
     "coding-standards",
+    "claude-code",
     "cli"
   ],
   "dependencies": {

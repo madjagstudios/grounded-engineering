@@ -47,7 +47,7 @@ test('loads the ai-assisted pack with all seventeen canonical cards', () => {
 
   assert.equal(pack.pack_id, 'ai-assisted');
   assert.equal(pack.pack_version, '1.1.0');
-  assert.equal(pack.grounded_engineering_release, 'v0.5.0');
+  assert.equal(pack.grounded_engineering_release, 'v0.6.0');
   assert.deepEqual(pack.cards.map((card) => card.id), [
     'GE-RC-001',
     'GE-RC-002',

@@ -3,7 +3,7 @@
 Policy version: 1.0
 
 This policy describes the write behavior of the `adopt apply` command in the
-Grounded Engineering v0.5.0 CLI. The command is:
+Grounded Engineering v0.6.0 CLI. The command is:
 
 ```text
 grounded-engineering adopt apply <proposal-id> --confirm
@@ -52,7 +52,7 @@ it does not interpret `validation.status` as a separate check gate.
 
 ## Re-apply and checking
 
-In v0.5.0, apply refuses when `.grounded-engineering/manifest.yaml` already
+In v0.6.0, apply refuses when `.grounded-engineering/manifest.yaml` already
 exists. Re-applying or applying a second adapter is reserved for a future
 update flow; this is an intentional refusal, not an overwrite strategy.
 
