@@ -9,7 +9,7 @@ import { atom, read, update } from 'claude-code'
 import { loadCatalog, type Catalog, type Host } from './catalog'
 import { readAdoption, readSignals } from './signals'
 import type { GroundedScreen, GroundedSignals } from '../types'
-import { PALETTE } from './theme'
+import { TERMINAL_PALETTE } from './theme'
 import { slimCatalog, type Ack, type PaneModel } from './model'
 import { paneScreen, linkLabel } from './screens'
 import { pressOf, validAct } from './client/apply'
@@ -186,6 +186,6 @@ export const register: Register = on => {
       const { Client } = ui
       return <Client key="grounded-app" module="./client/app.tsx" props={await paneModel($)} width="100%" flexGrow={1} />
     }
-    return paneScreen(ui, await paneModel($), handlers($) as any, PALETTE, e.props.bodyColumns ?? 0, 1)
+    return paneScreen(ui, await paneModel($), handlers($) as any, TERMINAL_PALETTE, e.props.bodyColumns ?? 0, 1)
   })
 }

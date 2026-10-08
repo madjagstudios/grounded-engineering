@@ -519,6 +519,15 @@ test('the link command is left out of the slash menu, and the pane commands are 
   expect((await describing($, 'grounded-skills')).isHidden).toBe(false)
 })
 
+// 'background' is not a terminal theme key: the terminal drew it as solid cyan under dim text.
+test('terminal: an open card keeps its accent edge and paints no background', async ($, on) => {
+  const ui = await mountPane($, on)
+  await ui.press({ key: 'open-fit-GE-AS-004' })
+  const card = (await ui.find({ key: 'tile-fit-GE-AS-004' })) as any
+  expect(card.props.borderColor).toBe(PALETTE.accent.edge)
+  expect(card.props.backgroundColor).toBeUndefined()
+})
+
 test('desktop: openers are outlined and sized to their label', async ($, on) => {
   const ui = await mountDesktop($, on)
   await ui.resize({ columns: 100, rows: 40, in: APP })
