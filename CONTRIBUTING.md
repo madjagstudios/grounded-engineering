@@ -39,8 +39,6 @@ npm install
 npm test
 ```
 
-The validator runs offline and changes nothing.
-
 After changing cards, skill-repo records, fit rules, or the package version, run `npm run build:catalog` and commit the updated `plugin/catalog.json`; `npm test` fails when it is stale.
 
 When you change anything under `plugin/hooks`, also run `claude plugin test plugin`; CI runs it with `claude plugin validate`.
@@ -67,10 +65,10 @@ npm run scaffold:validation -- GE-VF-003
 
 It runs offline and never edits the card; recording the validation claim is
 the maintainer's call. Add `--check` to see whether a `validated` card's block
-still matches the pins. It does not need the rest of the catalog to validate,
-so a provenance fix can be prepared first.
+still matches the pins. It works even when `npm test` is failing on other
+cards, so you can fix one card's provenance before the rest.
 
-Changes to the evidence model must also be reviewed for source fidelity, licensing, broken links, temporary markers, and accidental disclosure of private context.
+Changes to the evidence model must also be reviewed for source fidelity, licensing, broken links, unfinished-work markers, and accidental disclosure of private context.
 
 ## Review standard
 

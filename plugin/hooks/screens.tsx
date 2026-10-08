@@ -25,10 +25,10 @@ const MORE = [
 // Below this many columns the tabs take the whole header row and the title is left out.
 const NARROW = 60
 
-const PANE = 2
+const PANE = 2 // pane padding
 const SYMBOL = 2 // a row's status symbol and its gap
 const OUTLINE = 4 // the outline and the label padding
-const TILE = 4
+const TILE = 4 // a tile's border and padding
 const TERMINAL = 9 // the terminal's fixed overhead per row
 const TERMINAL_TAGS = 8 // the terminal's room for a repo row's tags
 // On desktop, titles are cut to one line; below WIDE columns the category, tags and badge give way.

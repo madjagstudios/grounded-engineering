@@ -2,8 +2,8 @@
 
 Policy version: 1.0
 
-This policy describes the write behavior of the `adopt apply` command in the
-Grounded Engineering v0.6.0 CLI. The command is:
+This policy describes the write behavior of the Grounded Engineering CLI's
+`adopt apply` command:
 
 ```text
 grounded-engineering adopt apply <proposal-id> --confirm
@@ -46,27 +46,21 @@ hold:
 The target and manifest are committed as one local transaction. If a write
 fails, the transaction rolls back. The manifest records the selected pack,
 cards, target precondition, managed-block fingerprint, and apply-time
-validation result. `grounded-engineering check` schema-validates that
-manifest, then independently compares its pack, card, and target metadata;
-it does not interpret `validation.status` as a separate check gate.
+validation result.
 
 ## Re-apply and checking
 
-In v0.6.0, apply refuses when `.grounded-engineering/manifest.yaml` already
-exists. Re-applying or applying a second adapter is reserved for a future
-update flow.
+Apply refuses when `.grounded-engineering/manifest.yaml` already exists.
+Re-applying, or applying a second adapter, is not supported yet.
 
-`grounded-engineering check` is read-only. It compares the manifest and
-managed target with the bundled pack and reports drift or repository-state
-mismatch. Apply does not edit practice cards, source records, or their
-`validation.status` values.
-
-## What apply does not do
+`grounded-engineering check` is read-only. It schema-validates the manifest,
+then compares its pack, card, and target metadata and the managed target with
+the pack bundled in the CLI, and reports drift or a repository-state mismatch.
 
 Apply does not refresh sources, fetch network content, write arbitrary paths,
-modify unmanaged prose, or change practice cards.
+or edit practice cards, source records, or their `validation.status` values.
 
-This policy is the write path's contract. Grounded Engineering
-does not depend on or endorse any third-party wrapper for the write path; a
-tool that wraps apply should follow this document rather than infer the
-behavior from the code.
+If you build a tool around `adopt apply`, rely on this document, not on the
+CLI's current code.
+Grounded Engineering does not depend on or endorse any third-party wrapper for
+the write path.

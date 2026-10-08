@@ -14,15 +14,15 @@ records the state of the catalog and tooling at that tag.
   marketplace. `/grounded` opens a read-only pane with two screens: Practices,
   with "Fits this repo" suggestions from repository signals, and Skill repos.
   Its `adapt` and `explain` skills propose changes for approval. It works in
-  the terminal, where the keys `1`, `2`, `d` and `a` drive it, and in the
-  desktop app, where a pressed link is printed in the transcript to click.
+  the terminal and in the desktop app, where a pressed link is printed in the
+  transcript to click.
 - Skill-repo records: reviewed, link-only pointers to third-party skill
   repositories under `research/skill-repos/`, with a schema
   (`research/skill-repo-schema.yaml`) and validation in `npm test`. A listed
   record's license must be a valid SPDX expression, and its `install` steps
   must be literal commands, with other guidance in `install_note`. Sixteen are
   listed, each read at a pinned commit. A record marked `featured` is listed
-  first and labelled; Ponytail is the first.
+  first and labelled; Ponytail is the first featured record.
 - Repository signal vocabulary and fit rules (`plugin/fit-rules.yaml`) that map
   signals to practice cards, validated against the real cards.
 - Plugin catalog `plugin/catalog.json`, built by `npm run build:catalog`. It
@@ -36,9 +36,9 @@ records the state of the catalog and tooling at that tag.
   (`GE-AS-006`).
 
 ### Changed
-- The validator's public-content check now ships only generic patterns
-  (unfinished-work markers and home-directory paths). A maintainer can add their
-  own in an untracked `.private/public-content-patterns.txt`.
+- The validator's public-content check looks for unfinished-work markers and
+  home-directory paths. Extra patterns can go in an untracked
+  `.private/public-content-patterns.txt`.
 - The `ai-assisted` pack now ships all seventeen cards, adding the four new
   cards above. Its `pack_version` is `1.1.0` and its release is `v0.6.0`, so in
   a repository that adopted the earlier `ai-assisted` pack, `check` reports a

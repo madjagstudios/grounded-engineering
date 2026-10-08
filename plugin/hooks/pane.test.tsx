@@ -527,7 +527,7 @@ test('the link command prints only links the pane draws, and never echoes anothe
 const describing = ($: any, command: string) => $.command.describe({
   command, description: 'a command', isHidden: false, immediate: true, provider: { plugin: 'grounded-engineering', tier: 'append' },
 })
-test('the link command and the pane skills are left out of the slash menu, and the pane commands are not', async ($, on) => {
+test('grounded-link, adapt and explain are hidden from the slash menu; /grounded and /grounded-skills are listed', async ($, on) => {
   // Beneath the plugin the engine's own listing answers as the command declared itself.
   on('command.describe', async (_$: unknown, e: any) => ({ description: e.description, isHidden: e.isHidden }))
   expect((await describing($, 'grounded-link')).isHidden).toBe(true)
@@ -613,7 +613,7 @@ const optionRowOf = (tree: any, key: string): any => {
   }
   return find(tree, [])
 }
-test('wrapped option rows have no blank line between them, on both surfaces', async ($, on) => {
+test('wrapped option rows set no row gap, on both surfaces', async ($, on) => {
   const term = await mountPane($, on)
   for (const row of [optionRowOf(await term.drawn(), 'opt-cat-All')]) {
     expect(row.props.flexWrap).toBe('wrap')
@@ -631,7 +631,7 @@ test('wrapped option rows have no blank line between them, on both surfaces', as
   await desk.unmount()
 })
 
-test('desktop: the Details button never shrinks, so it cannot wrap onto two lines', async ($, on) => {
+test('desktop: the Details button sits in a box that never shrinks', async ($, on) => {
   const ui = await mountDesktop($, on)
   let chain: any[] = []
   const find = (node: any, trail: any[]): boolean => {

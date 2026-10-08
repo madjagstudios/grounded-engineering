@@ -11,7 +11,7 @@ observed_implementation: A sandboxing crate exposes platform sandbox managers (L
 applicability: [AI_ASSISTED, REPOSITORY_GOVERNANCE]
 control_types: [DETERMINISTIC_CHECK, PERMISSION]
 disposition: ADAPT
-rationale: Where a supported sandbox backend is enabled, it limits what an agent-run command can reach whatever the agent intended, and recorded violations make over-broad access visible.
+rationale: Where a supported sandbox backend is enabled, it limits what an agent-run command can reach, regardless of what the agent intended, and recorded violations make over-broad access visible.
 delivery_horizon: V1
 confidence: medium
 evidence_level: recommended
@@ -33,14 +33,15 @@ agent_snippet: Run agent-executed commands in a least-privilege OS sandbox where
 
 # Confine agent-executed commands in an OS sandbox
 
-Use this when an agent runs shell commands or generated code. Confine it with
+Use this when an agent runs shell commands or generated code. Confine them with
 an operating-system sandbox scoped to least privilege, and treat recorded
 violations as a signal, so a mistaken or malicious command is stopped by the
 platform.
 
-Platform selection can resolve to no sandbox, and that case has to fail safe.
-Separately, a policy widened until nothing is denied isolates nothing; tighten
-it and surface the violation instead of relaxing it to get a task through.
+Platform selection can find no sandbox at all. When it does, do not run the
+command unconfined. A policy widened until nothing is denied isolates nothing;
+tighten it and surface the violation instead of relaxing it to get a task
+through.
 
 ## Evidence trail
 

@@ -13,5 +13,3 @@ Practice cards are the short form people and agents read. Research history stays
 Cards are not universal law. Check applicability, boundaries, evidence level, and local policy before translating one into an agent instruction or deterministic control.
 
 The CLI's two adoption packs are described under [Adopt a profile](../README.md#adopt-a-profile).
-Both keep each card's ID and disposition; whether a card applies to your
-repository is for your review to decide.

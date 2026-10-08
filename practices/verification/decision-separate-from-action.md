@@ -34,9 +34,9 @@ agent_snippet: Before an escalating or irreversible action, compute an allow, as
 # Decide permission separately from the action
 
 Use this when an agent takes actions with real consequences, such as writing
-files, running commands or leaving a sandbox. Compute the verdict (allow, ask
-or reject) from explicit policy before acting, so the decision can be read,
-tested and audited apart from the action.
+files, running commands, or leaving a sandbox. Compute the verdict (allow,
+ask, or reject) from explicit policy before acting, so the decision can be
+read, tested, and audited apart from the action.
 
 Keep the policy narrow: a decision function that grows to re-implement the
 action has lost the separation it was there to provide.
