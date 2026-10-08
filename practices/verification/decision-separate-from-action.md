@@ -5,13 +5,13 @@ id: GE-VF-003
 title: Decide permission separately from the action
 category: Verification
 subcategory: Authorization
-pattern: Compute whether an action is allowed with an explicit policy, separate from the code that performs it.
-underlying_principle: An action's authorization is a distinct concern from its execution and should be decidable and testable on its own.
+pattern: Decide whether an action is allowed with an explicit policy, separate from the code that performs it.
+underlying_principle: Authorization is a different concern from execution, and should be decidable and testable on its own.
 observed_implementation: A safety assessment returns auto-approve, ask-user, or reject for a write action, computed from the approval policy, permission profile, writable roots, and sandbox availability before the action runs.
 applicability: [AI_ASSISTED, TRADITIONAL, REPOSITORY_GOVERNANCE]
 control_types: [DETERMINISTIC_CHECK, APPROVAL, HUMAN_REVIEW]
 disposition: ADOPT
-rationale: Separating the allow, ask, or reject decision from the action makes authorization auditable and lets risky or non-conforming writes route to approval or refusal instead of running unchecked.
+rationale: A separate allow, ask, or reject verdict makes authorization auditable and sends risky writes to approval or refusal instead of letting them run.
 delivery_horizon: V1
 confidence: medium
 evidence_level: recommended
@@ -28,12 +28,18 @@ validation:
         - 03861e69ef549717c0fc7045abad56321d4a082b
 revisit:
   required: false
-agent_snippet: Before an escalating or irreversible action, compute an explicit allow/ask/reject verdict from policy, profile, and sandbox availability, and route risky writes to approval rather than running them unchecked.
+agent_snippet: Before an escalating or irreversible action, compute an allow, ask, or reject verdict from explicit policy, and send risky writes to approval instead of running them.
 ---
 
 # Decide permission separately from the action
 
-Use this when an agent performs actions with real consequences — writing files, running commands, escaping a sandbox. Compute a verdict (allow, ask, or reject) from explicit policy before acting, so authorization is auditable and risky or non-conforming actions are refused or escalated rather than performed. The boundary: keep the policy narrow and explicit; a decision function that grows to re-encode the whole action's logic has lost the separation it was meant to provide.
+Use this when an agent takes actions with real consequences, such as writing
+files, running commands or leaving a sandbox. Compute the verdict (allow, ask
+or reject) from explicit policy before acting, so the decision can be read,
+tested and audited apart from the action.
+
+The boundary is keeping the policy narrow. A decision function that grows to
+re-implement the action has lost the separation it was there to provide.
 
 ## Evidence trail
 

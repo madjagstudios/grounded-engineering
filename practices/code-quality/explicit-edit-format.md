@@ -5,13 +5,13 @@ id: GE-CQ-003
 title: Express edits in an explicit, verifiable format
 category: Code Quality
 subcategory: Reliable edits
-pattern: Express an agent-generated edit in an explicit, parseable format with surrounding context.
-underlying_principle: An edit should carry enough surrounding context that its target can be validated before the file is mutated, not after corruption.
+pattern: Express an agent-generated edit in an explicit, parseable format that carries surrounding context.
+underlying_principle: An edit should carry enough context for its target to be checked before the file changes, not after it is corrupted.
 observed_implementation: A patch parser turns text into typed hunks against an explicit grammar; it does not check filesystem applicability, which is resolved later at apply time.
 applicability: [AI_ASSISTED, TRADITIONAL]
 control_types: [DETERMINISTIC_CHECK, ADVISORY]
 disposition: ADOPT
-rationale: An explicit, context-anchored edit format lets the target be checked for a match before mutation, so a stale or mistargeted edit is caught rather than silently corrupting the file.
+rationale: A context-anchored format lets a stale or mistargeted edit be caught before it is written.
 delivery_horizon: V1
 confidence: medium
 evidence_level: recommended
@@ -28,12 +28,19 @@ validation:
         - 03861e69ef549717c0fc7045abad56321d4a082b
 revisit:
   required: false
-agent_snippet: Produce edits in an explicit, context-anchored format and verify the target context matches before mutating, so a stale or mistargeted change is caught rather than corrupting the file.
+agent_snippet: Write edits in an explicit, context-anchored format and check that the context still matches the file before applying them.
 ---
 
 # Express edits in an explicit, verifiable format
 
-Use this when an agent or tool applies edits to files programmatically. Prefer a format that carries surrounding context and is validated against the target before it touches the filesystem, so a hunk that no longer matches is rejected rather than applied blindly. The boundary: parsing a well-formed patch is not proof it applies safely — the context still has to match the current file at apply time. And a full-file rewrite or a structured code transform can be safer than a context patch for large or generated files: match the format to the edit rather than forcing every change through one shape.
+Use this when an agent or tool edits files programmatically. Prefer a format
+that carries surrounding context, so a hunk that no longer matches the file is
+rejected instead of applied blindly.
+
+The boundary is apply time. A patch that parses can still fail to apply, so
+the context has to be matched against the current file. For large or generated
+files, a full rewrite or a structured transform can be safer than a context
+patch; pick the format that fits the edit.
 
 ## Evidence trail
 
