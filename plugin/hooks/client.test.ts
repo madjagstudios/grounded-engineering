@@ -214,7 +214,7 @@ test('the model built from a catalog larger than the shipped one stays under 80,
   const fit_rules = practices.map((p) => ({ card: p.id, when: { all: ['has_tests'], any: [], none: ['has_ci'] }, why: 'w'.repeat(120) }))
   const signals = Array.from({ length: 13 }, (_, i) => ({ name: `signal_${i}`, type: 'boolean', description: 'd'.repeat(120) }))
   // 25 repos, more than the 16 shipped, every text field at its schema maximum.
-  const skill_repos = Array.from({ length: 25 }, (_, i) => ({ ...FIXTURE_CATALOG.skill_repos[i % 2]!, id: `GE-SR-${String(i).padStart(3, '0')}`, name: 'n'.repeat(60), summary: 's'.repeat(240), watch_out_for: 'w'.repeat(240), install: 'i'.repeat(200) }))
+  const skill_repos = Array.from({ length: 25 }, (_, i) => ({ ...FIXTURE_CATALOG.skill_repos[i % 2]!, id: `GE-SR-${String(i).padStart(3, '0')}`, name: 'n'.repeat(60), summary: 's'.repeat(240), watch_out_for: 'w'.repeat(240), install: Array.from({ length: 4 }, () => 'i'.repeat(160)), install_note: 'm'.repeat(200) }))
   const model = paneModelOf({ ...FIXTURE_CATALOG, practices, fit_rules, signals, skill_repos })
   expect(model.catalog?.practices.length).toBe(24)
   expect(model.catalog?.skill_repos.length).toBe(25)

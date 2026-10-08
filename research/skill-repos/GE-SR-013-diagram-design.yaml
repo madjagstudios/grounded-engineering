@@ -12,4 +12,7 @@ best_for: [AI_ASSISTED, ONBOARDING]
 tags: [design, docs]
 summary: Draws architecture, sequence and other technical diagrams as self-contained HTML and SVG files, and can redraw existing Mermaid, draw.io or Excalidraw sources in its own style.
 watch_out_for: Generated files load Google Fonts when opened, and PNG export needs Playwright and Chromium installed separately.
-install: /plugin marketplace add cathrynlavery/diagram-design, then /plugin install diagram-design@diagram-design
+install:
+  - "/plugin marketplace add cathrynlavery/diagram-design"
+  - "/plugin install diagram-design@diagram-design"
+install_note: null

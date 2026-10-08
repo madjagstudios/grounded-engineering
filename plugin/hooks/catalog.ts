@@ -15,7 +15,8 @@ export type Practice = {
 }
 export type SkillRepo = {
   id: string; name: string; repo: string; license: string; pinned_commit: string; reviewed_on: string
-  best_for: string[]; tags: string[]; summary: string; watch_out_for: string; install: string
+  best_for: string[]; tags: string[]; summary: string; watch_out_for: string
+  install: string[]; install_note: string | null
 }
 export type Catalog = {
   catalog_version: number; package_version: string; repository: string

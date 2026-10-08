@@ -12,4 +12,7 @@ best_for: [AI_ASSISTED, TRADITIONAL]
 tags: [frontend, review]
 summary: Web audits for performance, accessibility and SEO that prefer measuring with Lighthouse and DevTools traces before changing code.
 watch_out_for: It works best with Chrome DevTools MCP; without it the skills fall back to the Lighthouse CLI or static inspection of the source.
-install: "/plugin marketplace add addyosmani/web-quality-skills, then /plugin install web-quality-skills@addy-web-quality-skills"
+install:
+  - "/plugin marketplace add addyosmani/web-quality-skills"
+  - "/plugin install web-quality-skills@addy-web-quality-skills"
+install_note: null

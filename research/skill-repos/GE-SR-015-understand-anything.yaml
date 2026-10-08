@@ -12,4 +12,7 @@ best_for: [ONBOARDING, AI_ASSISTED]
 tags: [docs, review]
 summary: Builds a browsable knowledge graph of a codebase, so a newcomer can ask questions about it, see what a diff touches and get an onboarding guide.
 watch_out_for: The first /understand run on a large repo can use a lot of tokens. Its hooks do nothing until you enable --auto-update, after which they tell the agent to refresh the graph after commits and at session start without asking.
-install: "/plugin marketplace add Egonex-AI/Understand-Anything, then /plugin install understand-anything"
+install:
+  - "/plugin marketplace add Egonex-AI/Understand-Anything"
+  - "/plugin install understand-anything"
+install_note: null

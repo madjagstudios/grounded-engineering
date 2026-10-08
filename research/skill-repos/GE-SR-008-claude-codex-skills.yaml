@@ -12,4 +12,7 @@ best_for: [AI_ASSISTED, TRADITIONAL]
 tags: [planning, review, testing, devops]
 summary: Skills written as strict checklists that make the agent show evidence before it calls a task done, split into eight plugins from planning to delivery.
 watch_out_for: Each skill is long and formal, so context cost is real. The delivery plugin has skills that commit, push, release and deploy; they ask for explicit authorization, but read them before installing.
-install: /plugin marketplace add levnikolaevich/claude-code-skills, then /plugin install each plugin you want, e.g. implementation-suite@levnikolaevich-skills-marketplace
+install:
+  - "/plugin marketplace add levnikolaevich/claude-code-skills"
+  - "/plugin install implementation-suite@levnikolaevich-skills-marketplace"
+install_note: "Install each plugin you want; the second step installs one example."

@@ -12,4 +12,7 @@ best_for: [AI_ASSISTED, TRADITIONAL]
 tags: [testing, review, python, devops]
 summary: A marketplace of 94 plugins, each covering one area such as Python, code review or security scanning, so you install only what you need.
 watch_out_for: Some plugins are outside engineering (marketing, HR, trading). The protect-mcp and review-agent-governance plugins run an npx package from hooks on every tool call.
-install: /plugin marketplace add wshobson/agents, then /plugin install each plugin you want, e.g. python-development@claude-code-workflows
+install:
+  - "/plugin marketplace add wshobson/agents"
+  - "/plugin install python-development@claude-code-workflows"
+install_note: "Install each plugin you want; the second step installs one example."

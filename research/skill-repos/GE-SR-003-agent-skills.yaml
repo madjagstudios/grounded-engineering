@@ -12,4 +12,7 @@ best_for: [AI_ASSISTED, TRADITIONAL]
 tags: [planning, testing, review, security]
 summary: Twenty-five skills that take a feature from spec and plan through tests, review and launch, with a slash command for each stage.
 watch_out_for: The scripts in hooks/ are not wired by the plugin, so you set them up yourself. Installing a single skill with npx leaves out the shared references/ checklists.
-install: "/plugin marketplace add addyosmani/agent-skills, then /plugin install agent-skills@addy-agent-skills"
+install:
+  - "/plugin marketplace add addyosmani/agent-skills"
+  - "/plugin install agent-skills@addy-agent-skills"
+install_note: null

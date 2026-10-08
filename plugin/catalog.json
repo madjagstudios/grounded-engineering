@@ -634,7 +634,10 @@
         "AI_ASSISTED"
       ],
       "id": "GE-SR-001",
-      "install": "/plugin install superpowers@claude-plugins-official, or /plugin marketplace add obra/superpowers-marketplace then /plugin install superpowers@superpowers-marketplace",
+      "install": [
+        "/plugin install superpowers@claude-plugins-official"
+      ],
+      "install_note": "The author's obra/superpowers-marketplace also carries it, alongside related plugins.",
       "license": "MIT",
       "name": "Superpowers",
       "pinned_commit": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
@@ -655,7 +658,11 @@
         "TRADITIONAL"
       ],
       "id": "GE-SR-002",
-      "install": "/plugin install mattpocock-skills (official marketplace), then run /setup-matt-pocock-skills in each repo",
+      "install": [
+        "/plugin install mattpocock-skills",
+        "/setup-matt-pocock-skills"
+      ],
+      "install_note": "It is in the official marketplace. Run /setup-matt-pocock-skills once in each repo, before the engineering skills.",
       "license": "MIT",
       "name": "Skills For Real Engineers",
       "pinned_commit": "f3fc5632f401156837ee3872f14fe33ccf1024ea",
@@ -676,7 +683,11 @@
         "TRADITIONAL"
       ],
       "id": "GE-SR-003",
-      "install": "/plugin marketplace add addyosmani/agent-skills, then /plugin install agent-skills@addy-agent-skills",
+      "install": [
+        "/plugin marketplace add addyosmani/agent-skills",
+        "/plugin install agent-skills@addy-agent-skills"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "Agent Skills",
       "pinned_commit": "1401c8b8030e023baeebb31781a6653fe8e93026",
@@ -697,7 +708,11 @@
         "TRADITIONAL"
       ],
       "id": "GE-SR-004",
-      "install": "/plugin marketplace add addyosmani/web-quality-skills, then /plugin install web-quality-skills@addy-web-quality-skills",
+      "install": [
+        "/plugin marketplace add addyosmani/web-quality-skills",
+        "/plugin install web-quality-skills@addy-web-quality-skills"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "Web Quality Skills",
       "pinned_commit": "afa8da942115f2961fdbfa80807ea0b232ff6c00",
@@ -716,7 +731,11 @@
         "TRADITIONAL"
       ],
       "id": "GE-SR-005",
-      "install": "/plugin marketplace add wshobson/agents, then /plugin install each plugin you want, e.g. python-development@claude-code-workflows",
+      "install": [
+        "/plugin marketplace add wshobson/agents",
+        "/plugin install python-development@claude-code-workflows"
+      ],
+      "install_note": "Install each plugin you want; the second step installs one example.",
       "license": "MIT",
       "name": "claude-code-workflows",
       "pinned_commit": "46891e7e60da0e52baf1050b7b6391b64e84c6d9",
@@ -736,7 +755,11 @@
         "AI_ASSISTED"
       ],
       "id": "GE-SR-006",
-      "install": "/plugin marketplace add OthmanAdi/planning-with-files, then /plugin install planning-with-files@planning-with-files",
+      "install": [
+        "/plugin marketplace add OthmanAdi/planning-with-files",
+        "/plugin install planning-with-files@planning-with-files"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "Planning with Files",
       "pinned_commit": "41f60aeca8bae0b145ec0e9421a7abd747ae2b69",
@@ -746,7 +769,7 @@
       "tags": [
         "planning"
       ],
-      "watch_out_for": "Hooks fire on every prompt and before most tool calls, and an optional gated mode can keep the agent from stopping until every phase is marked complete."
+      "watch_out_for": "Hooks fire on every prompt and before most tool calls. An optional gated mode holds the agent back from stopping while a phase is in progress, though a block cap and stall detection can still let it stop with phases incomplete."
     },
     {
       "best_for": [
@@ -754,7 +777,11 @@
         "TRADITIONAL"
       ],
       "id": "GE-SR-007",
-      "install": "/plugin marketplace add jeffallan/claude-skills, then /plugin install fullstack-dev-skills@fullstack-dev-skills",
+      "install": [
+        "/plugin marketplace add jeffallan/claude-skills",
+        "/plugin install fullstack-dev-skills@fullstack-dev-skills"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "fullstack-dev-skills",
       "pinned_commit": "1be15d8064f88fc25216442406d40add8fd23b53",
@@ -775,7 +802,11 @@
         "TRADITIONAL"
       ],
       "id": "GE-SR-008",
-      "install": "/plugin marketplace add levnikolaevich/claude-code-skills, then /plugin install each plugin you want, e.g. implementation-suite@levnikolaevich-skills-marketplace",
+      "install": [
+        "/plugin marketplace add levnikolaevich/claude-code-skills",
+        "/plugin install implementation-suite@levnikolaevich-skills-marketplace"
+      ],
+      "install_note": "Install each plugin you want; the second step installs one example.",
       "license": "MIT",
       "name": "Claude-Codex Skills",
       "pinned_commit": "0ce87969906ac3c00947298ee2127d9e7cd466d8",
@@ -796,7 +827,10 @@
         "TRADITIONAL"
       ],
       "id": "GE-SR-009",
-      "install": "npx skills@latest add decebals/claude-code-java",
+      "install": [
+        "npx skills@latest add decebals/claude-code-java"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "claude-code-java",
       "pinned_commit": "0d98fe9bd62923e819568ee1e041a1bf320f74d4",
@@ -808,14 +842,18 @@
         "testing",
         "security"
       ],
-      "watch_out_for": "The optional setup scripts write CLAUDE.md, a settings file with pre-approved commands and MCP config into your project, and the routing eval needs a model API key; the skills install without any of it."
+      "watch_out_for": "The optional setup scripts write CLAUDE.md, a settings file with pre-approved commands and MCP config into your project, and the routing eval calls a model, which can be local with no API key; the skills install without any of it."
     },
     {
       "best_for": [
         "AI_ASSISTED"
       ],
       "id": "GE-SR-010",
-      "install": "/plugin marketplace add oliver-kriska/claude-elixir-phoenix, then /plugin install elixir-phoenix",
+      "install": [
+        "/plugin marketplace add oliver-kriska/claude-elixir-phoenix",
+        "/plugin install elixir-phoenix"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "Elixir Phoenix Plugin for Claude Code",
       "pinned_commit": "9767a82d24ddddad553e85f88efc2869a7fd7d88",
@@ -835,7 +873,11 @@
         "AI_ASSISTED"
       ],
       "id": "GE-SR-011",
-      "install": "/plugin marketplace add LukasNiessen/terrashark, then /plugin install terrashark",
+      "install": [
+        "/plugin marketplace add LukasNiessen/terrashark",
+        "/plugin install terrashark"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "TerraShark",
       "pinned_commit": "21f2c18b912818b6a8e2b7bdbf25a275ecb894b1",
@@ -853,7 +895,11 @@
         "AI_ASSISTED"
       ],
       "id": "GE-SR-012",
-      "install": "/plugin marketplace add tzachbon/smart-ralph, then /plugin install ralph-specum@smart-ralph",
+      "install": [
+        "/plugin marketplace add tzachbon/smart-ralph",
+        "/plugin install ralph-specum@smart-ralph"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "Smart Ralph",
       "pinned_commit": "ac7251a0a056b51435192443775f3cbbc4675cba",
@@ -872,7 +918,11 @@
         "ONBOARDING"
       ],
       "id": "GE-SR-013",
-      "install": "/plugin marketplace add cathrynlavery/diagram-design, then /plugin install diagram-design@diagram-design",
+      "install": [
+        "/plugin marketplace add cathrynlavery/diagram-design",
+        "/plugin install diagram-design@diagram-design"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "Diagram Design",
       "pinned_commit": "d1376371965f513d99cc9ec388835d255c5c88d5",
@@ -892,7 +942,10 @@
         "PUBLICATION"
       ],
       "id": "GE-SR-014",
-      "install": "npx skills add Agents365-ai/drawio-skill -g, or git clone the repo to ~/.claude/skills/drawio-skill (also needs the draw.io desktop CLI for exports)",
+      "install": [
+        "npx skills add Agents365-ai/drawio-skill -g"
+      ],
+      "install_note": "A manual git clone into ~/.claude/skills/drawio-skill also works. Exports need the draw.io desktop CLI, installed separately.",
       "license": "MIT",
       "name": "drawio-skill",
       "pinned_commit": "88fd9236bc532aac4c25cb008a8bd59bc650b904",
@@ -912,7 +965,11 @@
         "AI_ASSISTED"
       ],
       "id": "GE-SR-015",
-      "install": "/plugin marketplace add Egonex-AI/Understand-Anything, then /plugin install understand-anything",
+      "install": [
+        "/plugin marketplace add Egonex-AI/Understand-Anything",
+        "/plugin install understand-anything"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "Understand Anything",
       "pinned_commit": "790b157028637b626c8666fa7fa28248944b900c",
@@ -930,7 +987,11 @@
         "AI_ASSISTED"
       ],
       "id": "GE-SR-016",
-      "install": "/plugin marketplace add DietrichGebert/ponytail, then /plugin install ponytail@ponytail",
+      "install": [
+        "/plugin marketplace add DietrichGebert/ponytail",
+        "/plugin install ponytail@ponytail"
+      ],
+      "install_note": null,
       "license": "MIT",
       "name": "Ponytail",
       "pinned_commit": "552acd5efd0aeae2583a12efe39373d2f076f25e",

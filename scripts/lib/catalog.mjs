@@ -47,7 +47,7 @@ export function buildCatalog(root) {
     skill_repos: records.filter((r) => r.status === 'listed').map((r) => ({
       id: r.id, name: r.name, repo: r.repo, license: r.license, pinned_commit: r.pinned_commit,
       reviewed_on: r.reviewed_on, best_for: r.best_for, tags: r.tags, summary: r.summary,
-      watch_out_for: r.watch_out_for, install: r.install
+      watch_out_for: r.watch_out_for, install: r.install, install_note: r.install_note
     })),
     fit_rules: rules
   };

@@ -12,4 +12,6 @@ best_for: [AI_ASSISTED, TRADITIONAL, PUBLICATION]
 tags: [docs, design, devops]
 summary: Turns a prompt or existing Terraform, Kubernetes, SQL or OpenAPI files into editable draw.io diagrams, and updates them later without losing layout you arranged by hand.
 watch_out_for: Diagrams built from live infrastructure snapshots can carry sensitive values, icons come from CDNs or remote URLs, and the skill bundles about 45 Python scripts.
-install: "npx skills add Agents365-ai/drawio-skill -g, or git clone the repo to ~/.claude/skills/drawio-skill (also needs the draw.io desktop CLI for exports)"
+install:
+  - "npx skills add Agents365-ai/drawio-skill -g"
+install_note: "A manual git clone into ~/.claude/skills/drawio-skill also works. Exports need the draw.io desktop CLI, installed separately."

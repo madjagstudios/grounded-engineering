@@ -12,4 +12,7 @@ best_for: [AI_ASSISTED]
 tags: [devops, security]
 summary: One Terraform and OpenTofu skill that has the agent work out how a change could fail, such as exposing secrets or touching more resources than intended, before it proposes a fix.
 watch_out_for: It is one skill plus reference notes with no scripts, so it guides the agent but checks nothing itself.
-install: /plugin marketplace add LukasNiessen/terrashark, then /plugin install terrashark
+install:
+  - "/plugin marketplace add LukasNiessen/terrashark"
+  - "/plugin install terrashark"
+install_note: null

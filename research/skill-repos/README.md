@@ -6,6 +6,8 @@ traffic go to the authors.
 
 - File name: `GE-SR-NNN-<name>.yaml`; schema: [`../skill-repo-schema.yaml`](../skill-repo-schema.yaml).
 - `summary` and `watch_out_for` are our own words, at most two sentences each.
+- `install` holds the author's literal commands, one per step, in order;
+  `install_note` holds anything else, such as prerequisites or alternatives.
 - `pinned_commit` is the 40-character commit reviewed; quote it if it is all digits.
 - `listed` requires a valid SPDX license expression, such as `MIT` or
   `(MIT OR Apache-2.0)`. Star counts are never recorded.

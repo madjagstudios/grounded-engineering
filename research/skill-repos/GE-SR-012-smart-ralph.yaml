@@ -12,4 +12,7 @@ best_for: [AI_ASSISTED]
 tags: [planning, testing]
 summary: "Spec-first development: the agent writes requirements, design and task files you can review, then works through the tasks one at a time, each in fresh context."
 watch_out_for: Its Stop hook keeps the agent going while tasks remain. It commits after each task and can push a feature branch, and quick mode skips the approval stops between phases.
-install: /plugin marketplace add tzachbon/smart-ralph, then /plugin install ralph-specum@smart-ralph
+install:
+  - "/plugin marketplace add tzachbon/smart-ralph"
+  - "/plugin install ralph-specum@smart-ralph"
+install_note: null

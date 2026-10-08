@@ -4,7 +4,7 @@ title: Grounded Engineering skill-repo record
 description: A reviewed pointer to a third-party skill repository. Metadata and links only.
 type: object
 additionalProperties: false
-required: [record_type, schema_version, id, name, repo, license, pinned_commit, reviewed_on, status, best_for, tags, summary, watch_out_for, install]
+required: [record_type, schema_version, id, name, repo, license, pinned_commit, reviewed_on, status, best_for, tags, summary, watch_out_for, install, install_note]
 properties:
   record_type: { const: skill_repo }
   schema_version: { const: 1.0.0 }
@@ -29,7 +29,16 @@ properties:
     items: { enum: [planning, testing, review, debugging, docs, frontend, typescript, python, devops, security, data, writing, design] }
   summary: { type: string, minLength: 20, maxLength: 240 }
   watch_out_for: { type: string, minLength: 10, maxLength: 240 }
-  install: { type: string, minLength: 1, maxLength: 200 }
+  # Literal commands, run or typed in order. A step starting with / is a slash command the
+  # user types; any other step is one shell command. loadSkillRepos in src/lib/skill-repos.mjs
+  # rejects chaining, substitution, redirection and prose inside a step.
+  install:
+    type: array
+    minItems: 1
+    maxItems: 4
+    items: { type: string, minLength: 1, maxLength: 160, pattern: '^[^\r\n]*$' }
+  # Plain-language context for the steps: prerequisites, alternatives, per-repo setup. Never run.
+  install_note: { type: [string, 'null'], minLength: 10, maxLength: 200 }
 allOf:
   - if: { properties: { status: { const: delisted } }, required: [status] }
     then:
