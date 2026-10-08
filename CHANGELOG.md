@@ -13,15 +13,17 @@ records the state of the catalog and tooling at that tag.
 - Claude Code plugin (`plugin/`), installable from this repository as a
   marketplace: a read-only pane with Practices and Skill repos screens, "Fits
   this repo" suggestions from repository signals, and `adapt` and `explain`
-  skills that propose changes for approval. Its two lanes collapse. In the
-  terminal the pane answers the keys `1` and `2` (screens), `d` (details) and
-  `a` (the open card's main action). In the desktop app, pressing a link prints
-  it in the transcript (through a hidden `/grounded-link` command), where it can
-  be clicked.
+  skills that propose changes for approval. Its "Fits this repo" and "All
+  practices" lists fold away. In the terminal the pane answers the keys `1` and
+  `2` (screens), `d` (details) and `a` (the open card's main action). In the
+  desktop app, pressing a link prints it in the transcript (through a hidden
+  `/grounded-link` command), where it can be clicked.
 - Skill-repo records: reviewed, link-only pointers to third-party skill
   repositories under `research/skill-repos/`, with a schema
   (`research/skill-repo-schema.yaml`) and validation in `npm test`. A listed
-  record's license must be a valid SPDX expression.
+  record's license must be a valid SPDX expression, and every record's
+  `install` steps must be literal commands, with other guidance in `install_note`. The first
+  sixteen are listed, each read at a pinned commit.
 - Repository signal vocabulary and fit rules (`plugin/fit-rules.yaml`) that map
   signals to practice cards, validated against the real cards.
 - Plugin catalog `plugin/catalog.json`, built by `npm run build:catalog`. It

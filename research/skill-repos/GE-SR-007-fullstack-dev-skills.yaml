@@ -1,0 +1,18 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-007
+name: fullstack-dev-skills
+repo: Jeffallan/claude-skills
+license: MIT
+pinned_commit: '1be15d8064f88fc25216442406d40add8fd23b53'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED, TRADITIONAL]
+tags: [review, testing, debugging, security]
+summary: Sixty-seven specialist skills, each named for a role such as code reviewer or DevOps engineer, across many languages and frameworks. Reference files load only when relevant.
+watch_out_for: "The marketplace installs from a generated plugin branch, not the main branch reviewed here. The nine project-workflow commands need an Atlassian MCP server and create and update Jira tickets."
+install:
+  - "/plugin marketplace add jeffallan/claude-skills"
+  - "/plugin install fullstack-dev-skills@fullstack-dev-skills"
+install_note: null

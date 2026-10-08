@@ -628,7 +628,382 @@
       "type": "string|null"
     }
   ],
-  "skill_repos": [],
+  "skill_repos": [
+    {
+      "best_for": [
+        "AI_ASSISTED"
+      ],
+      "id": "GE-SR-001",
+      "install": [
+        "/plugin install superpowers@claude-plugins-official"
+      ],
+      "install_note": "The author's obra/superpowers-marketplace also carries it, alongside related plugins.",
+      "license": "MIT",
+      "name": "Superpowers",
+      "pinned_commit": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+      "repo": "obra/superpowers",
+      "reviewed_on": "2026-10-07",
+      "summary": "A development method for coding agents: brainstorm a design, write a plan, then build it through subagents with test-driven development and review gates.",
+      "tags": [
+        "planning",
+        "testing",
+        "review",
+        "debugging"
+      ],
+      "watch_out_for": "Its workflows are mandatory by design, and a session-start hook injects the using-superpowers skill into every session. The optional brainstorming visual companion pings the authors' site with your version unless you opt out."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED",
+        "TRADITIONAL"
+      ],
+      "id": "GE-SR-002",
+      "install": [
+        "/plugin install mattpocock-skills",
+        "/setup-matt-pocock-skills"
+      ],
+      "install_note": "It is in the official marketplace.",
+      "license": "MIT",
+      "name": "Skills For Real Engineers",
+      "pinned_commit": "f3fc5632f401156837ee3872f14fe33ccf1024ea",
+      "repo": "mattpocock/skills",
+      "reviewed_on": "2026-10-07",
+      "summary": "Skills for everyday work with an agent, built around an interview that pins down the task before any code is written and a shared glossary of your project's domain terms.",
+      "tags": [
+        "planning",
+        "testing",
+        "review",
+        "debugging"
+      ],
+      "watch_out_for": "Run /setup-matt-pocock-skills once per repo before the engineering skills; it asks about your issue tracker and edits your CLAUDE.md or AGENTS.md. Plugin updates can lag the repo by days or weeks."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED",
+        "TRADITIONAL"
+      ],
+      "id": "GE-SR-003",
+      "install": [
+        "/plugin marketplace add addyosmani/agent-skills",
+        "/plugin install agent-skills@addy-agent-skills"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "Agent Skills",
+      "pinned_commit": "1401c8b8030e023baeebb31781a6653fe8e93026",
+      "repo": "addyosmani/agent-skills",
+      "reviewed_on": "2026-10-07",
+      "summary": "Twenty-five skills that take a feature from spec and plan through tests, review and launch, with a slash command for each stage.",
+      "tags": [
+        "planning",
+        "testing",
+        "review",
+        "security"
+      ],
+      "watch_out_for": "The scripts in hooks/ are not wired by the plugin, so you set them up yourself. Installing a single skill with npx leaves out the shared references/ checklists."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED",
+        "TRADITIONAL"
+      ],
+      "id": "GE-SR-004",
+      "install": [
+        "/plugin marketplace add addyosmani/web-quality-skills",
+        "/plugin install web-quality-skills@addy-web-quality-skills"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "Web Quality Skills",
+      "pinned_commit": "afa8da942115f2961fdbfa80807ea0b232ff6c00",
+      "repo": "addyosmani/web-quality-skills",
+      "reviewed_on": "2026-10-07",
+      "summary": "Web audits for performance, accessibility and SEO that prefer measuring with Lighthouse and DevTools traces before changing code.",
+      "tags": [
+        "frontend",
+        "review"
+      ],
+      "watch_out_for": "It works best with Chrome DevTools MCP; without it the skills fall back to the Lighthouse CLI or static inspection of the source."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED",
+        "TRADITIONAL"
+      ],
+      "id": "GE-SR-005",
+      "install": [
+        "/plugin marketplace add wshobson/agents",
+        "/plugin install python-development@claude-code-workflows"
+      ],
+      "install_note": "Install the plugins you want the same way; python-development is one example.",
+      "license": "MIT",
+      "name": "claude-code-workflows",
+      "pinned_commit": "46891e7e60da0e52baf1050b7b6391b64e84c6d9",
+      "repo": "wshobson/agents",
+      "reviewed_on": "2026-10-07",
+      "summary": "A marketplace of 94 plugins, each covering one area such as Python, code review or security scanning, so you install only what you need.",
+      "tags": [
+        "testing",
+        "review",
+        "python",
+        "devops"
+      ],
+      "watch_out_for": "Some plugins are outside engineering (marketing, HR, trading). The protect-mcp and review-agent-governance plugins run an npx package from hooks on every tool call."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED"
+      ],
+      "id": "GE-SR-006",
+      "install": [
+        "/plugin marketplace add OthmanAdi/planning-with-files",
+        "/plugin install planning-with-files@planning-with-files"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "Planning with Files",
+      "pinned_commit": "41f60aeca8bae0b145ec0e9421a7abd747ae2b69",
+      "repo": "OthmanAdi/planning-with-files",
+      "reviewed_on": "2026-10-07",
+      "summary": "Keeps a long task's plan, findings and progress in markdown files and re-injects them through hooks, so the agent can pick the task back up after /clear or context compaction.",
+      "tags": [
+        "planning"
+      ],
+      "watch_out_for": "Hooks fire on every prompt and before most tool calls, and an optional gated mode can hold the agent back from stopping while a phase is unfinished."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED",
+        "TRADITIONAL"
+      ],
+      "id": "GE-SR-007",
+      "install": [
+        "/plugin marketplace add jeffallan/claude-skills",
+        "/plugin install fullstack-dev-skills@fullstack-dev-skills"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "fullstack-dev-skills",
+      "pinned_commit": "1be15d8064f88fc25216442406d40add8fd23b53",
+      "repo": "Jeffallan/claude-skills",
+      "reviewed_on": "2026-10-07",
+      "summary": "Sixty-seven specialist skills, each named for a role such as code reviewer or DevOps engineer, across many languages and frameworks. Reference files load only when relevant.",
+      "tags": [
+        "review",
+        "testing",
+        "debugging",
+        "security"
+      ],
+      "watch_out_for": "The marketplace installs from a generated plugin branch, not the main branch reviewed here. The nine project-workflow commands need an Atlassian MCP server and create and update Jira tickets."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED",
+        "TRADITIONAL"
+      ],
+      "id": "GE-SR-008",
+      "install": [
+        "/plugin marketplace add levnikolaevich/claude-code-skills",
+        "/plugin install implementation-suite@levnikolaevich-skills-marketplace"
+      ],
+      "install_note": "Install the plugins you want the same way; implementation-suite is one example.",
+      "license": "MIT",
+      "name": "Claude-Codex Skills",
+      "pinned_commit": "0ce87969906ac3c00947298ee2127d9e7cd466d8",
+      "repo": "levnikolaevich/claude-code-skills",
+      "reviewed_on": "2026-10-07",
+      "summary": "Skills written as strict checklists that make the agent show evidence before it calls a task done, split into eight plugins from planning to delivery.",
+      "tags": [
+        "planning",
+        "review",
+        "testing",
+        "devops"
+      ],
+      "watch_out_for": "Each skill is long and formal, so context cost is real. The delivery plugin has skills that commit, push, release and deploy; they ask for explicit authorization, but read them before installing."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED",
+        "TRADITIONAL"
+      ],
+      "id": "GE-SR-009",
+      "install": [
+        "npx skills@latest add decebals/claude-code-java"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "claude-code-java",
+      "pinned_commit": "0d98fe9bd62923e819568ee1e041a1bf320f74d4",
+      "repo": "decebals/claude-code-java",
+      "reviewed_on": "2026-10-07",
+      "summary": "Eighteen Java skills with depth in Spring Boot, JPA and concurrency review, plus an eval script that checks a prompt reaches the right skill.",
+      "tags": [
+        "review",
+        "testing",
+        "security"
+      ],
+      "watch_out_for": "The optional setup scripts write CLAUDE.md, a settings file with pre-approved commands and an MCP config file into your project; the skills install without them."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED"
+      ],
+      "id": "GE-SR-010",
+      "install": [
+        "/plugin marketplace add oliver-kriska/claude-elixir-phoenix",
+        "/plugin install elixir-phoenix"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "Elixir Phoenix Plugin for Claude Code",
+      "pinned_commit": "9767a82d24ddddad553e85f88efc2869a7fd7d88",
+      "repo": "oliver-kriska/claude-elixir-phoenix",
+      "reviewed_on": "2026-10-07",
+      "summary": "A plugin for Elixir and Phoenix work, with plan, work, verify and review commands, reviewer agents, and rules against common LiveView and Ecto mistakes.",
+      "tags": [
+        "planning",
+        "review",
+        "testing",
+        "debugging"
+      ],
+      "watch_out_for": "Hooks run on edits, prompts and Bash commands, and some deny commands such as mix ecto.reset or force pushes."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED"
+      ],
+      "id": "GE-SR-011",
+      "install": [
+        "/plugin marketplace add LukasNiessen/terrashark",
+        "/plugin install terrashark"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "TerraShark",
+      "pinned_commit": "21f2c18b912818b6a8e2b7bdbf25a275ecb894b1",
+      "repo": "LukasNiessen/terrashark",
+      "reviewed_on": "2026-10-07",
+      "summary": "One Terraform and OpenTofu skill that has the agent work out how a change could fail, such as exposing secrets or touching more resources than intended, before it proposes a fix.",
+      "tags": [
+        "devops",
+        "security"
+      ],
+      "watch_out_for": "It is one skill plus reference notes with no scripts, so it guides the agent but checks nothing itself."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED"
+      ],
+      "id": "GE-SR-012",
+      "install": [
+        "/plugin marketplace add tzachbon/smart-ralph",
+        "/plugin install ralph-specum@smart-ralph"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "Smart Ralph",
+      "pinned_commit": "ac7251a0a056b51435192443775f3cbbc4675cba",
+      "repo": "tzachbon/smart-ralph",
+      "reviewed_on": "2026-10-07",
+      "summary": "Spec-first development: the agent writes requirements, design and task files you can review, then works through the tasks one at a time, each in fresh context.",
+      "tags": [
+        "planning",
+        "testing"
+      ],
+      "watch_out_for": "Its Stop hook keeps the agent going while tasks remain. It commits after each task and can push a feature branch, and quick mode skips the approval stops between phases."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED",
+        "ONBOARDING"
+      ],
+      "id": "GE-SR-013",
+      "install": [
+        "/plugin marketplace add cathrynlavery/diagram-design",
+        "/plugin install diagram-design@diagram-design"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "Diagram Design",
+      "pinned_commit": "d1376371965f513d99cc9ec388835d255c5c88d5",
+      "repo": "cathrynlavery/diagram-design",
+      "reviewed_on": "2026-10-07",
+      "summary": "Draws architecture, sequence and other technical diagrams as self-contained HTML and SVG files, and can redraw existing Mermaid, draw.io or Excalidraw sources in its own style.",
+      "tags": [
+        "design",
+        "docs"
+      ],
+      "watch_out_for": "Generated files load Google Fonts when opened, and PNG export needs Playwright and Chromium installed separately."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED",
+        "TRADITIONAL",
+        "PUBLICATION"
+      ],
+      "id": "GE-SR-014",
+      "install": [
+        "npx skills add Agents365-ai/drawio-skill -g"
+      ],
+      "install_note": "A manual git clone into ~/.claude/skills/drawio-skill also works. Exports need the draw.io desktop CLI, installed separately.",
+      "license": "MIT",
+      "name": "drawio-skill",
+      "pinned_commit": "88fd9236bc532aac4c25cb008a8bd59bc650b904",
+      "repo": "Agents365-ai/drawio-skill",
+      "reviewed_on": "2026-10-07",
+      "summary": "Turns a prompt or existing Terraform, Kubernetes, SQL or OpenAPI files into editable draw.io diagrams, and updates them later without losing layout you arranged by hand.",
+      "tags": [
+        "docs",
+        "design",
+        "devops"
+      ],
+      "watch_out_for": "Diagrams built from live infrastructure snapshots can carry sensitive values, icons come from CDNs or remote URLs, and the skill bundles about 45 Python scripts."
+    },
+    {
+      "best_for": [
+        "ONBOARDING",
+        "AI_ASSISTED"
+      ],
+      "id": "GE-SR-015",
+      "install": [
+        "/plugin marketplace add Egonex-AI/Understand-Anything",
+        "/plugin install understand-anything"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "Understand Anything",
+      "pinned_commit": "790b157028637b626c8666fa7fa28248944b900c",
+      "repo": "Egonex-AI/Understand-Anything",
+      "reviewed_on": "2026-10-07",
+      "summary": "Builds a browsable knowledge graph of a codebase, so a newcomer can ask questions about it, see what a diff touches and get an onboarding guide.",
+      "tags": [
+        "docs",
+        "review"
+      ],
+      "watch_out_for": "The first /understand run on a large repo can use a lot of tokens. Its hooks do nothing until you enable --auto-update, after which they tell the agent to refresh the graph after commits and at session start without asking."
+    },
+    {
+      "best_for": [
+        "AI_ASSISTED"
+      ],
+      "id": "GE-SR-016",
+      "install": [
+        "/plugin marketplace add DietrichGebert/ponytail",
+        "/plugin install ponytail@ponytail"
+      ],
+      "install_note": null,
+      "license": "MIT",
+      "name": "Ponytail",
+      "pinned_commit": "552acd5efd0aeae2583a12efe39373d2f076f25e",
+      "repo": "DietrichGebert/ponytail",
+      "reviewed_on": "2026-10-07",
+      "summary": "An always-on prompt that pushes the agent to write less code and reuse what already exists, with a command that reviews a diff for over-engineering.",
+      "tags": [
+        "review"
+      ],
+      "watch_out_for": "Hooks run at session start and on every prompt, keep a flag file under ~/.claude, and once nudge the agent to edit settings.json for a status line."
+    }
+  ],
   "sources": [
     {
       "id": "CLAUDE-ENFORCEMENT-BOUNDARY",

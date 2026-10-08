@@ -122,3 +122,15 @@ test.skip('the plugin version matches the package version', { skip: 'version bum
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
   assert.equal(plugin.version, pkg.version);
 });
+
+test('the shipped catalog gives the explain skill literal install steps and a separate note', async () => {
+  const catalog = JSON.parse(readFileSync(join(root, 'plugin', 'catalog.json'), 'utf8'));
+  for (const r of catalog.skill_repos) {
+    assert.ok(Array.isArray(r.install), r.id);
+    assert.ok(r.install_note === null || typeof r.install_note === 'string', r.id);
+  }
+  const skill = readFileSync(join(root, 'plugin', 'skills', 'explain', 'SKILL.md'), 'utf8');
+  assert.match(skill, /`install_note`[^\n]*never something to run/);
+  assert.match(skill, /in order/);
+  assert.match(skill, /Stop at the first step that fails/);
+});

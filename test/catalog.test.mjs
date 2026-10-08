@@ -68,12 +68,14 @@ test('only listed skill repos are projected, with exactly the display fields', (
     for (const dir of ['research', 'practices', 'plugin']) cpSync(join(root, dir), join(tmp, dir), { recursive: true });
     cpSync(join(root, 'package.json'), join(tmp, 'package.json'));
     const dir = join(tmp, 'research', 'skill-repos');
+    rmSync(dir, { recursive: true, force: true }); // only this test's records, not the real shelf
     mkdirSync(dir, { recursive: true });
     const base = {
       record_type: 'skill_repo', schema_version: '1.0.0', license: 'MIT', pinned_commit: 'c'.repeat(40),
       reviewed_on: '2026-10-06', best_for: ['AI_ASSISTED'], tags: ['planning'],
       summary: 'Planning and review skills for coding agents.', watch_out_for: 'Opinionated about session workflow.',
-      install: '/plugin install example@example', status_reason: null
+      install: ['/plugin marketplace add example/skills', '/plugin install example@example'],
+      install_note: 'Install each plugin you want; the second step installs one example.', status_reason: null
     };
     const records = [
       { ...base, id: 'GE-SR-001', name: 'listed-skills', repo: 'example/listed-skills', status: 'listed' },
@@ -86,7 +88,9 @@ test('only listed skill repos are projected, with exactly the display fields', (
     const { skill_repos: listed } = buildCatalog(tmp);
     assert.equal(listed.length, 1);
     assert.equal(listed[0].id, 'GE-SR-001');
-    assert.deepEqual(Object.keys(listed[0]).sort(), ['best_for', 'id', 'install', 'license', 'name', 'pinned_commit', 'repo', 'reviewed_on', 'summary', 'tags', 'watch_out_for']);
+    assert.deepEqual(listed[0].install, ['/plugin marketplace add example/skills', '/plugin install example@example']);
+    assert.equal(listed[0].install_note, 'Install each plugin you want; the second step installs one example.');
+    assert.deepEqual(Object.keys(listed[0]).sort(), ['best_for', 'id', 'install', 'install_note', 'license', 'name', 'pinned_commit', 'repo', 'reviewed_on', 'summary', 'tags', 'watch_out_for']);
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }

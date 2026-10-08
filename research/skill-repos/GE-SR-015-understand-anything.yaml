@@ -1,0 +1,18 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-015
+name: Understand Anything
+repo: Egonex-AI/Understand-Anything
+license: MIT
+pinned_commit: '790b157028637b626c8666fa7fa28248944b900c'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [ONBOARDING, AI_ASSISTED]
+tags: [docs, review]
+summary: Builds a browsable knowledge graph of a codebase, so a newcomer can ask questions about it, see what a diff touches and get an onboarding guide.
+watch_out_for: The first /understand run on a large repo can use a lot of tokens. Its hooks do nothing until you enable --auto-update, after which they tell the agent to refresh the graph after commits and at session start without asking.
+install:
+  - "/plugin marketplace add Egonex-AI/Understand-Anything"
+  - "/plugin install understand-anything"
+install_note: null

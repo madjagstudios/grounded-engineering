@@ -35,6 +35,15 @@ export function isValidSpdxLicense(license) {
   }
 }
 
+// Rejects shell operators (; & | backtick $( > <; these cover && and || too) and the connecting
+// phrases (", or ", " then ", "e.g.", parentheses) that turn a step into a sentence.
+const STEP_FORBIDDEN = [';', '&', '|', '`', '$(', '>', '<', ', or ', ' then ', 'e.g.', '(', ')'];
+
+export function installStepProblem(step) {
+  const found = STEP_FORBIDDEN.find((token) => step.includes(token));
+  return found ? `not a single literal command: contains ${JSON.stringify(found)}` : null;
+}
+
 export function loadSkillRepos(root) {
   const dir = join(root, 'research', 'skill-repos');
   if (!existsSync(dir)) return { records: [], errors: [] };
@@ -60,6 +69,10 @@ export function loadSkillRepos(root) {
     if (record.status === 'listed' && !isValidSpdxLicense(record.license)) {
       errors.push(`${shown}/license: not a valid SPDX license expression: ${record.license}`);
     }
+    record.install.forEach((step, index) => {
+      const problem = installStepProblem(step);
+      if (problem) errors.push(`${shown}/install/${index}: ${problem}`);
+    });
     if (!basename(name).startsWith(`${record.id}-`)) errors.push(`${shown}: file name must start with ${record.id}-`);
     if (ids.has(record.id)) errors.push(`${shown}: duplicate id ${record.id} (also ${ids.get(record.id)})`);
     const repoKey = record.repo.toLowerCase();

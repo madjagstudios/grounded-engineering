@@ -1,0 +1,18 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-012
+name: Smart Ralph
+repo: tzachbon/smart-ralph
+license: MIT
+pinned_commit: 'ac7251a0a056b51435192443775f3cbbc4675cba'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED]
+tags: [planning, testing]
+summary: "Spec-first development: the agent writes requirements, design and task files you can review, then works through the tasks one at a time, each in fresh context."
+watch_out_for: Its Stop hook keeps the agent going while tasks remain. It commits after each task and can push a feature branch, and quick mode skips the approval stops between phases.
+install:
+  - "/plugin marketplace add tzachbon/smart-ralph"
+  - "/plugin install ralph-specum@smart-ralph"
+install_note: null

@@ -1,0 +1,18 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-013
+name: Diagram Design
+repo: cathrynlavery/diagram-design
+license: MIT
+pinned_commit: 'd1376371965f513d99cc9ec388835d255c5c88d5'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED, ONBOARDING]
+tags: [design, docs]
+summary: Draws architecture, sequence and other technical diagrams as self-contained HTML and SVG files, and can redraw existing Mermaid, draw.io or Excalidraw sources in its own style.
+watch_out_for: Generated files load Google Fonts when opened, and PNG export needs Playwright and Chromium installed separately.
+install:
+  - "/plugin marketplace add cathrynlavery/diagram-design"
+  - "/plugin install diagram-design@diagram-design"
+install_note: null

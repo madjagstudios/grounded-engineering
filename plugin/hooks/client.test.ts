@@ -75,6 +75,17 @@ test('the slim catalog drops card bodies and sources and stays small', async () 
   expect(slim.practices.length).toBe(FIXTURE_CATALOG.practices.length)
 })
 
+test('the slim catalog leaves install steps and notes out of every skill repo', async () => {
+  const slim = slimCatalog(FIXTURE_CATALOG)
+  expect(slim.skill_repos.length).toBe(FIXTURE_CATALOG.skill_repos.length)
+  for (const [i, r] of slim.skill_repos.entries()) {
+    const full = FIXTURE_CATALOG.skill_repos[i]!
+    expect('install' in r).toBe(false)
+    expect('install_note' in r).toBe(false)
+    expect({ repo: r.repo, name: r.name, summary: r.summary, watch_out_for: r.watch_out_for }).toEqual({ repo: full.repo, name: full.name, summary: full.summary, watch_out_for: full.watch_out_for })
+  }
+})
+
 const act = (seq: number, name: string, ...args: unknown[]): Msg => ({ cid: 'c1', seq, name, args })
 
 test('the outbox keeps presses in order and a newer search replaces an unsent older one', async () => {
@@ -206,15 +217,19 @@ test('linkLabel names only the links the pane draws, and rejects near-misses', a
   }
 })
 
-test('the model built from a catalog larger than the shipped one stays under 60,000 characters', async () => {
+test('the model built from a catalog larger than the shipped one stays under 80,000 characters', async () => {
   // The kit cannot read the shipped catalog, so this one is built larger: more practices, each
-  // with longer text than any shipped card, a fit rule for each, and many described signals.
+  // with longer text than any shipped card, a fit rule for each, many described signals, and
+  // more skill repos than ship.
   const practices = Array.from({ length: 24 }, (_, i) => ({ ...FIXTURE_CATALOG.practices[i % 4]!, id: `GE-XX-${String(i).padStart(3, '0')}`, pattern: 'p'.repeat(400), rationale: 'r'.repeat(300), agent_snippet: 's'.repeat(300) }))
   const fit_rules = practices.map((p) => ({ card: p.id, when: { all: ['has_tests'], any: [], none: ['has_ci'] }, why: 'w'.repeat(120) }))
   const signals = Array.from({ length: 13 }, (_, i) => ({ name: `signal_${i}`, type: 'boolean', description: 'd'.repeat(120) }))
-  const model = paneModelOf({ ...FIXTURE_CATALOG, practices, fit_rules, signals })
+  // 25 repos, more than the 16 shipped, every text field the pane receives at its schema maximum.
+  const skill_repos = Array.from({ length: 25 }, (_, i) => ({ ...FIXTURE_CATALOG.skill_repos[i % 2]!, id: `GE-SR-${String(i).padStart(3, '0')}`, name: 'n'.repeat(60), summary: 's'.repeat(240), watch_out_for: 'w'.repeat(240), install: ['/x'], install_note: null }))
+  const model = paneModelOf({ ...FIXTURE_CATALOG, practices, fit_rules, signals, skill_repos })
   expect(model.catalog?.practices.length).toBe(24)
-  expect(JSON.stringify(model).length).toBeLessThan(60000)
+  expect(model.catalog?.skill_repos.length).toBe(25)
+  expect(JSON.stringify(model).length).toBeLessThan(80000) // the engine caps Client props at 100,000
 })
 
 // The model the plugin hands the Client, with the module state at its fullest.

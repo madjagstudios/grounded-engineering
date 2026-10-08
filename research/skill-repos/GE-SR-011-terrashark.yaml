@@ -1,0 +1,18 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-011
+name: TerraShark
+repo: LukasNiessen/terrashark
+license: MIT
+pinned_commit: '21f2c18b912818b6a8e2b7bdbf25a275ecb894b1'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED]
+tags: [devops, security]
+summary: One Terraform and OpenTofu skill that has the agent work out how a change could fail, such as exposing secrets or touching more resources than intended, before it proposes a fix.
+watch_out_for: It is one skill plus reference notes with no scripts, so it guides the agent but checks nothing itself.
+install:
+  - "/plugin marketplace add LukasNiessen/terrashark"
+  - "/plugin install terrashark"
+install_note: null

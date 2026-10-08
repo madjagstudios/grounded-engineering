@@ -2,9 +2,9 @@
 // The terminal draws them directly; on desktop the Client module draws the same screens.
 import type { Palette } from './theme'
 import { tile, laneHeader, badge, chip, option, field, shorten, room } from './tiles'
-import { cardUrl, repoUrl, type SkillRepo } from './catalog'
+import { cardUrl, repoUrl } from './catalog'
 import { rankPractices, sortSkillRepos, matchesQuery } from './fit'
-import type { PaneModel, Screen, SlimCatalog, SlimPractice } from './model'
+import type { PaneModel, Screen, SlimCatalog, SlimPractice, SlimSkillRepo } from './model'
 
 export const HANDLER_NAMES = ['tab', 'select', 'search', 'category', 'tag', 'sort', 'toggleSignals', 'toggleLane', 'adapt', 'explain', 'link'] as const
 
@@ -51,7 +51,7 @@ export function tileTitleRoom(ui: any, columns: number, scale: number, badgeText
 }
 
 // The links the pane draws, each with what the transcript says before it.
-type LinkCatalog = { repository: string; package_version: string; practices: { id: string; path: string }[]; skill_repos: SkillRepo[] }
+type LinkCatalog = { repository: string; package_version: string; practices: { id: string; path: string }[]; skill_repos: SlimSkillRepo[] }
 export function linkLabel(c: LinkCatalog, url: string): string | null {
   const practice = c.practices.find((x) => cardUrl(c, x) === url)
   if (practice) return `Evidence for ${practice.id}`
@@ -63,6 +63,7 @@ export function linkLabel(c: LinkCatalog, url: string): string | null {
 }
 
 const isValidated = (x: { validation_status: string }) => x.validation_status === 'validated'
+const byline = (r: SlimSkillRepo) => `${r.repo.split('/')[0]} · ${r.license}`
 
 export function paneScreen(ui: any, m: PaneModel, go: Go, p: Palette, columns: number, scale: number) {
   const { Box, Text, Button } = ui
@@ -186,7 +187,7 @@ function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
     isOpen ? <Text color={p.dim}><Text color={p.warn.text}>! </Text>{`Trade-off: ${x.rationale}`}</Text> : null,
     isOpen ? <Text color={p.dim} wrap="truncate-end">{`${x.category} · ${x.source_ids.join(', ')} · ${x.id}`}</Text> : null,
     isOpen ? (
-      <Box flexDirection="row" gap={2} flexWrap="wrap">
+      <Box flexDirection="row" columnGap={2} rowGap={0} flexWrap="wrap">
         {isAdopted ? null : <Button key={`primary-${key}`} variant="primary" hotkey="a" label="Adapt to this repo" onPress={() => go.adapt(x.id)} />}
         <Link href={cardUrl(c, x)}>Evidence ›</Link>
       </Box>
@@ -194,7 +195,7 @@ function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
   ])
 }
 
-function repoRow(ui: any, go: Go, p: Palette, r: SkillRepo, columns: number, scale: number) {
+function repoRow(ui: any, go: Go, p: Palette, r: SlimSkillRepo, columns: number, scale: number) {
   const { Box, Text, Button } = ui
   const tags = r.tags.join(', ')
   const beside = !tight(ui, columns)
@@ -235,11 +236,11 @@ function skillsScreen(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
         : (
           <Box flexDirection="column" gap={1}>
             {repos.map((r) => m.selected === `repo-${r.id}` ? tile(ui, p, 'accent', `tile-repo-${r.id}`, [
-              tileTitle(ui, `open-repo-${r.id}`, `${r.name}  ${r.repo.split('/')[0]} · ${r.license}`, () => go.select(`repo-${r.id}`), 'Reviewed', badge(ui, p, 'neutral', 'Reviewed'), columns, scale),
+              tileTitle(ui, `open-repo-${r.id}`, r.name, () => go.select(`repo-${r.id}`), byline(r), <Text color={p.dim} wrap="truncate-end">{byline(r)}</Text>, columns, scale),
               <Text>{r.summary}</Text>,
               <Text color={p.dim}><Text color={p.warn.text}>! </Text>{`Watch out: ${r.watch_out_for}`}</Text>,
               <Text color={p.dim} wrap="truncate-end">{`Reviewed ${r.reviewed_on} · pinned at ${r.pinned_commit.slice(0, 7)}`}</Text>,
-              <Box flexDirection="row" gap={2} flexWrap="wrap">
+              <Box flexDirection="row" columnGap={2} rowGap={0} flexWrap="wrap">
                 <Button key={`primary-repo-${r.id}`} variant="primary" hotkey="a" label="Explain install" onPress={() => go.explain(r.id)} />
                 <Link href={repoUrl(r)}>☆ Star on GitHub</Link>
               </Box>,

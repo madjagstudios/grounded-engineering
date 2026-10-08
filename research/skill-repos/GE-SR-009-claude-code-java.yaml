@@ -1,0 +1,17 @@
+record_type: skill_repo
+schema_version: 1.0.0
+id: GE-SR-009
+name: claude-code-java
+repo: decebals/claude-code-java
+license: MIT
+pinned_commit: '0d98fe9bd62923e819568ee1e041a1bf320f74d4'
+reviewed_on: 2026-10-07
+status: listed
+status_reason: null
+best_for: [AI_ASSISTED, TRADITIONAL]
+tags: [review, testing, security]
+summary: Eighteen Java skills with depth in Spring Boot, JPA and concurrency review, plus an eval script that checks a prompt reaches the right skill.
+watch_out_for: The optional setup scripts write CLAUDE.md, a settings file with pre-approved commands and an MCP config file into your project; the skills install without them.
+install:
+  - "npx skills@latest add decebals/claude-code-java"
+install_note: null
