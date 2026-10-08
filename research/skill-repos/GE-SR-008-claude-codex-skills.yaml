@@ -15,4 +15,4 @@ watch_out_for: Each skill is long and formal, so context cost is real. The deliv
 install:
   - "/plugin marketplace add levnikolaevich/claude-code-skills"
   - "/plugin install implementation-suite@levnikolaevich-skills-marketplace"
-install_note: "Install each plugin you want; the second step installs one example."
+install_note: "Install the plugins you want the same way; implementation-suite is one example."

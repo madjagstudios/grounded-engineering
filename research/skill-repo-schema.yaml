@@ -30,8 +30,8 @@ properties:
   summary: { type: string, minLength: 20, maxLength: 240 }
   watch_out_for: { type: string, minLength: 10, maxLength: 240 }
   # Literal commands, run or typed in order. A step starting with / is a slash command the
-  # user types; any other step is one shell command. loadSkillRepos in src/lib/skill-repos.mjs
-  # rejects chaining, substitution, redirection and prose inside a step.
+  # user types; any other step is one shell command. Each step is further checked by
+  # loadSkillRepos in src/lib/skill-repos.mjs.
   install:
     type: array
     minItems: 1

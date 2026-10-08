@@ -15,4 +15,4 @@ watch_out_for: Some plugins are outside engineering (marketing, HR, trading). Th
 install:
   - "/plugin marketplace add wshobson/agents"
   - "/plugin install python-development@claude-code-workflows"
-install_note: "Install each plugin you want; the second step installs one example."
+install_note: "Install the plugins you want the same way; python-development is one example."

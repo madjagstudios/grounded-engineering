@@ -35,8 +35,8 @@ export function isValidSpdxLicense(license) {
   }
 }
 
-// An install step is one literal command. These mark a step that chains, substitutes or
-// redirects, or that carries prose a reader would have to interpret.
+// Rejects shell operators (; && || | backtick $( > <) and the connecting phrases (", or ",
+// " then ", "e.g.", parentheses) that turn a step into a sentence.
 const STEP_FORBIDDEN = [';', '&&', '||', '|', '`', '$(', '>', '<', ', or ', ' then ', 'e.g.', '(', ')'];
 
 export function installStepProblem(step) {

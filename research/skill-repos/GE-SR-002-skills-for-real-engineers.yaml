@@ -15,4 +15,4 @@ watch_out_for: Run /setup-matt-pocock-skills once per repo before the engineerin
 install:
   - "/plugin install mattpocock-skills"
   - "/setup-matt-pocock-skills"
-install_note: "It is in the official marketplace. Run /setup-matt-pocock-skills once in each repo, before the engineering skills."
+install_note: "It is in the official marketplace."

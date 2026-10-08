@@ -662,7 +662,7 @@
         "/plugin install mattpocock-skills",
         "/setup-matt-pocock-skills"
       ],
-      "install_note": "It is in the official marketplace. Run /setup-matt-pocock-skills once in each repo, before the engineering skills.",
+      "install_note": "It is in the official marketplace.",
       "license": "MIT",
       "name": "Skills For Real Engineers",
       "pinned_commit": "f3fc5632f401156837ee3872f14fe33ccf1024ea",
@@ -735,7 +735,7 @@
         "/plugin marketplace add wshobson/agents",
         "/plugin install python-development@claude-code-workflows"
       ],
-      "install_note": "Install each plugin you want; the second step installs one example.",
+      "install_note": "Install the plugins you want the same way; python-development is one example.",
       "license": "MIT",
       "name": "claude-code-workflows",
       "pinned_commit": "46891e7e60da0e52baf1050b7b6391b64e84c6d9",
@@ -769,7 +769,7 @@
       "tags": [
         "planning"
       ],
-      "watch_out_for": "Hooks fire on every prompt and before most tool calls. An optional gated mode holds the agent back from stopping while a phase is in progress, though a block cap and stall detection can still let it stop with phases incomplete."
+      "watch_out_for": "Hooks fire on every prompt and before most tool calls, and an optional gated mode can hold the agent back from stopping while a phase is unfinished."
     },
     {
       "best_for": [
@@ -806,7 +806,7 @@
         "/plugin marketplace add levnikolaevich/claude-code-skills",
         "/plugin install implementation-suite@levnikolaevich-skills-marketplace"
       ],
-      "install_note": "Install each plugin you want; the second step installs one example.",
+      "install_note": "Install the plugins you want the same way; implementation-suite is one example.",
       "license": "MIT",
       "name": "Claude-Codex Skills",
       "pinned_commit": "0ce87969906ac3c00947298ee2127d9e7cd466d8",
@@ -842,7 +842,7 @@
         "testing",
         "security"
       ],
-      "watch_out_for": "The optional setup scripts write CLAUDE.md, a settings file with pre-approved commands and MCP config into your project, and the routing eval calls a model, which can be local with no API key; the skills install without any of it."
+      "watch_out_for": "The optional setup scripts write CLAUDE.md, a settings file with pre-approved commands and an MCP config file into your project; the skills install without them."
     },
     {
       "best_for": [
