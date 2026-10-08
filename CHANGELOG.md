@@ -13,8 +13,9 @@ records the state of the catalog and tooling at that tag.
 - Claude Code plugin (`plugin/`), installable from this repository as a
   marketplace: a read-only pane with Practices and Skill repos screens, "Fits
   this repo" suggestions from repository signals, and `adapt` and `explain`
-  skills that propose changes for approval. Its "Fits this repo" and "All
-  practices" lists fold away. In the terminal the pane answers the keys `1` and
+  skills that propose changes for approval. The pane runs the skills, so the
+  slash menu leaves them out; typed in full they still work. Its "Fits this
+  repo" and "All practices" lists fold away. In the terminal the pane answers the keys `1` and
   `2` (screens), `d` (details) and `a` (the open card's main action). In the
   desktop app, pressing a link prints it in the transcript (through a hidden
   `/grounded-link` command), where it can be clicked.

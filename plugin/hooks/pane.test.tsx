@@ -523,10 +523,12 @@ test('the link command prints only links the pane draws, and never echoes anothe
 const describing = ($: any, command: string) => $.command.describe({
   command, description: 'a command', isHidden: false, immediate: true, provider: { plugin: 'grounded-engineering', tier: 'append' },
 })
-test('the link command is left out of the slash menu, and the pane commands are not', async ($, on) => {
+test('the link command and the pane skills are left out of the slash menu, and the pane commands are not', async ($, on) => {
   // Beneath the plugin the engine's own listing answers as the command declared itself.
   on('command.describe', async (_$: unknown, e: any) => ({ description: e.description, isHidden: e.isHidden }))
   expect((await describing($, 'grounded-link')).isHidden).toBe(true)
+  expect((await describing($, 'grounded-engineering:adapt')).isHidden).toBe(true)
+  expect((await describing($, 'grounded-engineering:explain')).isHidden).toBe(true)
   expect((await describing($, 'grounded')).isHidden).toBe(false)
   expect((await describing($, 'grounded-skills')).isHidden).toBe(false)
 })

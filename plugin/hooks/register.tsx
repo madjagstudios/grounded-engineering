@@ -155,6 +155,9 @@ export const register: Register = on => {
   on('command.run', { command: 'grounded-skills' }, async ($) => openOn($, 'skills', 'Grounded Engineering opened on Skill repos.'))
   on('command.run', { command: LINK_COMMAND }, async ($, e) => ({ text: (await linkLine($, e.args.trim())) ?? 'Not a link the Grounded pane shows.' }))
   on('command.describe', { command: LINK_COMMAND }, async ($, e, next) => next({ ...e, isHidden: true }))
+  // The pane runs these; listed, they take the slash menu's first match from /grounded.
+  on('command.describe', { command: 'grounded-engineering:adapt' }, async ($, e, next) => next({ ...e, isHidden: true }))
+  on('command.describe', { command: 'grounded-engineering:explain' }, async ($, e, next) => next({ ...e, isHidden: true }))
 
   // Runs each press the Client posts once, in order; one that is not a valid action is acknowledged, not run.
   on('ui.message', async ($, e, next) => {
