@@ -120,7 +120,7 @@ test('install_note is required, and is null or 10 to 200 characters', () => {
     const { errors } = loadSkillRepos(fixture([record({ install_note: note })]));
     assert.ok(errors.some((e) => /install_note/.test(e)), `${JSON.stringify(note)}: ${errors.join('\n')}`);
   }
-  for (const note of [null, 'Install the plugins you want the same way; example is one of them.', 'n'.repeat(200)]) {
+  for (const note of [null, 'Install the plugins you want the same way; this one is an example.', 'n'.repeat(200)]) {
     assert.deepEqual(loadSkillRepos(fixture([record({ install_note: note })])).errors, [], String(note));
   }
 });
