@@ -11,7 +11,7 @@ records the state of the catalog and tooling at that tag.
 
 ### Added
 - `npm run check:skill-repos`, which checks each listed skill repository
-  against its record (see CONTRIBUTING).
+  against its reviewed record (see CONTRIBUTING).
 - An Upstream watch workflow that runs `check:sources` and `check:skill-repos`
   every Monday and reports what they find in an `upstream-drift` issue.
 

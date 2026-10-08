@@ -21,6 +21,6 @@ traffic go to the authors.
 - Reference repositories only as `owner/name`, with no deep links.
 - To delist, set `status: delisted` with a `status_reason`. Authors who ask to
   be removed are delisted without debate.
-- Listed repositories are re-checked every week, and a change that affects a
-  listing is reviewed again. A maintainer then re-reads the repository and
-  updates its pin, or delists it.
+- Listed repositories are re-checked every week (see Upstream drift in
+  `CONTRIBUTING.md`). When one changes in a way that affects its record, a
+  maintainer re-reads it and updates the pin, or delists it.

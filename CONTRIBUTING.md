@@ -50,7 +50,7 @@ npm run check:sources
 npm run check:skill-repos
 ```
 
-`check:sources` compares each card's commit-pinned sources with the current heads of their repositories through the GitHub API. A drifted `validated` card should move to `needs_review` and be re-audited. `check:skill-repos` reads each listed skill repository and reports it if it was renamed, archived, or removed, if its license no longer matches the record, or if its README or `.claude-plugin/marketplace.json` changed since the pinned commit. It exits `1` when something needs a look, and `2` when a repository is gone, renamed, archived, or relicensed, loses its license or its pinned commit, or a lookup fails. Both commands only read. Set `GITHUB_TOKEN` to stay within GitHub's rate limit.
+`check:sources` compares each card's commit-pinned sources with the current heads of their repositories through the GitHub API. A drifted `validated` card should move to `needs_review` and be re-audited. `check:skill-repos` reads each listed skill repository and compares it with its record. It exits `2` if the repository is gone, renamed, archived or disabled, has lost or changed its license, no longer has the pinned commit, or a lookup fails, and also if the catalog does not validate. It exits `1` if only its README or `.claude-plugin/marketplace.json` has changed since the pin, or GitHub cannot classify its license. Both commands only read. Set `GITHUB_TOKEN` to stay within GitHub's rate limit.
 
 The Upstream watch workflow runs both every Monday and keeps one issue labelled `upstream-drift` up to date, closing it when a run finds nothing.
 
