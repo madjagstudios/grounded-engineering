@@ -1,38 +1,88 @@
 # Grounded Engineering
 
-Grounded Engineering is a source-backed catalog of practical engineering habits for professional software development, including AI-assisted development, traditional development, and repository onboarding.
+Engineering practices drawn from mature open-source repositories, each tied to
+the source it came from, plus a shelf of reviewed third-party skill
+repositories. It runs as a pane inside Claude Code and as a command-line tool.
 
-The project turns observations from mature engineering and agent repositories into small, reviewable practices. Each recommendation keeps its evidence, scope, confidence, and validation status visible so contributors can improve it instead of treating it as unexplained doctrine.
+![The Grounded pane in Claude Code: it lists the practices that fit the open repository, and Adapt asks Claude to propose the change](docs/media/grounded-pane.gif)
 
-## Repository layers
+Type `/grounded` and the pane reads the repository you have open. It shows the
+practices that fit what it finds (tests with no CI gate, agent instructions
+only Claude reads, no OS sandbox) and why each one applies. **Adapt** asks
+Claude to propose the smallest change that brings the practice into your
+repository; nothing is written until you approve it. Every card links to the
+sources it was drawn from, pinned to the revision that was read.
+
+## Install
+
+### Claude Code plugin
+
+Needs Claude Code 2.1.288 or later, in the terminal or the desktop app's Code
+tab.
+
+```text
+/plugin marketplace add madjagstudios/grounded-engineering
+/plugin install grounded-engineering@grounded-engineering
+```
+
+Then type `/grounded`. In the terminal the pane also answers keys: `1` and `2`
+switch screens, `d` shows what it detected, and `a` runs the open card's main
+action.
+
+### Command-line tool
+
+Needs Node.js 20 or later. The CLI writes the same practices into `AGENTS.md`,
+`CLAUDE.md` or a neutral Markdown file, through a proposal you review first:
+
+```bash
+npx grounded-engineering adopt preview --profile ai-assisted --adapter claude
+```
+
+See [Adopt a profile](#adopt-a-profile) below.
+
+## Skill repos
+
+![The Skill repos screen: Ponytail is featured at the top, and Explain install has Claude read the repository before anything is installed](docs/media/grounded-skill-repos.gif)
+
+The second screen lists sixteen third-party skill repositories, each read at a
+pinned commit and approved by a maintainer before it is listed. The shelf holds
+links and our own short notes only; credit and stars go to the authors.
+**Explain install** has Claude read the repository at that commit and list what
+it would add (hooks, scripts, network use, settings it changes) before quoting
+the author's own install steps. Nothing is installed without your yes, and
+slash commands are yours to type. Authors who ask to be removed are delisted. The
+records live in [`research/skill-repos/`](research/skill-repos/).
+
+## What is in the catalog
+
+`v0.6.0` is the current release: seventeen practice cards, the Claude Code
+plugin, and the skill-repo shelf. The CLI ships two adoption packs, the
+historical eight-card `baseline` and the seventeen-card `ai-assisted`, with
+provider-neutral Markdown, `AGENTS.md` and `CLAUDE.md` adapters, and a
+read-only `check` command for drift in what it wrote. Adopting a pack
+does not rewrite existing policy: it creates a reviewable proposal that the
+repository must explicitly accept.
 
 ```text
 research/       Source observations, pinned references, and category audits
 practices/      Short, reusable engineering-practice cards
 integrations/   Consumer-specific translation guidance for agent instruction files
+plugin/         The Claude Code plugin: pane, skills, and generated catalog
 scripts/        Deterministic local validation
 ```
 
-The layers are intentionally separate. Research preserves provenance and decision history; practice cards are the concise consumption surface; integrations explain how to adapt cards to a local repository without creating another source of truth.
+Research keeps the provenance and decision history; practice cards are the
+short form people and agents read; integrations explain how to adapt a card to
+a repository without creating another source of truth.
 
-## Current status
+The recommendations are point-in-time observations against pinned sources.
+Source changes do not silently rewrite cards; re-auditing is a deliberate
+maintenance step. A card cannot claim a validation state stronger than
+`not_validated` without recording, for each source, the revisions it was
+checked against.
 
-`v0.5.0` is the current release. It ships the historical eight-card `baseline`
-pack, the seventeen-card `ai-assisted` pack, provider-neutral Markdown output,
-the Codex `AGENTS.md` adapter, the Claude root `CLAUDE.md` adapter, the
-read-only `check` command for managed-block drift detection, the per-source
-validation-provenance floor, and the opt-in `check:sources` online drift
-check.
-
-The historical baseline pack metadata remains at `v0.2.0` with
-`pack_version: 1.0.0` so existing adopters can stay green while
-`update propose` is still reserved. The `ai-assisted` profile adds the full
-seventeen-card set, but it does not rewrite existing policy; it creates a
-reviewable proposal that the consuming repository must explicitly accept.
-
-The recommendations are point-in-time observations against pinned sources. Source changes do not silently rewrite cards; re-auditing is a deliberate maintenance step. A card cannot report a validation state stronger than `not_validated` without recording, for each source, the full revision set it was checked against. A source re-pin is caught offline until the card is re-validated.
-
-Grounded Engineering is built and maintained with AI agents in real engineering workflows.
+Grounded Engineering is built and maintained with AI agents in real
+engineering workflows.
 
 ## Use it
 
@@ -100,8 +150,9 @@ Profiles:
 - `baseline`: the historical eight-card Context & Instructions starter pack.
   Its pack metadata stays pinned at `v0.2.0` for compatibility with existing
   adopters.
-- `ai-assisted`: all seventeen current cards, adding the six Agent & Skill
-  Design practices on top of the baseline set.
+- `ai-assisted`: all seventeen current cards: the baseline set, the six Agent
+  & Skill Design cards, and three cards on edit formats, permission decisions
+  and sandboxing.
 
 Adapter choices:
 
@@ -111,7 +162,7 @@ Adapter choices:
 - `claude`: writes into a card-keyed managed block in the repository-root
   `CLAUDE.md`.
 
-v0.4.0 supports one adapter target per repository manifest. Applying a second
+The CLI supports one adapter target per repository manifest. Applying a second
 adapter remains deferred until `update propose` exists.
 
 The full preview → create → review → apply → check flow, using the installed
@@ -144,7 +195,7 @@ Both provider adapters write only inside card-keyed managed blocks and preserve
 bytes outside those boundaries. The Codex adapter creates or updates
 `AGENTS.md`. The Claude adapter creates or updates only the root `CLAUDE.md`;
 if `.claude/CLAUDE.md`, nested `CLAUDE.md`, or `CLAUDE.local.md` are present,
-the tool reports them during preflight but does not edit them in v0.4.0. If a
+the tool reports them during preflight but does not edit them. If a
 Codex override file governs instruction resolution, the tool reports it and
 generates nothing rather than writing to a file Codex will not read.
 
@@ -157,7 +208,7 @@ bounded by card-keyed markers.
 files from the current repository, but loads the selected pack and practice
 cards from the pack bundled with the installed CLI. Exit code `0` means clean,
 `1` means drift or repository-state mismatch, and `2` means invocation error.
-`update propose` is still reserved in v0.4.0, and custom `--cards` selection
+`update propose` is still reserved, and custom `--cards` selection
 remains preview-only.
 
 The current release's compatibility contract is exercised by the repository's
