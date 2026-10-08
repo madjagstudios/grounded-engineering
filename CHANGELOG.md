@@ -7,7 +7,7 @@ project aims to follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 Practice cards are point-in-time observations against pinned sources; a release
 records the state of the catalog and tooling at that tag.
 
-## [Unreleased]
+## [0.6.0] - 2026-10-08
 
 ### Added
 - Claude Code plugin (`plugin/`), installable from this repository as a
@@ -41,8 +41,10 @@ records the state of the catalog and tooling at that tag.
   (unfinished-work markers and home-directory paths). A maintainer can add their
   own in an untracked `.private/public-content-patterns.txt`.
 - The `ai-assisted` pack now ships all seventeen cards, adding the four new
-  cards above; its `pack_version` is `1.1.0`. The `baseline` pack and the CLI
-  release are unchanged.
+  cards above. Its `pack_version` is `1.1.0` and its release is `v0.6.0`, so in
+  a repository that adopted the earlier `ai-assisted` pack, `check` reports a
+  pack metadata mismatch once the CLI is upgraded. The `baseline` pack is
+  unchanged.
 
 ### Security
 - The repository lockfile now resolves `fast-uri` (via `ajv`) to 3.1.8, which
@@ -130,6 +132,7 @@ records the state of the catalog and tooling at that tag.
   cards across repository context, code quality, testing, and verification, with
   the research provenance model, schema, and local validator.
 
+[0.6.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.6.0
 [0.5.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.5.0
 [0.4.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.4.0
 [0.3.0]: https://github.com/madjagstudios/grounded-engineering/releases/tag/v0.3.0
