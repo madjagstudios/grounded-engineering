@@ -76,6 +76,22 @@ test('the issues API skips pull requests, tolerates an existing label, and sends
   assert.deepEqual(calls[2].body, { title: 't', body: 'b', labels: ['upstream-drift'] });
 });
 
+test('the issues API pages past labelled pull requests to find the issue', async () => {
+  const prs = Array.from({ length: 100 }, (_, i) => ({ number: i + 1, pull_request: {} }));
+  const { calls, fetchImpl } = recording([res(200, prs), res(200, [{ number: 101, pull_request: {} }, { number: 150 }])]);
+  const api = createIssuesApi({ token: 'tok', repository: 'o/r', fetchImpl });
+  assert.deepEqual(await api.findOpenIssue(), { number: 150 });
+  assert.match(calls[0].url, /per_page=100&page=1$/);
+  assert.match(calls[1].url, /per_page=100&page=2$/);
+});
+
+test('the issues API stops paging when a short page has no issue', async () => {
+  const { calls, fetchImpl } = recording([res(200, [{ number: 3, pull_request: {} }])]);
+  const api = createIssuesApi({ token: 'tok', repository: 'o/r', fetchImpl });
+  assert.equal(await api.findOpenIssue(), null);
+  assert.equal(calls.length, 1);
+});
+
 test('the issues API throws on a failed write', async () => {
   const { fetchImpl } = recording([res(403, { message: 'Resource not accessible by integration' })]);
   const api = createIssuesApi({ token: 'tok', repository: 'o/r', fetchImpl });

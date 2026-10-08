@@ -35,10 +35,14 @@ export function createIssuesApi({ token, repository, fetchImpl = globalThis.fetc
     return json;
   };
   return {
+    // The issues endpoint also returns pull requests with the label, so page until an issue turns up.
     findOpenIssue: async () => {
-      const list = await must('GET', `/issues?labels=${LABEL}&state=open&per_page=10`);
-      const issue = (list ?? []).find((i) => !i.pull_request);
-      return issue ? { number: issue.number } : null;
+      for (let page = 1; ; page++) {
+        const list = (await must('GET', `/issues?labels=${LABEL}&state=open&per_page=100&page=${page}`)) ?? [];
+        const issue = list.find((i) => !i.pull_request);
+        if (issue) return { number: issue.number };
+        if (list.length < 100) return null;
+      }
     },
     ensureLabel: async () => {
       const { res, json } = await call('POST', '/labels', { name: LABEL, color: 'd97757', description: 'A pinned source or listed skill repository changed upstream' });
