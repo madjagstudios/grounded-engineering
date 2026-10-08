@@ -11,7 +11,7 @@ status_reason: null
 featured: true
 best_for: [AI_ASSISTED]
 tags: [review]
-summary: An always-on prompt that pushes the agent to write less code and reuse what already exists, with commands that review a diff or a whole repo for bugs, risk, and over-engineering.
+summary: An always-on prompt that pushes the agent to write less code and reuse what already exists, with commands that review a diff or a whole repo for bugs, risk and over-engineering.
 watch_out_for: Hooks run at session start and on every prompt, keep flag files under ~/.claude, and once nudge the agent to edit settings.json for a status line. They also add a map of your code's function and class names to the agent's context.
 install:
   - "/plugin marketplace add DietrichGebert/ponytail"

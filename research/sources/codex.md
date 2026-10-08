@@ -27,7 +27,7 @@ Retrieval date for the documentation pages: 2026-08-26. Each repository observat
 - Source: `openai/codex`, [Guardian reviewer policy](https://github.com/openai/codex/blob/515c291d875e07faa64e3fa43dc9bbffed8db31f/codex-rs/prompts/templates/guardian/policy_template.md#L5-L13)
 - Immutable reference: commit `515c291d875e07faa64e3fa43dc9bbffed8db31f`
 - Path history: earlier pins cited a copy under `codex-rs/ext/guardian-v2/`, which upstream has since removed; the policy text is the same.
-- Locator: `policy_template.md:5-13` for trusted versus untrusted evidence; `:15-26` for authorization scoring and avoiding over-interpretation; `:28-31` for the base risk taxonomy; `:66-78` for deriving the outcome from risk and authorization
+- Locator: `policy_template.md:5-13` for trusted versus untrusted evidence; `:15-26` for authorization scoring and avoiding over-interpretation; `:28-32` for the base risk taxonomy; `:66-78` for deriving the outcome from risk and authorization
 - License/use: repository Apache-2.0; `link-only` for this repository; no policy text copied
 - Observed implementation: the reviewer policy treats tool output and implementation content as evidence that must not silently expand authorization.
 - Generalizable principle: trust in a piece of evidence, the authorization it can establish, and the risk of the action are judged separately before they are combined into a decision.
@@ -74,7 +74,7 @@ Retrieval date for the documentation pages: 2026-08-26. Each repository observat
 - Immutable reference: commit `515c291d875e07faa64e3fa43dc9bbffed8db31f`
 - Locator: `safety.rs:13-23, 25-125, 127-180` for the three-way safety verdict, the sandbox route and per-patch policy matcher that feed the assessment function, and the rejection-reason and writable-path helpers
 - License/use: repository Apache-2.0; `link-only`; concepts are paraphrased
-- Observed implementation: a dedicated function returns one of auto-approve, ask-the-user, or reject-with-reason for a patch action, computed from the approval policy, the permission profile, the filesystem sandbox policy, and whether a sandbox is available. A write constrained to writable paths is auto-approved when a sandbox is available or the profile applies no outer sandbox; otherwise it is asked about or rejected depending on the approval policy, rather than uniformly rejected.
+- Observed implementation: a dedicated function returns one of auto-approve, ask-the-user, or reject-with-reason for a patch action, computed from the approval policy, the permission profile, the filesystem sandbox policy, and whether a sandbox is available. A write constrained to writable paths is auto-approved when a sandbox is available or the profile applies no outer sandbox; otherwise it is asked about or rejected depending on the approval policy.
 - Generalizable principle: whether an action is permitted should be computed by an explicit policy, separate from the code that performs the action, with risky or non-conforming actions routed to approval or refusal rather than performed unchecked.
 
 ## CODEX-NETWORK-CAPABILITY

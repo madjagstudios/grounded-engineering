@@ -18,7 +18,7 @@ evidence_level: recommended
 source_ids: [CODEX-AGENTS-IMPLEMENTATION, CLAUDE-LOCAL-CONTEXT]
 evidence_refs:
   - source_id: CODEX-AGENTS-IMPLEMENTATION
-    locator: agents_md.rs:1-18, :118-187, :189-270, and :272-296 for roots, ordering, bounded reads, and provenance
+    locator: agents_md.rs:1-18 and :189-270 for roots and discovery, :272-296 for candidate order, and :118-187 for bounded reads and provenance
     relationship: generalized_principle
   - source_id: CLAUDE-LOCAL-CONTEXT
     locator: official memory documentation sections on nested, imported, and path-scoped context; retrieved 2026-08-26

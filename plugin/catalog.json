@@ -1013,7 +1013,7 @@
       "pinned_commit": "9cc65d03aa2da1db7121b912d03596409ee340b8",
       "repo": "DietrichGebert/ponytail",
       "reviewed_on": "2026-10-08",
-      "summary": "An always-on prompt that pushes the agent to write less code and reuse what already exists, with commands that review a diff or a whole repo for bugs, risk, and over-engineering.",
+      "summary": "An always-on prompt that pushes the agent to write less code and reuse what already exists, with commands that review a diff or a whole repo for bugs, risk and over-engineering.",
       "tags": [
         "review"
       ],
