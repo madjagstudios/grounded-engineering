@@ -2,9 +2,9 @@
 // The terminal draws them directly; on desktop the Client module draws the same screens.
 import type { Palette } from './theme'
 import { tile, laneHeader, badge, chip, option, field, shorten, room } from './tiles'
-import { cardUrl, repoUrl, type SkillRepo } from './catalog'
+import { cardUrl, repoUrl } from './catalog'
 import { rankPractices, sortSkillRepos, matchesQuery } from './fit'
-import type { PaneModel, Screen, SlimCatalog, SlimPractice } from './model'
+import type { PaneModel, Screen, SlimCatalog, SlimPractice, SlimSkillRepo } from './model'
 
 export const HANDLER_NAMES = ['tab', 'select', 'search', 'category', 'tag', 'sort', 'toggleSignals', 'toggleLane', 'adapt', 'explain', 'link'] as const
 
@@ -51,7 +51,7 @@ export function tileTitleRoom(ui: any, columns: number, scale: number, badgeText
 }
 
 // The links the pane draws, each with what the transcript says before it.
-type LinkCatalog = { repository: string; package_version: string; practices: { id: string; path: string }[]; skill_repos: SkillRepo[] }
+type LinkCatalog = { repository: string; package_version: string; practices: { id: string; path: string }[]; skill_repos: SlimSkillRepo[] }
 export function linkLabel(c: LinkCatalog, url: string): string | null {
   const practice = c.practices.find((x) => cardUrl(c, x) === url)
   if (practice) return `Evidence for ${practice.id}`
@@ -63,7 +63,7 @@ export function linkLabel(c: LinkCatalog, url: string): string | null {
 }
 
 const isValidated = (x: { validation_status: string }) => x.validation_status === 'validated'
-const byline = (r: SkillRepo) => `${r.repo.split('/')[0]} · ${r.license}`
+const byline = (r: SlimSkillRepo) => `${r.repo.split('/')[0]} · ${r.license}`
 
 export function paneScreen(ui: any, m: PaneModel, go: Go, p: Palette, columns: number, scale: number) {
   const { Box, Text, Button } = ui
@@ -195,7 +195,7 @@ function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
   ])
 }
 
-function repoRow(ui: any, go: Go, p: Palette, r: SkillRepo, columns: number, scale: number) {
+function repoRow(ui: any, go: Go, p: Palette, r: SlimSkillRepo, columns: number, scale: number) {
   const { Box, Text, Button } = ui
   const tags = r.tags.join(', ')
   const beside = !tight(ui, columns)
