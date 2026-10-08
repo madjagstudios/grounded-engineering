@@ -95,5 +95,35 @@ export function createGithubClient({ fetchImpl = globalThis.fetch, token, timeou
     return { paths: tree.filter((t) => t.type === 'blob').map((t) => t.path), truncated: json?.truncated === true };
   }
 
-  return { resolveHead, getObject, searchRepositories, listTreePaths, callCount: () => state.calls };
+  // fetch follows GitHub's redirect for a renamed or transferred repository, so
+  // fullName is where it lives now.
+  async function getRepo(owner, repo) {
+    const r = await request(`${BASE}/repos/${owner}/${repo}`);
+    if (r.error) return { error: r.error.reason };
+    if (r.res.status === 404) return { missing: true };
+    if (!r.res.ok) return { error: `repo_http_${r.res.status}` };
+    let json; try { json = await r.res.json(); } catch { return { error: 'repo_json_invalid' }; }
+    if (typeof json?.full_name !== 'string') return { error: 'repo_json_invalid' };
+    return { fullName: json.full_name, archived: json.archived === true, disabled: json.disabled === true, license: json.license?.spdx_id ?? null };
+  }
+
+  async function getReadme(owner, repo, ref) {
+    const r = await request(`${BASE}/repos/${owner}/${repo}/readme?ref=${encodeURIComponent(ref)}`);
+    if (r.error) return { kind: 'error', reason: r.error.reason };
+    if (r.res.status === 404) return { kind: 'absent' };
+    if (!r.res.ok) return { kind: 'error', reason: `http_${r.res.status}` };
+    let json; try { json = await r.res.json(); } catch { return { kind: 'error', reason: 'json_invalid' }; }
+    if (json?.type === 'file' && SHA40.test(json.sha ?? '')) return { kind: 'blob', sha: json.sha, path: json.path };
+    return { kind: 'error', reason: 'unexpected_object' };
+  }
+
+  async function compareCommits(owner, repo, base, head) {
+    const r = await request(`${BASE}/repos/${owner}/${repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(head)}`);
+    if (r.error) return { error: r.error.reason };
+    if (!r.res.ok) return { error: `compare_http_${r.res.status}` };
+    let json; try { json = await r.res.json(); } catch { return { error: 'compare_json_invalid' }; }
+    return Number.isInteger(json?.ahead_by) ? { aheadBy: json.ahead_by } : { error: 'compare_json_invalid' };
+  }
+
+  return { resolveHead, getObject, getRepo, getReadme, compareCommits, searchRepositories, listTreePaths, callCount: () => state.calls };
 }

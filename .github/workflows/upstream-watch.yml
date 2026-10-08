@@ -1,0 +1,32 @@
+name: Upstream watch
+
+# Weekly: compares pinned card sources and listed skill repositories with their
+# upstream heads, and keeps one `upstream-drift` issue up to date.
+on:
+  schedule:
+    - cron: '17 13 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: upstream-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Check upstream and update the issue
+        run: node scripts/upstream-watch.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
