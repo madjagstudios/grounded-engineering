@@ -167,3 +167,46 @@ test('an unexpected resource header falls back to the bucket of the request', as
   assert.match((await c.listTreePaths('o', 'r', 'main')).error, /rate_limited/);
   assert.equal(f.calls.length, 1);
 });
+
+test('getRepo: returns name, archive state and SPDX licence; 404 is missing', async () => {
+  const f = scripted([
+    { res: res({ json: { full_name: 'New/name', archived: true, disabled: false, license: { spdx_id: 'MIT' } }, headers: okHeaders }) },
+    { res: res({ status: 404, json: {} }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  assert.deepEqual(await c.getRepo('o', 'r'), { fullName: 'New/name', archived: true, disabled: false, license: 'MIT' });
+  assert.match(f.calls[0].url, /\/repos\/o\/r$/);
+  assert.deepEqual(await c.getRepo('o', 'gone'), { missing: true });
+});
+
+test('getRepo: no licence is null, and a non-404 failure is an error', async () => {
+  const f = scripted([
+    { res: res({ json: { full_name: 'o/r', archived: false, disabled: false, license: null }, headers: okHeaders }) },
+    { res: res({ status: 500, json: {} }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  assert.equal((await c.getRepo('o', 'r')).license, null);
+  assert.deepEqual(await c.getRepo('o', 'r'), { error: 'repo_http_500' });
+});
+
+test('getReadme: blob sha of whatever README the ref has; 404 is absent', async () => {
+  const f = scripted([
+    { res: res({ json: { type: 'file', path: 'readme.markdown', sha: SHA }, headers: okHeaders }) },
+    { res: res({ status: 404, json: {} }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  assert.deepEqual(await c.getReadme('o', 'r', 'abc'), { kind: 'blob', sha: SHA, path: 'readme.markdown' });
+  assert.match(f.calls[0].url, /\/repos\/o\/r\/readme\?ref=abc$/);
+  assert.deepEqual(await c.getReadme('o', 'r', 'abc'), { kind: 'absent' });
+});
+
+test('compareCommits: ahead_by from base to head; failures are errors', async () => {
+  const f = scripted([
+    { res: res({ json: { ahead_by: 7, status: 'ahead' }, headers: okHeaders }) },
+    { res: res({ status: 404, json: {} }) }
+  ]);
+  const c = createGithubClient({ fetchImpl: f });
+  assert.deepEqual(await c.compareCommits('o', 'r', 'aaa', 'bbb'), { aheadBy: 7 });
+  assert.match(f.calls[0].url, /\/repos\/o\/r\/compare\/aaa\.\.\.bbb$/);
+  assert.deepEqual(await c.compareCommits('o', 'r', 'aaa', 'bbb'), { error: 'compare_http_404' });
+});
