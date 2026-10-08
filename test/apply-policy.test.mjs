@@ -22,7 +22,7 @@ test('the documented apply policy is advertised by the real CLI and shipped in t
 
   const policy = readFileSync(policyPath, 'utf8');
   assert.match(policy, new RegExp(applyCommand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  assert.match(policy, /does not depend on or endorse any third-party wrapper/);
+  assert.match(policy, /rely on this document, not on the/);
 
   const packed = spawnSync('npm', ['pack', '--dry-run', '--json'], {
     cwd: root,

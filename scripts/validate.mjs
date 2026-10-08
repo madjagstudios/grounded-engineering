@@ -91,7 +91,7 @@ export function runValidation({ root }) {
   }
 
   const applyPolicyText = read(join(validationRoot, 'policies', 'adopt-apply.md'));
-  for (const snippet of ['Policy version: 1.0', 'grounded-engineering adopt apply <proposal-id> --confirm', 'does not depend on or endorse any third-party wrapper']) {
+  for (const snippet of ['Policy version: 1.0', 'grounded-engineering adopt apply <proposal-id> --confirm', 'rely on this document, not on the']) {
     if (!applyPolicyText.includes(snippet)) errors.push(`policies/adopt-apply.md: missing required public policy text: ${snippet}`);
   }
 

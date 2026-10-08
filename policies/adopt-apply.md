@@ -62,5 +62,3 @@ the pack bundled in the CLI, and reports drift or a repository-state mismatch.
 
 If you build a tool around `adopt apply`, rely on this document, not on the
 CLI's current code.
-Grounded Engineering does not depend on or endorse any third-party wrapper for
-the write path.

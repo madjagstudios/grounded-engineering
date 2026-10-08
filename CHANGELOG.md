@@ -45,6 +45,9 @@ records the state of the catalog and tooling at that tag.
   a repository that adopted the earlier `ai-assisted` pack, `check` reports a
   pack metadata mismatch once the CLI is upgraded. The `baseline` pack is
   unchanged.
+- The adopt apply policy is reworded: each rule is stated once, and tools
+  built around `adopt apply` are told to rely on the policy rather than on the
+  CLI's code. The write behavior it describes is unchanged.
 
 ### Security
 - The repository lockfile now resolves `fast-uri` (via `ajv`) to 3.1.8, which
