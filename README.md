@@ -1,8 +1,15 @@
 # Grounded Engineering
 
+[![Validate](https://github.com/madjagstudios/grounded-engineering/actions/workflows/validate.yml/badge.svg)](https://github.com/madjagstudios/grounded-engineering/actions/workflows/validate.yml)
+[![npm](https://img.shields.io/npm/v/grounded-engineering?label=npm)](https://www.npmjs.com/package/grounded-engineering)
+[![License: MIT](https://img.shields.io/github/license/madjagstudios/grounded-engineering)](LICENSE)
+[![Node](https://img.shields.io/node/v/grounded-engineering)](package.json)
+[![Claude Code mod](https://img.shields.io/badge/Claude_Code_mod-2.1.288%2B-D97757)](#claude-code-mod)
+
 Engineering practices drawn from mature open-source repositories, each tied to
 the source it came from, plus a shelf of reviewed third-party skill
-repositories. It runs as a pane inside Claude Code and as a command-line tool.
+repositories. It runs as a mod inside Claude Code, a live pane installed as a
+plugin, and as a command-line tool.
 
 ![The Grounded pane in Claude Code: it lists the practices that fit the open repository, and Adapt asks Claude to propose the change](docs/media/grounded-pane.gif)
 
@@ -15,10 +22,10 @@ sources it was drawn from, pinned to the revision that was read.
 
 ## Install
 
-### Claude Code plugin
+### Claude Code mod
 
 Needs Claude Code 2.1.288 or later, in the terminal or the desktop app's Code
-tab.
+tab. Mods install as plugins:
 
 ```text
 /plugin marketplace add madjagstudios/grounded-engineering
@@ -53,7 +60,7 @@ delisted. The records live in [`research/skill-repos/`](research/skill-repos/).
 research/       Source observations, pinned references, and category audits
 practices/      Short, reusable engineering-practice cards
 integrations/   Consumer-specific translation guidance for agent instruction files
-plugin/         The Claude Code plugin: pane, skills, and generated catalog
+plugin/         The Claude Code mod: pane, skills, and generated catalog
 src/, bin/      The command-line tool
 scripts/        Validation, catalog build, and source-drift tools
 ```
