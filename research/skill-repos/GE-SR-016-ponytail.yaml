@@ -4,15 +4,15 @@ id: GE-SR-016
 name: Ponytail
 repo: DietrichGebert/ponytail
 license: MIT
-pinned_commit: '552acd5efd0aeae2583a12efe39373d2f076f25e'
-reviewed_on: 2026-10-07
+pinned_commit: '9cc65d03aa2da1db7121b912d03596409ee340b8'
+reviewed_on: 2026-10-08
 status: listed
 status_reason: null
 featured: true
 best_for: [AI_ASSISTED]
 tags: [review]
-summary: An always-on prompt that pushes the agent to write less code and reuse what already exists, with a command that reviews a diff for over-engineering.
-watch_out_for: Hooks run at session start and on every prompt, keep a flag file under ~/.claude, and once nudge the agent to edit settings.json for a status line.
+summary: An always-on prompt that pushes the agent to write less code and reuse what already exists, with commands that review a diff or a whole repo for bugs, risk and over-engineering.
+watch_out_for: Hooks run at session start and on every prompt, keep flag files under ~/.claude, and once nudge the agent to edit settings.json for a status line. They also add a map of your code's function and class names to the agent's context.
 install:
   - "/plugin marketplace add DietrichGebert/ponytail"
   - "/plugin install ponytail@ponytail"

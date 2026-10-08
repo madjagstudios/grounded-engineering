@@ -7,7 +7,7 @@ category: Verification
 subcategory: Authorization
 pattern: Decide whether an action is allowed with an explicit policy, separate from the code that performs it.
 underlying_principle: Authorization is a different concern from execution, and should be decidable and testable on its own.
-observed_implementation: A safety assessment returns auto-approve, ask-user, or reject for a write action, computed from the approval policy, permission profile, writable roots, and sandbox availability before the action runs.
+observed_implementation: A dedicated safety function returns auto-approve, ask-user, or reject for a write action, computed from the approval policy, permission profile, writable paths, and whether a sandbox is available.
 applicability: [AI_ASSISTED, TRADITIONAL, REPOSITORY_GOVERNANCE]
 control_types: [DETERMINISTIC_CHECK, APPROVAL, HUMAN_REVIEW]
 disposition: ADOPT
@@ -18,14 +18,14 @@ evidence_level: recommended
 source_ids: [CODEX-SAFETY-POLICY]
 evidence_refs:
   - source_id: CODEX-SAFETY-POLICY
-    locator: safety.rs:19-97, 100-188 for the three-way verdict, its policy inputs, and the rejection-reason helpers
+    locator: safety.rs:13-23, 25-125, 127-180 for the three-way verdict, its policy inputs and sandbox route, and the rejection-reason and writable-path helpers
     relationship: observed_implementation
 validation:
   status: validated
   validated_against:
     - source_id: CODEX-SAFETY-POLICY
       revisions:
-        - 03861e69ef549717c0fc7045abad56321d4a082b
+        - 515c291d875e07faa64e3fa43dc9bbffed8db31f
 revisit:
   required: false
 agent_snippet: Before an escalating or irreversible action, compute an allow, ask, or reject verdict from explicit policy, and send risky writes to approval instead of running them.

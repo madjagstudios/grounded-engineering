@@ -21,7 +21,7 @@ evidence_refs:
     locator: official guide section `How Codex discovers guidance`
     relationship: observed_implementation
   - source_id: CODEX-AGENTS-IMPLEMENTATION
-    locator: agents_md.rs:1-16 and :185-187 for root detection and candidate ordering
+    locator: agents_md.rs:1-18, :189-270, and :272-296 for root detection and candidate ordering
     relationship: observed_implementation
   - source_id: CLAUDE-MEMORY-HIERARCHY
     locator: official memory documentation sections on hierarchy and path rules; retrieved 2026-08-26
@@ -34,7 +34,7 @@ validation:
         - 2026-08-26
     - source_id: CODEX-AGENTS-IMPLEMENTATION
       revisions:
-        - dc08ace7821614a702b1214c9d08ae0db2634d82
+        - 515c291d875e07faa64e3fa43dc9bbffed8db31f
     - source_id: CLAUDE-MEMORY-HIERARCHY
       revisions:
         - 2026-08-26

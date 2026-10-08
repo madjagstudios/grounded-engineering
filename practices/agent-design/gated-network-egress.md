@@ -18,14 +18,14 @@ evidence_level: recommended
 source_ids: [CODEX-NETWORK-CAPABILITY]
 evidence_refs:
   - source_id: CODEX-NETWORK-CAPABILITY
-    locator: network_approval.rs:600-706, 1032-1136 for the allow/deny/approval decision and the execution-scoped proxy construction
+    locator: network_approval.rs:625-820, 1095-1217 for the allow/deny/approval decision, the approval request, and the execution-scoped proxy construction
     relationship: observed_implementation
 validation:
   status: validated
   validated_against:
     - source_id: CODEX-NETWORK-CAPABILITY
       revisions:
-        - 03861e69ef549717c0fc7045abad56321d4a082b
+        - 515c291d875e07faa64e3fa43dc9bbffed8db31f
 revisit:
   required: false
 agent_snippet: Send network access from agent-run code through an enforcing proxy and an explicit allow, deny, or approve policy, and confirm a proxy is actually in the path before relying on it.

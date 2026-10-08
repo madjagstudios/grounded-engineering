@@ -4,8 +4,8 @@ id: GE-SR-002
 name: Skills For Real Engineers
 repo: mattpocock/skills
 license: MIT
-pinned_commit: 'f3fc5632f401156837ee3872f14fe33ccf1024ea'
-reviewed_on: 2026-10-07
+pinned_commit: 'b0618bc436ad893b3c5e84e55fba86586d34a404'
+reviewed_on: 2026-10-08
 status: listed
 status_reason: null
 best_for: [AI_ASSISTED, TRADITIONAL]
@@ -13,6 +13,6 @@ tags: [planning, testing, review, debugging]
 summary: Skills for everyday work with an agent, built around an interview that pins down the task before any code is written and a shared glossary of your project's domain terms.
 watch_out_for: Run /setup-matt-pocock-skills once per repo before the engineering skills; it asks about your issue tracker and edits your CLAUDE.md or AGENTS.md. Plugin updates can lag the repo by days or weeks.
 install:
-  - "/plugin install mattpocock-skills"
+  - "/plugin install mattpocock-skills@claude-plugins-official"
   - "/setup-matt-pocock-skills"
 install_note: "It is in the official marketplace."
