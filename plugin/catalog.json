@@ -633,6 +633,7 @@
       "best_for": [
         "AI_ASSISTED"
       ],
+      "featured": false,
       "id": "GE-SR-001",
       "install": [
         "/plugin install superpowers@claude-plugins-official"
@@ -657,6 +658,7 @@
         "AI_ASSISTED",
         "TRADITIONAL"
       ],
+      "featured": false,
       "id": "GE-SR-002",
       "install": [
         "/plugin install mattpocock-skills",
@@ -682,6 +684,7 @@
         "AI_ASSISTED",
         "TRADITIONAL"
       ],
+      "featured": false,
       "id": "GE-SR-003",
       "install": [
         "/plugin marketplace add addyosmani/agent-skills",
@@ -707,6 +710,7 @@
         "AI_ASSISTED",
         "TRADITIONAL"
       ],
+      "featured": false,
       "id": "GE-SR-004",
       "install": [
         "/plugin marketplace add addyosmani/web-quality-skills",
@@ -730,6 +734,7 @@
         "AI_ASSISTED",
         "TRADITIONAL"
       ],
+      "featured": false,
       "id": "GE-SR-005",
       "install": [
         "/plugin marketplace add wshobson/agents",
@@ -754,6 +759,7 @@
       "best_for": [
         "AI_ASSISTED"
       ],
+      "featured": false,
       "id": "GE-SR-006",
       "install": [
         "/plugin marketplace add OthmanAdi/planning-with-files",
@@ -776,6 +782,7 @@
         "AI_ASSISTED",
         "TRADITIONAL"
       ],
+      "featured": false,
       "id": "GE-SR-007",
       "install": [
         "/plugin marketplace add jeffallan/claude-skills",
@@ -801,6 +808,7 @@
         "AI_ASSISTED",
         "TRADITIONAL"
       ],
+      "featured": false,
       "id": "GE-SR-008",
       "install": [
         "/plugin marketplace add levnikolaevich/claude-code-skills",
@@ -826,6 +834,7 @@
         "AI_ASSISTED",
         "TRADITIONAL"
       ],
+      "featured": false,
       "id": "GE-SR-009",
       "install": [
         "npx skills@latest add decebals/claude-code-java"
@@ -848,6 +857,7 @@
       "best_for": [
         "AI_ASSISTED"
       ],
+      "featured": false,
       "id": "GE-SR-010",
       "install": [
         "/plugin marketplace add oliver-kriska/claude-elixir-phoenix",
@@ -872,6 +882,7 @@
       "best_for": [
         "AI_ASSISTED"
       ],
+      "featured": false,
       "id": "GE-SR-011",
       "install": [
         "/plugin marketplace add LukasNiessen/terrashark",
@@ -894,6 +905,7 @@
       "best_for": [
         "AI_ASSISTED"
       ],
+      "featured": false,
       "id": "GE-SR-012",
       "install": [
         "/plugin marketplace add tzachbon/smart-ralph",
@@ -917,6 +929,7 @@
         "AI_ASSISTED",
         "ONBOARDING"
       ],
+      "featured": false,
       "id": "GE-SR-013",
       "install": [
         "/plugin marketplace add cathrynlavery/diagram-design",
@@ -941,6 +954,7 @@
         "TRADITIONAL",
         "PUBLICATION"
       ],
+      "featured": false,
       "id": "GE-SR-014",
       "install": [
         "npx skills add Agents365-ai/drawio-skill -g"
@@ -964,6 +978,7 @@
         "ONBOARDING",
         "AI_ASSISTED"
       ],
+      "featured": false,
       "id": "GE-SR-015",
       "install": [
         "/plugin marketplace add Egonex-AI/Understand-Anything",
@@ -986,6 +1001,7 @@
       "best_for": [
         "AI_ASSISTED"
       ],
+      "featured": true,
       "id": "GE-SR-016",
       "install": [
         "/plugin marketplace add DietrichGebert/ponytail",

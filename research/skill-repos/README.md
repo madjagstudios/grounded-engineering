@@ -11,6 +11,8 @@ traffic go to the authors.
 - `pinned_commit` is the 40-character commit reviewed; quote it if it is all digits.
 - `listed` requires a valid SPDX license expression, such as `MIT` or
   `(MIT OR Apache-2.0)`. Star counts are never recorded.
+- `featured: true` marks a maintainer's pick. The pane lists it first when
+  sorting by fit and labels it Featured; the field is optional.
 - Candidates come from `npm run discover:skill-repos`, which only prints. Each
   record is written from the repository at its pinned commit, and a maintainer
   approves it before it is listed.

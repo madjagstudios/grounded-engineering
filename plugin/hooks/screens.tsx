@@ -63,7 +63,7 @@ export function linkLabel(c: LinkCatalog, url: string): string | null {
 }
 
 const isValidated = (x: { validation_status: string }) => x.validation_status === 'validated'
-const byline = (r: SlimSkillRepo) => `${r.repo.split('/')[0]} · ${r.license}`
+const byline = (r: SlimSkillRepo) => `${r.featured ? 'Featured · ' : ''}${r.repo.split('/')[0]} · ${r.license}`
 
 export function paneScreen(ui: any, m: PaneModel, go: Go, p: Palette, columns: number, scale: number) {
   const { Box, Text, Button } = ui
@@ -197,7 +197,7 @@ function practiceTile(ui: any, m: PaneModel, c: SlimCatalog, go: Go, p: Palette,
 
 function repoRow(ui: any, go: Go, p: Palette, r: SlimSkillRepo, columns: number, scale: number) {
   const { Box, Text, Button } = ui
-  const tags = r.tags.join(', ')
+  const tags = `${r.featured ? 'Featured · ' : ''}${r.tags.join(', ')}`
   const beside = !tight(ui, columns)
   const budget = repoTitleRoom(ui, columns, scale, tags)
   return (

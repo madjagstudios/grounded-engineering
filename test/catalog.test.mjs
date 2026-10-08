@@ -80,17 +80,17 @@ test('only listed skill repos are projected, with exactly the display fields', (
     const records = [
       { ...base, id: 'GE-SR-001', name: 'listed-skills', repo: 'example/listed-skills', status: 'listed' },
       { ...base, id: 'GE-SR-002', name: 'delisted-skills', repo: 'example/delisted-skills', status: 'delisted', status_reason: 'Author asked to be removed.' },
-      { ...base, id: 'GE-SR-003', name: 'pending-skills', repo: 'example/pending-skills', status: 'needs_review' }
+      { ...base, id: 'GE-SR-003', name: 'pending-skills', repo: 'example/pending-skills', status: 'needs_review' },
+      { ...base, id: 'GE-SR-004', name: 'featured-skills', repo: 'example/featured-skills', status: 'listed', featured: true }
     ];
     for (const r of records) {
       writeFileSync(join(dir, `${r.id}-${r.name}.yaml`), Object.entries(r).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join('\n') + '\n');
     }
     const { skill_repos: listed } = buildCatalog(tmp);
-    assert.equal(listed.length, 1);
-    assert.equal(listed[0].id, 'GE-SR-001');
+    assert.deepEqual(listed.map((r) => [r.id, r.featured]), [['GE-SR-001', false], ['GE-SR-004', true]]);
     assert.deepEqual(listed[0].install, ['/plugin marketplace add example/skills', '/plugin install example@example']);
     assert.equal(listed[0].install_note, 'Install each plugin you want; the second step installs one example.');
-    assert.deepEqual(Object.keys(listed[0]).sort(), ['best_for', 'id', 'install', 'install_note', 'license', 'name', 'pinned_commit', 'repo', 'reviewed_on', 'summary', 'tags', 'watch_out_for']);
+    assert.deepEqual(Object.keys(listed[0]).sort(), ['best_for', 'featured', 'id', 'install', 'install_note', 'license', 'name', 'pinned_commit', 'repo', 'reviewed_on', 'summary', 'tags', 'watch_out_for']);
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }

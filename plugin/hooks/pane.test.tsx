@@ -126,6 +126,18 @@ test('terminal: the skill repos tab says so when none are listed', async ($, on)
   await ui.unmount()
 })
 
+test('terminal: a featured repo is listed first and labelled', async ($, on) => {
+  const repos = FIXTURE_CATALOG.skill_repos.map((r) => ({ ...r, featured: r.id === 'GE-SR-001' }))
+  const ui = await mountPane($, on, { ...REPO, 'catalog.json': JSON.stringify({ ...FIXTURE_CATALOG, skill_repos: repos }) })
+  await ui.press({ key: 'tab-skills' })
+  expect(await keysOf(ui, 'open-repo-')).toEqual(['open-repo-GE-SR-001', 'open-repo-GE-SR-002'])
+  expect((await ui.find({ key: 'row-repo-GE-SR-001' }))?.text).toContain('Featured')
+  expect((await ui.find({ key: 'row-repo-GE-SR-002' }))?.text).not.toContain('Featured')
+  await ui.press({ key: 'open-repo-GE-SR-001' })
+  expect((await ui.find({ key: 'tile-repo-GE-SR-001' }))?.text).toContain('Featured')
+  await ui.unmount()
+})
+
 test('terminal: a skill repo opens, explains, and links to GitHub', async ($, on) => {
   const submitted: string[] = []
   captureSkills(on, submitted)

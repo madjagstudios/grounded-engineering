@@ -23,7 +23,8 @@ records the state of the catalog and tooling at that tag.
   (`research/skill-repo-schema.yaml`) and validation in `npm test`. A listed
   record's license must be a valid SPDX expression, and every record's
   `install` steps must be literal commands, with other guidance in `install_note`. The first
-  sixteen are listed, each read at a pinned commit.
+  sixteen are listed, each read at a pinned commit. A record marked `featured`
+  is listed first and labelled Featured; Ponytail is the first.
 - Repository signal vocabulary and fit rules (`plugin/fit-rules.yaml`) that map
   signals to practice cards, validated against the real cards.
 - Plugin catalog `plugin/catalog.json`, built by `npm run build:catalog`. It
