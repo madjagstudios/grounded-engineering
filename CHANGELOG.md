@@ -21,7 +21,8 @@ records the state of the catalog and tooling at that tag.
 - Skill-repo records: reviewed, link-only pointers to third-party skill
   repositories under `research/skill-repos/`, with a schema
   (`research/skill-repo-schema.yaml`) and validation in `npm test`. A listed
-  record's license must be a valid SPDX expression.
+  record's license must be a valid SPDX expression. The first sixteen are
+  listed, each read at a pinned commit.
 - Repository signal vocabulary and fit rules (`plugin/fit-rules.yaml`) that map
   signals to practice cards, validated against the real cards.
 - Plugin catalog `plugin/catalog.json`, built by `npm run build:catalog`. It
