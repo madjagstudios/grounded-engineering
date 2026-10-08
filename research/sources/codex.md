@@ -74,7 +74,7 @@ Retrieval date for the documentation pages: 2026-08-26. Each repository observat
 - Immutable reference: commit `515c291d875e07faa64e3fa43dc9bbffed8db31f`
 - Locator: `safety.rs:13-23, 25-125, 127-180` for the three-way safety verdict, the sandbox route and per-patch policy matcher that feed the assessment function, and the rejection-reason and writable-path helpers
 - License/use: repository Apache-2.0; `link-only`; concepts are paraphrased
-- Observed implementation: a dedicated function returns one of auto-approve, ask-the-user, or reject-with-reason for a patch action, computed from the approval policy, the permission profile, the filesystem sandbox policy, and whether a sandbox is available. A write constrained to writable paths is auto-approved when a sandbox is available or the profile applies no outer sandbox; otherwise it is asked about or rejected depending on the approval policy.
+- Observed implementation: a dedicated function returns one of auto-approve, ask-the-user, or reject-with-reason for a patch action, computed from the approval policy, the permission profile, the filesystem sandbox policy, and whether a sandbox is available. Under the "unless trusted" approval policy every write is asked about first. Otherwise, a write constrained to writable paths is auto-approved when a sandbox is available or the profile applies no outer sandbox, and is asked about or rejected depending on the approval policy when not.
 - Generalizable principle: whether an action is permitted should be computed by an explicit policy, separate from the code that performs the action, with risky or non-conforming actions routed to approval or refusal rather than performed unchecked.
 
 ## CODEX-NETWORK-CAPABILITY
