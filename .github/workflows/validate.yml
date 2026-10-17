@@ -1,14 +1,26 @@
 name: Validate
 
 on:
+  # main after a merge, and PRs; a branch push without a PR runs nothing.
   push:
+    branches: [main]
   pull_request:
+    # ready_for_review runs the first full validation after a draft's review.
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  # A new PR revision cancels the PR's previous run; main and manual runs never share a group.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('run-{0}', github.run_id) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   validate:
+    # Drafts are reviewed with a local `npm test`; hosted validation runs once the PR is ready.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
