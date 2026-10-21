@@ -24,7 +24,7 @@
     "discover:skill-repos": "node scripts/discover-skill-repos.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": "^22.23.4 || ^24.22.1 || >=26.12.1"
   },
   "license": "MIT",
   "repository": {

@@ -38,8 +38,9 @@ card's main action.
 
 ### Command-line tool
 
-Needs Node.js 20 or later. It writes the same practices into `AGENTS.md`,
-`CLAUDE.md` or a neutral Markdown file; see [Adopt a profile](#adopt-a-profile).
+Needs Node.js 22.23.4, 24.22.1, 26.12.1 or a later release in the same line.
+It writes the same practices into `AGENTS.md`, `CLAUDE.md` or a neutral
+Markdown file; see [Adopt a profile](#adopt-a-profile).
 
 ## Skill repos
 
