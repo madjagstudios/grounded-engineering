@@ -20,6 +20,20 @@ export async function syncIssue({ api, title, body, clean, note }) {
   return { action: 'created', number: await api.create(title, body) };
 }
 
+// Reads through to the real API, but every write only prints what it would have done,
+// so a manual run can be checked without touching the issue.
+export function dryRunIssuesApi(api, write) {
+  const would = (s) => write(`dry run: would ${s}\n`);
+  return {
+    findOpenIssue: () => api.findOpenIssue(),
+    ensureLabel: async () => would(`make sure the ${LABEL} label exists`),
+    create: async (title, body) => { would(`open "${title}" with:\n${body}`); return null; },
+    update: async (number, body) => would(`replace the body of #${number} with:\n${body}`),
+    comment: async (number, body) => would(`comment on #${number}: ${body}`),
+    close: async (number) => would(`close #${number}`)
+  };
+}
+
 export function createIssuesApi({ token, repository, fetchImpl = globalThis.fetch }) {
   const call = async (method, path, payload) => {
     const res = await fetchImpl(`${BASE}/repos/${repository}${path}`, {

@@ -21,6 +21,8 @@ records the state of the catalog and tooling at that tag.
   against its reviewed record (see CONTRIBUTING).
 - An Upstream watch workflow that runs `check:sources` and `check:skill-repos`
   every Monday and reports what they find in an `upstream-drift` issue.
+- A `dry_run` option for a manual Upstream watch run: it runs both checks and
+  prints what it would do to the `upstream-drift` issue without changing it.
 
 ### Changed
 - Five Codex sources re-read and re-pinned to `515c291`, after the first

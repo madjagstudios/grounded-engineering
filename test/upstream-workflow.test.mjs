@@ -22,5 +22,11 @@ test('the upstream watch can read the code and write issues, nothing more', () =
 test('the upstream watch uses only the built-in token', () => {
   assert.doesNotMatch(text, /secrets\./);
   const step = workflow.jobs.watch.steps.find((s) => s.run === 'node scripts/upstream-watch.mjs');
-  assert.deepEqual(step.env, { GITHUB_TOKEN: '${{ github.token }}' });
+  assert.deepEqual(step.env, { GITHUB_TOKEN: '${{ github.token }}', UPSTREAM_WATCH_DRY_RUN: '${{ inputs.dry_run }}' });
+});
+
+test('a manual run can be a dry run, and it is off unless asked for', () => {
+  assert.deepEqual(workflow.on.workflow_dispatch.inputs, {
+    dry_run: { description: 'Print what would change in the issue, without changing it', type: 'boolean', default: false }
+  });
 });

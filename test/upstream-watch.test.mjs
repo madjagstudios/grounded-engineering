@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { syncIssue, createIssuesApi, LABEL } from '../scripts/lib/upstream-issue.mjs';
+import { syncIssue, createIssuesApi, dryRunIssuesApi, LABEL } from '../scripts/lib/upstream-issue.mjs';
 import { runUpstreamWatch } from '../scripts/upstream-watch.mjs';
 
 // An in-memory issue tracker with the same calls as createIssuesApi.
@@ -122,4 +122,45 @@ test('when both checks are clean the issue closes', async () => {
   const api = tracker([{ number: 7, body: 'old' }]);
   await runUpstreamWatch({ api, env, runSources: check(0, 'a\n'), runSkillRepos: check(0, 'b\n'), write: () => {} });
   assert.equal(api.issues[0].state, 'closed');
+});
+
+// The tracker with every write made to fail the test, for proving a dry run writes nothing.
+const readOnly = (open) => {
+  const api = tracker(open);
+  for (const name of ['ensureLabel', 'create', 'update', 'comment', 'close']) api[name] = async () => assert.fail(`dry run called ${name}`);
+  return api;
+};
+
+for (const [name, open, clean, action, line] of [
+  ['opens', [], false, 'created', /would open "t" with:\nreport/],
+  ['updates', [{ number: 7, body: 'old' }], false, 'updated', /would replace the body of #7 with:\nreport/],
+  ['closes', [{ number: 7, body: 'old' }], true, 'closed', /would close #7/],
+  ['leaves alone', [], true, 'none', /^$/]
+]) {
+  test(`a dry run that ${name} the issue only says so`, async () => {
+    const api = readOnly(open);
+    let out = '';
+    const result = await syncIssue({ api: dryRunIssuesApi(api, (s) => { out += s; }), title: 't', body: 'report', clean, note: 'n' });
+    assert.equal(result.action, action);
+    assert.match(out, line);
+    assert.deepEqual(api.issues.map((i) => [i.number, i.state, i.body, i.comments.length]), open.map((i) => [i.number, 'open', i.body, 0]));
+  });
+}
+
+test('UPSTREAM_WATCH_DRY_RUN=true makes the weekly run change nothing and say so', async () => {
+  const api = readOnly([{ number: 7, body: 'old' }]);
+  let out = '';
+  const code = await runUpstreamWatch({ api, env: { ...env, UPSTREAM_WATCH_DRY_RUN: 'true' }, runSources: check(0, 'a\n'), runSkillRepos: check(1, 'drift\n'), write: (s) => { out += s; } });
+  assert.equal(code, 0);
+  assert.match(out, /would replace the body of #7/);
+  assert.match(out, /issue: dry run, nothing changed; would have updated #7/);
+  assert.equal(api.issues[0].body, 'old');
+});
+
+test('any other UPSTREAM_WATCH_DRY_RUN value, as on a scheduled run, still updates the issue', async () => {
+  for (const value of ['', 'false', undefined]) {
+    const api = tracker([{ number: 7, body: 'old' }]);
+    await runUpstreamWatch({ api, env: { ...env, UPSTREAM_WATCH_DRY_RUN: value }, runSources: check(0, 'a\n'), runSkillRepos: check(1, 'drift\n'), write: () => {} });
+    assert.match(api.issues[0].body, /drift/);
+  }
 });
