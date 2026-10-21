@@ -4,7 +4,7 @@ import { realpathSync } from 'node:fs';
 import process from 'node:process';
 import { runCheckSources } from './check-sources.mjs';
 import { runCheckSkillRepos } from './check-skill-repos.mjs';
-import { syncIssue, createIssuesApi } from './lib/upstream-issue.mjs';
+import { syncIssue, createIssuesApi, dryRunIssuesApi } from './lib/upstream-issue.mjs';
 
 const TITLE = 'Upstream changes to review';
 
@@ -32,8 +32,10 @@ export async function runUpstreamWatch({ root, api, env = process.env, runSource
   ].join('\n\n') + '\n';
   const note = clean ? `The check at ${runUrl} found nothing to review.` : `Updated by ${runUrl}.`;
 
-  const result = await syncIssue({ api, title: TITLE, body, clean, note });
-  write(`issue: ${result.action}${result.number ? ` #${result.number}` : ''}\n`);
+  // UPSTREAM_WATCH_DRY_RUN is set from the workflow's manual `dry_run` input.
+  const dryRun = env.UPSTREAM_WATCH_DRY_RUN === 'true';
+  const result = await syncIssue({ api: dryRun ? dryRunIssuesApi(api, write) : api, title: TITLE, body, clean, note });
+  write(`issue: ${dryRun ? 'dry run, nothing changed; would have ' : ''}${result.action}${result.number ? ` #${result.number}` : ''}\n`);
   return 0;
 }
 
