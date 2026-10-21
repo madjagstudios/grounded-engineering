@@ -9,6 +9,13 @@ records the state of the catalog and tooling at that tag.
 
 ## [Unreleased]
 
+### Security
+- CI runs on Node 24.22.1, pinned in `.node-version`, instead of Node 20, which
+  is end-of-life. The October 2026 Node security releases distrust the
+  compromised eMudhra intermediate certificates; `engines` now requires one of
+  those releases (22.23.4, 24.22.1, 26.12.1) or later in its line. Each workflow
+  prints the Node and npm versions and fails if Node differs from the pin.
+
 ### Added
 - `npm run check:skill-repos`, which checks each listed skill repository
   against its reviewed record (see CONTRIBUTING).

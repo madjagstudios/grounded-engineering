@@ -23,8 +23,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Pinned to a patched release; see .node-version.
+          node-version-file: .node-version
           cache: npm
+      - name: Check the Node version
+        shell: bash
+        run: |
+          node --version
+          npm --version
+          test "$(node --version)" = "v$(cat .node-version)"
       - run: npm ci
       - name: Check upstream and update the issue
         run: node scripts/upstream-watch.mjs
